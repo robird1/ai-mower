@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Mower</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+
+    <string name="add_robot_instruction1">Press the power button behind Ladybug for two seconds. After hearing the "Beep" sound and the power button indicator will start blinking the green light.</string>
+    <string name="add_robot_instruction2">Please wait for the initialization of Ladybug. The process will be completed within one minute. After hearing 3 consecutive "Beep" sounds and Ladybug\'s headlights start to flash in green, your Ladybug is ready for pairing.</string>
+    <string name="setup_map_instruction">Driving the Ladybug to define the operating area. You can easily tap on the screen to start driving Ladybug with joystick.\nPlease drive Ladybug to the appropriate position and press the start button to draw the boundary.</string>
+
+</resources>
