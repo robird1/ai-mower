@@ -16,7 +16,8 @@ class VerificationActivity: AppCompatActivity() {
 
 //            val intent = Intent(this, RobotPairingListActivity::class.java)
 //            intent.putExtra("mode", "no_robot")
-            val intent = Intent(this, ConnectDeviceActivity::class.java)
+//            val intent = Intent(this, ConnectDeviceActivity::class.java)
+            val intent = Intent(this, AddRobotInstructionActivity::class.java)
             startActivity(intent)
         }
     }

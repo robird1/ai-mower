@@ -45,7 +45,8 @@ class AddRobotInstructionActivity: AppCompatActivity() {
                 // move to next screen
                 viewPager.currentItem = next
             } else {
-                val intent = Intent(this@AddRobotInstructionActivity, RobotPairingListActivity::class.java)
+//                val intent = Intent(this@AddRobotInstructionActivity, RobotPairingListActivity::class.java)
+                val intent = Intent(this@AddRobotInstructionActivity, ConnectDeviceActivity::class.java)
                 intent.putExtra("mode", "fake_list")
                 startActivity(intent)
             }
