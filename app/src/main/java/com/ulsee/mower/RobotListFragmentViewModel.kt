@@ -6,24 +6,34 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.*
+import com.ulsee.mower.data.model.Device
+import com.ulsee.mower.data.model.RealmDevice
+import io.realm.Realm
+import io.realm.kotlin.where
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.collections.ArrayList
 
 
-private val TAG = ConnectDeviceActivityViewModel::class.java.simpleName
+private val TAG = RobotListFragmentViewModel::class.java.simpleName
 private const val MANUFACTURER_ID = 741
 private val SERVICE_UUID = UUID.fromString("0000abf0-0000-1000-8000-00805f9b34fb")
 private val CHARACTERISTIC_WRITE_UUID = UUID.fromString("0000abf1-0000-1000-8000-00805f9b34fb")
 private val CHARACTERISTIC_READ_UUID = UUID.fromString("0000abf2-0000-1000-8000-00805f9b34fb")
 private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
-class ConnectDeviceActivityViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val bluetoothAdapter: BluetoothAdapter by lazy {
+class RobotListFragmentViewModel(val app: Application) : AndroidViewModel(app) {
+
+    val bluetoothAdapter: BluetoothAdapter by lazy {
         val bluetoothManager = getApplication<Application>().applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothManager.adapter
     }
@@ -51,6 +61,9 @@ private var _isDeviceFound : MutableLiveData<Boolean> = MutableLiveData()
     private var _isVerificationSuccess : MutableLiveData<Boolean> = MutableLiveData()
     val isVerificationSuccess : LiveData<Boolean>
         get() = _isVerificationSuccess
+    private var _isInputDuplicated = MutableLiveData<Boolean>()
+    val isInputDuplicated : LiveData<Boolean>
+        get() = _isInputDuplicated
 
     private var _isScanning = MutableLiveData<Boolean>()
     val isScanning : LiveData<Boolean>
@@ -61,6 +74,10 @@ private var _isDeviceFound : MutableLiveData<Boolean> = MutableLiveData()
     private var _serviceDiscoveredStatus = MutableLiveData<Boolean>()
     val serviceDiscoveredStatus : LiveData<Boolean>
         get() = _serviceDiscoveredStatus
+
+    private var _deviceList = MutableLiveData<List<Device>>()
+    val deviceList : LiveData<List<Device>>
+        get() = _deviceList
 
     private var bluetoothGatt: BluetoothGatt? = null
 
@@ -85,8 +102,6 @@ private var _isDeviceFound : MutableLiveData<Boolean> = MutableLiveData()
                         } else {
                             scanResults.add(result)
                         }
-//                        _scanResult.postValue(scanResults)
-//                        Log.d(TAG, "device.hashCode(): ${result.device.hashCode()}")
                     }
                 }
             }
@@ -94,18 +109,27 @@ private var _isDeviceFound : MutableLiveData<Boolean> = MutableLiveData()
     }
 
     init {
-        startBLEScan()
+//        startBLEScan()
+//        getDeviceList()
     }
 
 
-    fun startBLEScan() {
-    Log.d(TAG, "[Enter] startBLEScan()")
-//        val filters = arrayListOf(filter)
-        if (_isScanning.value == true)
-            stopBleScan()
+    fun startBLEScan(fragment: RobotListFragment) {
 
-        bleScanner.startScan(null, scanSettings, scanCallback)
-        _isScanning.value = true
+        Utils.checkLocationSetting(fragment.requireActivity())
+
+//        Log.d(TAG, "[Enter] startBLEScan()")
+        if (!fragment.isLocationPermissionGranted) {
+            fragment.requestLocationPermission()
+        }
+        else {
+//        val filters = arrayListOf(filter)
+            if (_isScanning.value == true)
+                stopBleScan()
+
+            bleScanner.startScan(null, scanSettings, scanCallback)
+            _isScanning.value = true
+        }
     }
 
     fun stopBleScan() {
@@ -378,8 +402,7 @@ fun writeCharacteristic() {
         return strbul.toString()
     }
 
-    //    fun enableNotifications(characteristic: BluetoothGattCharacteristic) {
-fun enableNotifications() {
+    private fun enableNotifications() {
         val characteristic = bluetoothGatt?.getService(SERVICE_UUID)?.getCharacteristic(CHARACTERISTIC_READ_UUID)
         val payload = when {
             characteristic?.isIndicatable() == true -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
@@ -437,21 +460,62 @@ fun enableNotifications() {
     fun BluetoothGattCharacteristic.isNotifiable(): Boolean =
             containsProperty(BluetoothGattCharacteristic.PROPERTY_NOTIFY)
 
+    fun Context.hasPermission(permissionType: String): Boolean {
+        return ContextCompat.checkSelfPermission(this, permissionType) ==
+                PackageManager.PERMISSION_GRANTED
+    }
+
+
     private fun setValueInMainThread(lambda: () -> Unit) {
         Handler(Looper.getMainLooper()).post {
             lambda()
         }
     }
 
+    fun saveDevice(serialNumber: String, md5:String) {
+        viewModelScope.launch {
+            val realm = Realm.getDefaultInstance()
+            realm.beginTransaction()
+            val device: RealmDevice = realm.createObject(RealmDevice::class.java)
+            device.setSerialNumber(serialNumber)
+            device.setSnMD5(md5)
+            realm.commitTransaction()
+            realm.close()
+        }
+    }
+
+    fun isInputDuplicated(sn: String) {
+        viewModelScope.launch {
+            _isInputDuplicated.value = isSerialNumberDuplicated(sn)
+        }
+    }
+
+    private suspend fun isSerialNumberDuplicated(sn: String): Boolean = withContext(Dispatchers.IO) {
+        val realm = Realm.getDefaultInstance()
+        realm.beginTransaction()
+        val realmDevice = realm.where(RealmDevice::class.java).equalTo("mSN", sn).findFirst()
+        realm.commitTransaction()
+        realm.close()
+        return@withContext realmDevice != null
+    }
+
+    fun getDeviceList() {
+        viewModelScope.launch {
+            _deviceList.value = getDevices()
+        }
+    }
+
+    private suspend fun getDevices(): List<Device> = withContext(Dispatchers.IO) {
+        val realm = Realm.getDefaultInstance()
+        val results = realm.where<RealmDevice>().findAll()
+        val deviceList = ArrayList<Device>()
+        for (realmDevice in results) {
+            val device = Device.clone(realmDevice)
+            deviceList.add(device)
+        }
+        realm.close()
+        return@withContext deviceList
+    }
+
+
 }
-
-
-//class MainActivityFactory : ViewModelProvider.Factory {
-//    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-//        if (modelClass.isAssignableFrom(MainActivityViewModel::class.java)) {
-//            @Suppress("UNCHECKED_CAST")
-//            return MainActivityViewModel(application) as T
-//        }
-//        throw IllegalArgumentException("Unknown ViewModel class")
-//    }
-//}

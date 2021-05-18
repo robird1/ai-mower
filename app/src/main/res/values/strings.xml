@@ -8,6 +8,8 @@
     <string name="invalid_username">Not a valid username</string>
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
+    <string name="button_confirm">Confirm</string>
+    <string name="button_cancel">Cancel</string>
 
     <string name="add_robot_instruction1">Press the power button behind Ladybug for two seconds. After hearing the "Beep" sound and the power button indicator will start blinking the green light.</string>
     <string name="add_robot_instruction2">Please wait for the initialization of Ladybug. The process will be completed within one minute. After hearing 3 consecutive "Beep" sounds and Ladybug\'s headlights start to flash in green, your Ladybug is ready for pairing.</string>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/mobile_navigation"
+    app:startDestination="@id/robotListFragment">
+    <fragment
+        android:id="@+id/robotListFragment"
+        android:name="com.ulsee.mower.RobotListFragment"
+        android:label="RobotListFragment" >
+        <action
+            android:id="@+id/action_robotListFragment_to_addRobotInstructionFragment"
+            app:destination="@id/addRobotInstructionFragment" />
+        <action
+            android:id="@+id/action_robotListFragment_to_statusFragment"
+            app:destination="@id/statusFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addRobotInstructionFragment"
+        android:name="com.ulsee.mower.AddRobotInstructionFragment"
+        android:label="AddRobotInstructionFragment" />
+    <fragment
+        android:id="@+id/statusFragment"
+        android:name="com.ulsee.mower.StatusFragment"
+        android:label="StatusFragment" />
+</navigation>
