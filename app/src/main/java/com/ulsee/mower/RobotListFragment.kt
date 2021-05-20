@@ -4,11 +4,11 @@ import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.bluetooth.BluetoothAdapter
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.IBinder
 import android.preference.PreferenceManager
 import android.provider.Settings
 import android.util.Log
@@ -27,6 +27,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import com.ulsee.mower.data.*
 import com.ulsee.mower.data.model.AppPreference
 import com.ulsee.mower.databinding.FragmentRobotListBinding
 
@@ -39,10 +40,42 @@ class RobotListFragment: Fragment() {
     private lateinit var binding: FragmentRobotListBinding
     private lateinit var progressBar: ConstraintLayout
     private lateinit var viewModel: RobotListFragmentViewModel
+//    private val bleService: BluetoothLeService? by lazy {
+//        (activity as MainActivity).bluetoothService
+//    }
+var bluetoothService: BluetoothLeService? = null
+    private lateinit var bleRepository: BluetoothLeRepository
+
     val isLocationPermissionGranted
         get() = requireActivity().hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
 
     private var inputSerialNumber: String? = null
+
+    private val serviceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(
+                componentName: ComponentName,
+                service: IBinder
+        ) {
+            Log.d(TAG, "[Enter] onServiceConnected")
+
+            bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
+
+            bleRepository.setBleService(bluetoothService!!)
+
+            viewModel.startBLEScan(this@RobotListFragment)
+
+            if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
+                promptEnableBluetooth()
+            }
+        }
+
+        override fun onServiceDisconnected(componentName: ComponentName) {
+            Log.d(TAG, "[Enter] onServiceDisconnected")
+
+            bluetoothService = null
+        }
+    }
+
 
     override fun onAttach(context: Context) {
         Log.d(TAG, "[Enter] onAttach")
@@ -52,6 +85,9 @@ class RobotListFragment: Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "[Enter] onCreate")
         super.onCreate(savedInstanceState)
+
+        val gattServiceIntent = Intent(context, BluetoothLeService::class.java)
+        requireActivity().bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -81,6 +117,7 @@ class RobotListFragment: Fragment() {
 
     override fun onDestroyView() {
         Log.d(TAG, "[Enter] onDestroyView")
+        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
         super.onDestroyView()
     }
 
@@ -98,16 +135,17 @@ class RobotListFragment: Fragment() {
         Log.d(TAG, "[Enter] onCreateView")
 
         binding = FragmentRobotListBinding.inflate(inflater, container, false)
+
         initViewModel()
 
-        viewModel.startBLEScan(this)
+        registerBLEReceiver()
+
+//        viewModel.startBLEScan(this)
         viewModel.getDeviceList()
 
         initProgressBar()
         initRecyclerView()
         initDeviceListObserver()
-//        initScanStatusObserver()
-//        initScanResultObserver()
         initDeviceNotFoundObserver()
         initConnectFailedObserver()
         initGattStatusObserver()
@@ -117,11 +155,23 @@ class RobotListFragment: Fragment() {
 //        (activity as MainActivity).setTitle("Capture Attributes")
 
         Log.d(TAG, "isLocationPermissionGranted: $isLocationPermissionGranted")
-        if (!viewModel.bluetoothAdapter.isEnabled) {
-            promptEnableBluetooth()
-        }
+//        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
+//            promptEnableBluetooth()
+//        }
 
         return binding.root
+    }
+
+    private fun registerBLEReceiver() {
+        val filter = IntentFilter()
+        filter.addAction(ACTION_CONNECT_FAILED)
+        filter.addAction(ACTION_DEVICE_NOT_FOUND)
+        filter.addAction(ACTION_GATT_CONNECTED)
+        filter.addAction(ACTION_GATT_DISCONNECTED)
+        filter.addAction(ACTION_GATT_NOT_SUCCESS)
+        filter.addAction(ACTION_VERIFICATION_SUCCESS)
+        filter.addAction(ACTION_VERIFICATION_FAILED)
+        requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
     }
 
     override fun onResume() {
@@ -203,24 +253,6 @@ class RobotListFragment: Fragment() {
             }.show()
     }
 
-    private fun initInputSnObserver() {
-        viewModel.isInputDuplicated.observe(viewLifecycleOwner) { isDuplicated ->
-            if (!isDuplicated) {
-                progressBar.isVisible = true
-                context?.let { viewModel.connectBLEDevice(it, inputSerialNumber!!) }
-
-            } else {
-                AlertDialog.Builder(activity)
-                        .setMessage("Device has already been added before!")
-                        .setPositiveButton (android.R.string.ok) { it, _ ->
-                            it.dismiss()
-                        }
-                        .setCancelable(false)
-                        .show()
-            }
-        }
-    }
-
     private fun initDeviceListObserver() {
         viewModel.deviceList.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
@@ -230,55 +262,83 @@ class RobotListFragment: Fragment() {
         }
     }
 
-    private fun initVerificationObserver() {
-        viewModel.isVerificationSuccess.observe(viewLifecycleOwner) { isSuccess ->
-            progressBar.isVisible = false
-            if (isSuccess) {
-                if (inputSerialNumber != null) {        // add device mode
-                    saveDevice()
-                } else {
-                    // connect to existing device
-                }
-                findNavController().navigate(R.id.statusFragment)
-            }
-//            else {
-//                Toast.makeText(this, "error: Device not found", Toast.LENGTH_SHORT).show()
-//            }
-        }
-    }
+    private fun initDeviceNotFoundObserver() {
+        viewModel.isDeviceFound.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { isFound ->
+                progressBar.isVisible = false
+                if (!isFound) {
+                    Toast.makeText(context, "error: Device not found", Toast.LENGTH_SHORT).show()
 
-    private fun saveDevice() {
-        viewModel.saveDevice(inputSerialNumber!!, MD5.convertMD5(inputSerialNumber!!))
+                    // restart the scanning if it has been stopped
+                    viewModel.startBLEScan(this)
+                }
+            }
+        }
     }
 
     private fun initConnectFailedObserver() {
         viewModel.connectFailedLog.observe(viewLifecycleOwner) {
-            progressBar.isVisible = false
-            Toast.makeText(activity, it, Toast.LENGTH_SHORT).show()
+            it.getContentIfNotHandled()?.let { msg ->
+                progressBar.isVisible = false
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    private fun initDeviceNotFoundObserver() {
-        viewModel.isDeviceFound.observe(viewLifecycleOwner) { isFound ->
-            progressBar.isVisible = false
-            if (!isFound) {
-                Toast.makeText(activity, "error: Device not found", Toast.LENGTH_SHORT).show()
+    private fun initGattStatusObserver() {
+//        progressBar.isVisible = false
+        viewModel.gattStatusCode.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { statusCode ->
+                when(statusCode) {
+                    0 -> Toast.makeText(context, "BluetoothGatt.GATT_SUCCESS", Toast.LENGTH_SHORT).show()
+                    else -> Toast.makeText(context, "status != BluetoothGatt.GATT_SUCCESS", Toast.LENGTH_SHORT).show()
+                }
             }
         }
+    }
+
+    private fun initVerificationObserver() {
+        viewModel.isVerificationSuccess.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { isSuccess ->
+                progressBar.isVisible = false
+                if (isSuccess) {
+                    Toast.makeText(context, "verification success", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.statusFragment)
+                } else {
+                    // to avoid double subscribe notification
+                    bleRepository.disconnectDevice()
+                    Toast.makeText(context, "verification failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun initInputSnObserver() {
+        viewModel.isInputDuplicated.observe(viewLifecycleOwner) { it ->
+            it.getContentIfNotHandled()?.let { isDuplicated ->
+                if (!isDuplicated) {
+                    progressBar.isVisible = true
+                    viewModel.connectBLEDevice(inputSerialNumber!!)
+
+                } else {
+                    AlertDialog.Builder(activity)
+                        .setMessage("Device has already been added before!")
+                        .setPositiveButton(android.R.string.ok) { it, _ ->
+                            it.dismiss()
+                        }
+                        .setCancelable(false)
+                        .show()
+                }
+            }
+        }
+    }
+
+    private fun saveDevice() {
+        viewModel.saveDevice(inputSerialNumber!!)
     }
 
     private fun initProgressBar() {
         progressBar = binding.progressView
-    }
-
-    private fun initGattStatusObserver() {
-        progressBar.isVisible = false
-        viewModel.gattStatusCode.observe(viewLifecycleOwner) {
-            when(it) {
-                0 -> Toast.makeText(activity, "BluetoothGatt.GATT_SUCCESS", Toast.LENGTH_SHORT).show()
-                else -> Toast.makeText(activity, "status != BluetoothGatt.GATT_SUCCESS", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     private fun showPermissionIsNecessary(activity: Activity) {
@@ -300,7 +360,7 @@ class RobotListFragment: Fragment() {
     }
 
     private fun promptEnableBluetooth() {
-        if (!viewModel.bluetoothAdapter.isEnabled) {
+        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableBtIntent, ENABLE_BLUETOOTH_REQUEST_CODE)
         }
@@ -347,8 +407,9 @@ class RobotListFragment: Fragment() {
     }
 
     private fun initViewModel() {
-//        viewModel = ViewModelProvider(this, MainActivityFactory()).get(MainActivityViewModel::class.java)
-        viewModel = ViewModelProvider.AndroidViewModelFactory(requireActivity().application).create(RobotListFragmentViewModel::class.java)
+        bleRepository = BluetoothLeRepository()
+        viewModel = ViewModelProvider(this, RobotListFactory(bleRepository, DatabaseRepository())).get(RobotListFragmentViewModel::class.java)
+//        viewModel = ViewModelProvider.AndroidViewModelFactory(requireActivity().application).create(RobotListFragmentViewModel::class.java)
 
     }
 

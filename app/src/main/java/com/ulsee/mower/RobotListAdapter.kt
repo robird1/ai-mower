@@ -42,7 +42,7 @@ class RobotListAdapter(private val viewModel: RobotListFragmentViewModel, privat
 //                Log.d(TAG, "[Enter] onClick()")
                 device?.let { it1 ->
                     progressBar.isVisible = true
-                    viewModel.connectBLEDevice(itemView.context, device!!.getSerialNumber())
+                    viewModel.connectBLEDevice(device!!.getSerialNumber())
                 }
             }
         }

@@ -35,6 +35,9 @@
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity"/>
 
+        <service android:name=".data.BluetoothLeService"
+            android:exported="false" />
+
     </application>
 
 </manifest>

@@ -1,10 +1,17 @@
 package com.ulsee.mower
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
+import com.ulsee.mower.data.BluetoothLeService
 import com.ulsee.mower.databinding.ActivityMainBinding
+import com.ulsee.mower.utils.Utils
 
 private val TAG = MainActivity::class.java.simpleName
 
@@ -18,10 +25,12 @@ class MainActivity: AppCompatActivity() {
 //                componentName: ComponentName,
 //                service: IBinder
 //        ) {
+//            Log.d(TAG, "[Enter] onServiceConnected")
+//
 //            bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
-//            bluetoothService?.let { bluetooth ->
-//                // call functions on service to check connection and connect to devices
-//            }
+////            bluetoothService?.let { bluetooth ->
+////                // call functions on service to check connection and connect to devices
+////            }
 //        }
 //
 //        override fun onServiceDisconnected(componentName: ComponentName) {
@@ -30,10 +39,14 @@ class MainActivity: AppCompatActivity() {
 //    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "[Enter] onCreate")
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 //        setSupportActionBar(binding.toolbar)
+
+//        val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
+//        bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
 
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each

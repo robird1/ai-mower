@@ -1,4 +1,4 @@
-package com.ulsee.mower
+package com.ulsee.mower.utils
 
 import android.app.Activity
 import android.content.IntentSender
