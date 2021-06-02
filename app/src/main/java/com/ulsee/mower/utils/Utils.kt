@@ -16,6 +16,14 @@ class Utils {
     companion object {
         const val REQUEST_LOCATION_SETTINGS = 5678
 
+        fun littleEndianConversion(bytes: ByteArray): Int {
+            var result = 0
+            for (i in bytes.indices) {
+                result = result or (bytes[i].toInt() shl 8 * i)
+            }
+            return result
+        }
+
         fun checkLocationSetting(activity: Activity) {
             val mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)

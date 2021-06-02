@@ -1,23 +1,18 @@
 package com.ulsee.mower
 
 import android.app.AlertDialog
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.IntentFilter
 import android.os.Bundle
-import android.os.IBinder
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
+import com.ulsee.mower.data.BluetoothLeRepository
 import com.ulsee.mower.data.BluetoothLeService
+import com.ulsee.mower.data.RobotStatusState.Companion.ACTION_STATUS_RESPONSE
 import com.ulsee.mower.databinding.ActivityStatusBinding
 
 private val TAG = StatusFragment::class.java.simpleName
@@ -25,52 +20,39 @@ private val TAG = StatusFragment::class.java.simpleName
 class StatusFragment: Fragment() {
     private lateinit var binding: ActivityStatusBinding
     private lateinit var viewModel: StatusFragmentViewModel
-//    private val viewModel: RobotListFragmentViewModel by activityViewModels()
-var bluetoothService: BluetoothLeService? = null
-
-    private val serviceConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(
-            componentName: ComponentName,
-            service: IBinder
-        ) {
-            Log.d(TAG, "[Enter] onServiceConnected")
-
-            bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
-
-        }
-
-        override fun onServiceDisconnected(componentName: ComponentName) {
-            Log.d(TAG, "[Enter] onServiceDisconnected")
-
-            bluetoothService = null
-        }
-    }
+    lateinit var bluetoothService: BluetoothLeService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val gattServiceIntent = Intent(context, BluetoothLeService::class.java)
-        requireActivity().bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+        bluetoothService = (activity as MainActivity).bluetoothService!!
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = ActivityStatusBinding.inflate(inflater, container, false)
-        super.onCreate(savedInstanceState)
 
-        viewModel = initViewModel()
+        initViewModel()
+
+        registerBLEReceiver()
+
+        initPowerObserver()
 
         addOnBackPressedCallback()
 
-        binding.button2.setOnClickListener {
-
-
+        binding.setupButton.setOnClickListener {
+            findNavController().navigate(R.id.mapFragment)
         }
 
         return binding.root
     }
 
-    // TODO
-    private fun initViewModel(): StatusFragmentViewModel {
-        return ViewModelProvider.AndroidViewModelFactory(requireActivity().application).create(StatusFragmentViewModel::class.java)
+    override fun onDestroyView() {
+        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
+        super.onDestroyView()
+    }
+
+    private fun initViewModel() {
+        viewModel = ViewModelProvider(this, StatusFragmentFactory(
+            BluetoothLeRepository(bluetoothService))).get(StatusFragmentViewModel::class.java)
     }
 
     private fun addOnBackPressedCallback() {
@@ -84,12 +66,28 @@ var bluetoothService: BluetoothLeService? = null
                         .setCancelable(false)
                         .setPositiveButton(R.string.button_confirm) { _, _ ->
 
-                            bluetoothService!!.disconnectDevice()
+                            viewModel.disconnectDevice()
                             findNavController().popBackStack()
 
-                        }.show()
+                        }
+                        .setNegativeButton("cancel") { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .show()
                 }
             })
+    }
+
+    private fun registerBLEReceiver() {
+        val filter = IntentFilter()
+        filter.addAction(ACTION_STATUS_RESPONSE)
+        requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
+    }
+
+    private fun initPowerObserver() {
+        viewModel.powerIndication.observe(viewLifecycleOwner) {
+            binding.powerPercentage.text = it+"%"
+        }
     }
 
 }

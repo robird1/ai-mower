@@ -9,8 +9,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.util.Log
+import android.widget.Toast
 import com.ulsee.mower.utils.MD5
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 private val TAG = BluetoothLeService::class.java.simpleName
 
@@ -27,6 +29,9 @@ const val ACTION_GATT_DISCONNECTED = "action_gatt_disconnected"
 const val ACTION_GATT_NOT_SUCCESS = "action_gatt_not_success"
 const val ACTION_VERIFICATION_SUCCESS = "action_verification_success"
 const val ACTION_VERIFICATION_FAILED = "action_verification_failed"
+const val ACTION_STATUS_RESPONSE = "action_status_response"
+
+private const val GATT_MAX_MTU_SIZE = 200
 
 class BluetoothLeService : Service() {
 
@@ -40,9 +45,6 @@ class BluetoothLeService : Service() {
         bluetoothAdapter.bluetoothLeScanner
     }
 
-    private val handler: Handler = Handler(Looper.getMainLooper())
-    private var verificationTask: Runnable? = null
-
     private val scanSettings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
@@ -51,12 +53,23 @@ class BluetoothLeService : Service() {
 
     private var serialNumberInput: String? = null
 
+    // TODO update value when gatt is closed
+    private var bleState: BLEState = RobotListState()
+//    private var isMovingState = false
+
+    private val operationQueue = ConcurrentLinkedQueue<BleOperationType>()
+    private var pendingOperation: BleOperationType? = null
+
+    private var verificationTask: Runnable? = null
+    private var getStatusTask: Runnable? = null
+    private val handler: Handler = Handler(Looper.getMainLooper())
     private var serviceLooper: Looper? = null
-    private var serviceHandler: ServiceHandler? = null
+    private lateinit var moveHandler: Handler
+    private lateinit var statusHandler: StatusHandler
 
 
     // Handler that receives messages from the thread
-    private inner class ServiceHandler(looper: Looper) : Handler(looper) {
+    private inner class StatusHandler(looper: Looper) : Handler(looper) {
 
         override fun handleMessage(msg: Message) {
             // Normally we would do some work here, like download a file.
@@ -74,17 +87,36 @@ class BluetoothLeService : Service() {
         }
     }
 
+    sealed class BleOperationType {
+        abstract val lambda: ()-> Unit
+
+        class CONNECT(override val lambda: ()-> Unit) : BleOperationType()
+        class DISCONNECT(override val lambda: ()-> Unit): BleOperationType()
+        class DISCOVER_SERVICE(override val lambda: () -> Unit): BleOperationType()
+        class CHARACTERISTIC_WRITE(override val lambda: () -> Unit) : BleOperationType()
+        class DESCRIPTOR_WRITE(override val lambda: () -> Unit) : BleOperationType()
+        class MTU_REQUEST(override val lambda: () -> Unit) : BleOperationType()
+    }
+
     override fun onCreate() {
-        HandlerThread("ServiceStartArguments", android.os.Process.THREAD_PRIORITY_BACKGROUND).apply {
+        HandlerThread("moveThread", android.os.Process.THREAD_PRIORITY_BACKGROUND).apply {
             start()
 
             // Get the HandlerThread's Looper and use it for our Handler
             serviceLooper = looper
-            serviceHandler = ServiceHandler(looper)
+            moveHandler = Handler(looper)
+        }
+
+        HandlerThread("statusThread", android.os.Process.THREAD_PRIORITY_BACKGROUND).apply {
+            start()
+
+            // Get the HandlerThread's Looper and use it for our Handler
+//            serviceLooper = looper
+            statusHandler = StatusHandler(looper)
         }
     }
 
-    override fun onBind(intent: Intent): IBinder? {
+    override fun onBind(intent: Intent): IBinder {
         return binder
     }
 
@@ -103,8 +135,8 @@ class BluetoothLeService : Service() {
                 if (manufacturerData.size() > 0) {
                     val manufacturerId = manufacturerData.keyAt(0)
                     if (manufacturerId == MANUFACTURER_ID) {
-                        val manufacturerData = scanRecord.getManufacturerSpecificData(manufacturerId)?.toHexString()
-                        Log.d(TAG, "manufacturerId: $manufacturerId manufacturerData: $manufacturerData")
+                        val data = scanRecord.getManufacturerSpecificData(manufacturerId)?.toHexString()
+                        Log.d(TAG, "manufacturerId: $manufacturerId manufacturerData: $data")
 
                         val indexQuery =  scanResults.indexOfFirst { it.device.address == address }
                         if (indexQuery != -1) {  // A scan result already exists with the same address
@@ -137,27 +169,47 @@ class BluetoothLeService : Service() {
         val inputSN = inputSerialNumberToMD5()
         for (i in scanResults) {
             if (inputSN == getScanDeviceSN(i)) {
-//                Log.d(TAG, "inputSN == getScanDeviceSN(i)")
-                Handler(Looper.getMainLooper()).postDelayed({
-                    Log.d(TAG, "[Enter] connectGatt()")
+                enqueueOperation(BleOperationType.CONNECT {
                     i.device.connectGatt(this, false, gattCallback)
-                }, 3000)
+                })
 
                 return
             }
         }
 
-        Log.d(TAG, "[Enter] broadcastUpdate(ACTION_DEVICE_NOT_FOUND)")
         broadcastUpdate(ACTION_DEVICE_NOT_FOUND)
     }
 
     fun disconnectDevice() {
         Log.d(TAG, "[Enter] disconnectDevice()")
-        if (bluetoothGatt != null) {
-            bluetoothGatt!!.close()
-            bluetoothGatt = null
-        }
+        enqueueOperation(BleOperationType.DISCONNECT {
+            if (bluetoothGatt != null) {
+                bluetoothGatt!!.close()
+                bluetoothGatt = null
+            }
+            pendingOperation = null
+            operationQueue.clear()
+            getStatusTask?.let { statusHandler.removeCallbacks(it) }
+        })
     }
+
+    fun getStatus() {
+        getStatusTask = Runnable {
+            enqueueOperation(BleOperationType.CHARACTERISTIC_WRITE {
+                writeCharacteristic(getStatusPayload())
+            })
+            statusHandler.postDelayed(getStatusTask!!, 3000)
+        }
+
+        statusHandler.post(getStatusTask!!)
+    }
+
+    fun moveRobot(rotation: Int, movement: Double) {
+        moveHandler.postDelayed({
+            writeCharacteristic(getMovePayload(rotation, movement), true)
+        }, 50)
+    }
+
 
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
@@ -167,12 +219,22 @@ class BluetoothLeService : Service() {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     Log.d(TAG, "Successfully connected to $deviceAddress")
                     bluetoothGatt = gatt
-                    Handler(Looper.getMainLooper()).post {
-                        bluetoothGatt?.discoverServices()
+
+                    if (pendingOperation is BleOperationType.CONNECT) {
+                        signalEndOfOperation()
                     }
+
+                    enqueueOperation(BleOperationType.MTU_REQUEST {
+                        bluetoothGatt!!.requestMtu(GATT_MAX_MTU_SIZE)
+                    })
+
+                    enqueueOperation(BleOperationType.DISCOVER_SERVICE {
+                        bluetoothGatt?.discoverServices()
+                    })
 
                     broadcastUpdate(ACTION_GATT_CONNECTED, status.toString())
 
+                    getStatus()
 
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     Log.d(TAG, "Successfully disconnected from $deviceAddress")
@@ -181,13 +243,20 @@ class BluetoothLeService : Service() {
 
                     gatt.close()
                     bluetoothGatt = null
+                    pendingOperation = null
+                    operationQueue.clear()
+                    getStatusTask?.let { statusHandler.removeCallbacks(it) }
+
                 }
             } else {
-                Log.d(TAG, "Error $status encountered for $deviceAddress! Disconnecting...")
                 broadcastUpdate(ACTION_GATT_NOT_SUCCESS, "Error $status encountered for $deviceAddress! Disconnecting...")
 
                 gatt.close()
                 bluetoothGatt = null
+                pendingOperation = null
+                operationQueue.clear()
+                getStatusTask?.let { statusHandler.removeCallbacks(it) }
+
             }
 
         }
@@ -197,32 +266,15 @@ class BluetoothLeService : Service() {
                 Log.d(TAG, "Discovered ${services.size} services for ${device.address}")
                 printGattTable() // See implementation just above this section
                 // Consider connection setup as complete here
-                enableNotifications()
 
-//                Handler(Looper.getMainLooper()).postDelayed({
-//                    writeCharacteristic()
-//                }, 3000)
-
-            }
-        }
-
-        override fun onCharacteristicRead(
-                gatt: BluetoothGatt,
-                characteristic: BluetoothGattCharacteristic,
-                status: Int
-        ) {
-            with(characteristic) {
-                when (status) {
-                    BluetoothGatt.GATT_SUCCESS -> {
-                        Log.d(TAG, "Read characteristic $uuid:\n${value.toHexString()}")
-                    }
-                    BluetoothGatt.GATT_READ_NOT_PERMITTED -> {
-                        Log.d(TAG, "Read not permitted for $uuid!")
-                    }
-                    else -> {
-                        Log.d(TAG, "Characteristic read failed for $uuid, error: $status")
-                    }
+                if (pendingOperation is BleOperationType.DISCOVER_SERVICE) {
+                    signalEndOfOperation()
                 }
+
+                enqueueOperation(BleOperationType.DESCRIPTOR_WRITE {
+                    enableNotifications()
+                })
+
             }
         }
 
@@ -234,19 +286,22 @@ class BluetoothLeService : Service() {
             with(characteristic) {
                 when (status) {
                     BluetoothGatt.GATT_SUCCESS -> {
-                        Log.i(TAG, "Wrote to characteristic $uuid | value: ${value.toHexString()}")
+                        Log.d(TAG, "Wrote to characteristic $uuid | value: ${value.toHexString()}")
                     }
                     BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH -> {
-                        Log.e(TAG, "Write exceeded connection ATT MTU!")
+                        broadcastUpdate(ACTION_CONNECT_FAILED, "Write exceeded connection ATT MTU!")
                     }
                     BluetoothGatt.GATT_WRITE_NOT_PERMITTED -> {
-                        Log.e(TAG, "Write not permitted for $uuid!")
+                        broadcastUpdate(ACTION_CONNECT_FAILED, "Write not permitted for $uuid!")
                     }
                     else -> {
-                        Log.e(TAG, "Characteristic write failed for $uuid, error: $status")
                         broadcastUpdate(ACTION_CONNECT_FAILED, "Characteristic write failed for $uuid, error: $status")
                     }
                 }
+            }
+
+            if (pendingOperation is BleOperationType.CHARACTERISTIC_WRITE) {
+                signalEndOfOperation()
             }
         }
 
@@ -257,11 +312,26 @@ class BluetoothLeService : Service() {
             Log.d(TAG, "[Enter] onCharacteristicChanged")
 
             with(characteristic) {
-                Log.i(TAG, "Characteristic $uuid changed | value: ${value.toHexString()}")
-                handler.removeCallbacks(verificationTask!!)
-                Log.d(TAG, "[Enter] handler.removeCallbacks(verificationTask!!)")
+                Log.i(TAG, "Characteristic changed | value: ${value.toHexString()}")
 
-                broadcastUpdate(ACTION_VERIFICATION_SUCCESS)
+//                broadcastUpdate(ACTION_VERIFICATION_SUCCESS)
+//                bleState.onCharacteristicChanged(this@BluetoothLeService, value.toHexString())
+//                bleState = bleState.getNextState()
+
+                val instructionType = value[3].toInt()
+                Log.d(TAG, "instructionType: $instructionType")
+                when (instructionType) {
+                    16 -> {
+                        broadcastUpdate(ACTION_VERIFICATION_SUCCESS, value.toHexString())
+                        handler.removeCallbacks(verificationTask!!)
+                    }
+                    80 -> {
+                        val xByteArray = byteArrayOf(value[6]) + value[7] + value[8] + value[9]
+                        val yByteArray = byteArrayOf(value[10]) + value[11] + value[12] + value[13]
+                        val angle = byteArrayOf(value[15]) + value[16]
+                        broadcastUpdate(ACTION_STATUS_RESPONSE, xByteArray, yByteArray, angle)
+                    }
+                }
             }
         }
 
@@ -270,21 +340,33 @@ class BluetoothLeService : Service() {
                 when (status) {
                     BluetoothGatt.GATT_SUCCESS -> {
                         Log.i(TAG, "Wrote to descriptor ${this?.uuid} | value: ${this?.value?.toHexString()}")
-                        writeCharacteristic()
+                        startVerificationTimer()
+
+                        enqueueOperation(BleOperationType.CHARACTERISTIC_WRITE {
+                            writeCharacteristic(getVerificationPayload())
+                        })
+
                     }
                     BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH -> {
-                        Log.e(TAG, "Write exceeded connection ATT MTU!")
                         broadcastUpdate(ACTION_CONNECT_FAILED, "Write exceeded connection ATT MTU!")
                     }
                     BluetoothGatt.GATT_WRITE_NOT_PERMITTED -> {
-                        Log.e(TAG, "Write not permitted for ${this?.uuid}!")
                         broadcastUpdate(ACTION_CONNECT_FAILED, "Write not permitted for ${this?.uuid}!")
                     }
                     else -> {
-                        Log.e(TAG, "descriptor write failed for ${this?.uuid}, error: $status")
                         broadcastUpdate(ACTION_CONNECT_FAILED, "descriptor write failed for ${this?.uuid}, error: $status")
                     }
                 }
+            }
+            if (pendingOperation is BleOperationType.DESCRIPTOR_WRITE) {
+                signalEndOfOperation()
+            }
+        }
+
+        override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+            Log.d(TAG, "ATT MTU changed to $mtu, success: ${status == BluetoothGatt.GATT_SUCCESS}")
+            if (pendingOperation is BleOperationType.MTU_REQUEST) {
+                signalEndOfOperation()
             }
         }
     }
@@ -303,7 +385,6 @@ class BluetoothLeService : Service() {
 
         characteristic.getDescriptor(CCCD_UUID)?.let { cccDescriptor ->
             if (bluetoothGatt?.setCharacteristicNotification(characteristic, true) == false) {
-                Log.e(TAG, "setCharacteristicNotification failed for ${characteristic.uuid}")
                 broadcastUpdate(ACTION_CONNECT_FAILED, "setCharacteristicNotification failed for ${characteristic.uuid}")
                 return
             }
@@ -311,9 +392,13 @@ class BluetoothLeService : Service() {
         } ?: Log.e(TAG, "${characteristic.uuid} doesn't contain the CCC descriptor!")
     }
 
-    fun writeCharacteristic() {
+    fun writeCharacteristic(payload: ByteArray, isWriteWithoutResponse: Boolean = false) {
         Log.d(TAG, "[Enter] writeCharacteristic")
 
+        if (bluetoothGatt == null) {
+            Toast.makeText(this, "disconnected state", Toast.LENGTH_SHORT).show()
+            return
+        }
         val characteristic = bluetoothGatt?.getService(SERVICE_UUID)?.getCharacteristic(CHARACTERISTIC_WRITE_UUID)
 
         val writeType = when {
@@ -324,34 +409,115 @@ class BluetoothLeService : Service() {
             else -> error("Characteristic ${characteristic?.uuid} cannot be written to")
         }
 
-        Log.d(TAG, "characteristic?.isWritable(): ${characteristic.isWritable()}")
-        Log.d(TAG, "characteristic?.isWritableWithoutResponse(): ${characteristic.isWritableWithoutResponse()}")
+//        Log.d(TAG, "characteristic?.isWritable(): ${characteristic.isWritable()}")
+//        Log.d(TAG, "characteristic?.isWritableWithoutResponse(): ${characteristic.isWritableWithoutResponse()}")
 
 //        val checksumArray = byteArrayOf(0xFA.toByte(), 0x00, 0x17, 0x10, 0x11, 0x4a, 0x43, 0x46, 0x32, 0x30, 0x32, 0x31, 0x30, 0x33, 0x30, 0x32, 0x48, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x31, 0x12, 0x00)
 //        val payload =       byteArrayOf(0xFA.toByte(), 0x00, 0x17, 0x10, 0x11, 0x4a, 0x43, 0x46, 0x32, 0x30, 0x32, 0x31, 0x30, 0x33, 0x30, 0x32, 0x48, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x31, 0x12, 0x00, checkSum.toByte(), 0xFF.toByte())
 //        val payload = getPayload()
 
         bluetoothGatt?.let { gatt ->
-            characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-            characteristic.value = getPayload()
-            startVerificationTimer()
+            characteristic.writeType = if (isWriteWithoutResponse) {
+                BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                Log.d(TAG, "WRITE_TYPE_NO_RESPONSE")
+            } else {
+                BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                Log.d(TAG, "WRITE_TYPE_DEFAULT")
+            }
+
+            characteristic.value = payload
+//            startVerificationTimer()
             gatt.writeCharacteristic(characteristic)
         } ?: error("Not connected to a BLE device!")
+    }
+
+    private fun writeDescriptor(descriptor: BluetoothGattDescriptor, payload: ByteArray) {
+        bluetoothGatt?.let { gatt ->
+            descriptor.value = payload
+            val result = gatt.writeDescriptor(descriptor)
+//            Log.d(TAG, "writeDescriptor result: $result")
+            if (!result) {
+                broadcastUpdate(ACTION_CONNECT_FAILED, "writeDescriptor result: $result")
+            }
+        } ?: error("Not connected to a BLE device!")
+    }
+
+    @Synchronized
+    private fun enqueueOperation(operation: BleOperationType) {
+        Log.d(TAG, "[Enter] enqueueOperation $operation")
+        operationQueue.add(operation)
+        if (pendingOperation == null) {
+            doNextOperation()
+        }
+    }
+
+    @Synchronized
+    private fun doNextOperation() {
+        Log.d(TAG, "[Enter] doNextOperation")
+
+        if (pendingOperation != null) {
+            Log.e(TAG, "doNextOperation() called when an operation is pending! Aborting.")
+            return
+        }
+
+        val operation = operationQueue.poll() ?: run {
+            Log.d(TAG, "Operation queue empty, returning")
+            return
+        }
+        pendingOperation = operation
+
+        when (operation) {
+            is BleOperationType.CONNECT -> operation.lambda()
+            is BleOperationType.DISCONNECT -> operation.lambda()
+            is BleOperationType.DISCOVER_SERVICE -> operation.lambda()
+            is BleOperationType.CHARACTERISTIC_WRITE -> operation.lambda()
+            is BleOperationType.DESCRIPTOR_WRITE -> operation.lambda()
+            is BleOperationType.MTU_REQUEST -> operation.lambda()
+        }
+    }
+
+    @Synchronized
+    private fun signalEndOfOperation() {
+        Log.d(TAG, "[Enter] signalEndOfOperation() End of $pendingOperation")
+        pendingOperation = null
+        if (operationQueue.isNotEmpty()) {
+            doNextOperation()
+        }
     }
 
     private fun startVerificationTimer() {
         Log.d(TAG, "[Enter] startVerificationTimer")
 
         verificationTask = Runnable {
-//            _connectFailedLog.value = "verification failed"
-            Log.d(TAG, "[Enter] broadcastUpdate(ACTION_VERIFICATION_FAILED)")
-
             broadcastUpdate(ACTION_VERIFICATION_FAILED)
         }
         handler.postDelayed(verificationTask!!, 5000)
     }
 
-    private fun getPayload(): ByteArray {
+    private fun getMovePayload(rotation: Int, movement: Double): ByteArray {
+//        val rotation2 = integerToTwoBytes(rotation)
+//        Log.d(TAG, "rotation2: ${rotation2.toHexString()}")
+
+        val checksumArray = byteArrayOf(0xFA.toByte()) + 0x00 + 0x06 + 0x20 + 0x21 + integerToTwoBytes(rotation) + 0x22 + 0x32
+        return checksumArray + getCheckSum(checksumArray).toByte() + 0xFF.toByte()
+    }
+
+    private fun integerToTwoBytes(value: Int): ByteArray {
+        val result = ByteArray(2)
+//        if (value > Math.pow(2.0, 31.0) || value < 0) {
+//            throw UtilityException("Integer value $value is larger than 2^31")
+//        }
+        result[1] = (value ushr 8 and 0xFF).toByte()
+        result[0] = (value and 0xFF).toByte()
+        return result
+    }
+
+    private fun getStatusPayload(): ByteArray {
+        val checksumArray = byteArrayOf(0xFA.toByte()) + 0x00 + 0x02 + 0x50 + 0x00
+        return checksumArray + getCheckSum(checksumArray).toByte() + 0xFF.toByte()
+    }
+
+    private fun getVerificationPayload(): ByteArray {
         val checksumArray = getCheckSumArray()
 //        Log.d(TAG, "checksumArray: ${checksumArray.toHexString()}")
         val checkSum = getCheckSum(checksumArray)
@@ -400,12 +566,25 @@ class BluetoothLeService : Service() {
     }
 
     private fun broadcastUpdate(action: String, message: String = "") {
+        Log.d(TAG, "[Enter] broadcastUpdate() action: $action message: $message")
         val intent = Intent(action)
         if (message.isNotEmpty()) {
             intent.putExtra("message", message)
         }
         sendBroadcast(intent)
     }
+
+    private fun broadcastUpdate(action: String, x: ByteArray, y: ByteArray, angle: ByteArray) {
+//        Log.d(TAG, "[Enter] broadcastUpdate() action: $action message: $message")
+        val intent = Intent(action)
+//        if (message.isNotEmpty()) {
+        intent.putExtra("x", x)
+        intent.putExtra("y", y)
+        intent.putExtra("angle", angle)
+//        }
+        sendBroadcast(intent)
+    }
+
 
     private fun BluetoothGatt.printGattTable() {
         if (services.isEmpty()) {
@@ -425,16 +604,6 @@ class BluetoothLeService : Service() {
     fun ByteArray.toHexString(): String =
             joinToString(separator = " ", prefix = "0x") { String.format("%02X", it) }
 
-    private fun writeDescriptor(descriptor: BluetoothGattDescriptor, payload: ByteArray) {
-        bluetoothGatt?.let { gatt ->
-            descriptor.value = payload
-            val result = gatt.writeDescriptor(descriptor)
-            Log.d(TAG, "writeDescriptor result: $result")
-            if (!result) {
-                broadcastUpdate(ACTION_CONNECT_FAILED, "writeDescriptor result: $result")
-            }
-        } ?: error("Not connected to a BLE device!")
-    }
 
     fun BluetoothGattCharacteristic.isReadable(): Boolean =
             containsProperty(BluetoothGattCharacteristic.PROPERTY_READ)

@@ -109,6 +109,10 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
         bleRepository.connectDevice(serialNumber)
     }
 
+    fun disconnectDevice() {
+        bleRepository.disconnectDevice()
+    }
+
     fun saveDevice(serialNumber: String) {
         viewModelScope.launch {
             val md5 = MD5.convertMD5(serialNumber)

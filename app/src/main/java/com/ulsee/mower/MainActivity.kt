@@ -15,28 +15,34 @@ import com.ulsee.mower.utils.Utils
 
 private val TAG = MainActivity::class.java.simpleName
 
+interface BindServiceCallback {
+    fun onServiceConnected(service: BluetoothLeService)
+}
+
 class MainActivity: AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
-//    var bluetoothService: BluetoothLeService? = null
+    var bluetoothService: BluetoothLeService? = null
+    private var clientCallback: BindServiceCallback? = null
 
-    // Code to manage Service lifecycle.
-//    private val serviceConnection: ServiceConnection = object : ServiceConnection {
-//        override fun onServiceConnected(
-//                componentName: ComponentName,
-//                service: IBinder
-//        ) {
-//            Log.d(TAG, "[Enter] onServiceConnected")
-//
-//            bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
-////            bluetoothService?.let { bluetooth ->
-////                // call functions on service to check connection and connect to devices
-////            }
-//        }
-//
-//        override fun onServiceDisconnected(componentName: ComponentName) {
-//            bluetoothService = null
-//        }
-//    }
+    fun registerServiceCallback(client: BindServiceCallback) {
+        clientCallback = client
+    }
+
+//     Code to manage Service lifecycle.
+    private val serviceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(
+                componentName: ComponentName,
+                service: IBinder
+        ) {
+            Log.d(TAG, "[Enter] onServiceConnected")
+            bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
+            clientCallback?.onServiceConnected(bluetoothService!!)
+        }
+
+        override fun onServiceDisconnected(componentName: ComponentName) {
+            bluetoothService = null
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "[Enter] onCreate")
@@ -45,8 +51,7 @@ class MainActivity: AppCompatActivity() {
         setContentView(binding.root)
 //        setSupportActionBar(binding.toolbar)
 
-//        val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
-//        bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+        bindService()
 
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
@@ -80,6 +85,11 @@ class MainActivity: AppCompatActivity() {
 //        Log.d(TAG, "isLocationPermissionGranted: $isLocationPermissionGranted")
     }
 
+    override fun onDestroy() {
+        unbindService(serviceConnection)
+        super.onDestroy()
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 //        Log.d(TAG, "[Enter] onActivityResult")
         if (requestCode == Utils.REQUEST_LOCATION_SETTINGS) {
@@ -95,6 +105,11 @@ class MainActivity: AppCompatActivity() {
             }
         }
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    fun bindService() {
+        val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
+        bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
 //    fun setTitle (title: String) {

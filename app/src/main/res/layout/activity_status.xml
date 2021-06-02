@@ -32,12 +32,12 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toBottomOf="@+id/imageView5"
-        app:layout_constraintEnd_toStartOf="@+id/textView9"
+        app:layout_constraintEnd_toStartOf="@+id/power_percentage"
         app:layout_constraintTop_toTopOf="@+id/imageView5"
         app:srcCompat="@drawable/ic_battery_bg" />
 
     <TextView
-        android:id="@+id/textView9"
+        android:id="@+id/power_percentage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
@@ -57,7 +57,7 @@
         app:srcCompat="@drawable/ic_ladybug_96" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/setupButton"
         android:layout_width="162dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"

@@ -8,7 +8,6 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.os.IBinder
 import android.preference.PreferenceManager
 import android.provider.Settings
 import android.util.Log
@@ -36,45 +35,15 @@ private const val LOCATION_PERMISSION_REQUEST_CODE = 2
 
 private val TAG = RobotListFragment::class.java.simpleName
 
-class RobotListFragment: Fragment() {
+class RobotListFragment: Fragment(), BindServiceCallback {
     private lateinit var binding: FragmentRobotListBinding
     private lateinit var progressBar: ConstraintLayout
     private lateinit var viewModel: RobotListFragmentViewModel
-//    private val bleService: BluetoothLeService? by lazy {
-//        (activity as MainActivity).bluetoothService
-//    }
-var bluetoothService: BluetoothLeService? = null
+    private var bluetoothService: BluetoothLeService? = null
     private lateinit var bleRepository: BluetoothLeRepository
-
     val isLocationPermissionGranted
         get() = requireActivity().hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-
     private var inputSerialNumber: String? = null
-
-    private val serviceConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(
-                componentName: ComponentName,
-                service: IBinder
-        ) {
-            Log.d(TAG, "[Enter] onServiceConnected")
-
-            bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
-
-            bleRepository.setBleService(bluetoothService!!)
-
-            viewModel.startBLEScan(this@RobotListFragment)
-
-            if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
-                promptEnableBluetooth()
-            }
-        }
-
-        override fun onServiceDisconnected(componentName: ComponentName) {
-            Log.d(TAG, "[Enter] onServiceDisconnected")
-
-            bluetoothService = null
-        }
-    }
 
 
     override fun onAttach(context: Context) {
@@ -85,9 +54,7 @@ var bluetoothService: BluetoothLeService? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "[Enter] onCreate")
         super.onCreate(savedInstanceState)
-
-        val gattServiceIntent = Intent(context, BluetoothLeService::class.java)
-        requireActivity().bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+        (activity as MainActivity).registerServiceCallback(this)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -131,6 +98,18 @@ var bluetoothService: BluetoothLeService? = null
         super.onDetach()
     }
 
+    override fun onServiceConnected(service: BluetoothLeService) {
+        bluetoothService = service
+
+        bleRepository.setBleService(bluetoothService!!)
+
+        viewModel.startBLEScan(this@RobotListFragment)
+
+        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
+            promptEnableBluetooth()
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(TAG, "[Enter] onCreateView")
 
@@ -138,7 +117,7 @@ var bluetoothService: BluetoothLeService? = null
 
         initViewModel()
 
-        registerBLEReceiver()
+        registerBLEReceiver()       // TODO: consider move this line to onCreate(), then receiver need to be moved from viewModel to Fragment.
 
 //        viewModel.startBLEScan(this)
         viewModel.getDeviceList()
@@ -152,7 +131,6 @@ var bluetoothService: BluetoothLeService? = null
         initVerificationObserver()
         initInputSnObserver()
         configAddDeviceBtn()
-//        (activity as MainActivity).setTitle("Capture Attributes")
 
         Log.d(TAG, "isLocationPermissionGranted: $isLocationPermissionGranted")
 //        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
@@ -306,7 +284,7 @@ var bluetoothService: BluetoothLeService? = null
                     findNavController().navigate(R.id.statusFragment)
                 } else {
                     // to avoid double subscribe notification
-                    bleRepository.disconnectDevice()
+                    viewModel.disconnectDevice()
                     Toast.makeText(context, "verification failed", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -331,10 +309,6 @@ var bluetoothService: BluetoothLeService? = null
                 }
             }
         }
-    }
-
-    private fun saveDevice() {
-        viewModel.saveDevice(inputSerialNumber!!)
     }
 
     private fun initProgressBar() {
@@ -407,11 +381,8 @@ var bluetoothService: BluetoothLeService? = null
     }
 
     private fun initViewModel() {
-        bleRepository = BluetoothLeRepository()
+        bleRepository = BluetoothLeRepository(bluetoothService)
         viewModel = ViewModelProvider(this, RobotListFactory(bleRepository, DatabaseRepository())).get(RobotListFragmentViewModel::class.java)
-//        viewModel = ViewModelProvider.AndroidViewModelFactory(requireActivity().application).create(RobotListFragmentViewModel::class.java)
-
     }
-
 
 }
