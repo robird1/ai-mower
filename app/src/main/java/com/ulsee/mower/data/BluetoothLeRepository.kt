@@ -26,13 +26,24 @@ class BluetoothLeRepository(private var bleService: BluetoothLeService?) {
         bleService?.disconnectDevice()
     }
 
-    fun getStatus() {
-        bleService?.getStatus()
+    fun getStatusPeriodically() {
+        bleService?.getStatusPeriodically()
     }
+
+//    fun getStatus() {
+//        bleService?.getStatus()
+//    }
 
     fun moveRobot(rotation: Int, movement: Double) {
         bleService?.moveRobot(rotation, movement)
     }
 
+    fun startRecordChargingPath() {
+        bleService?.startRecordChargingPath()
+    }
+
+//    fun setWorkingBorderPoint() {
+//        bleService?.setWorkingBorderPoint()
+//    }
 
 }

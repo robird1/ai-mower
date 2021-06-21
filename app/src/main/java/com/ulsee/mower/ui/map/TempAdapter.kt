@@ -1,11 +1,11 @@
-package com.ulsee.mower
+package com.ulsee.mower.ui.map
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.ulsee.mower.data.model.Device
+import com.ulsee.mower.R
 
 class TempAdapter(private val viewModel: MapFragmentViewModel)  : RecyclerView.Adapter<TempAdapter.ViewHolder>() {
 

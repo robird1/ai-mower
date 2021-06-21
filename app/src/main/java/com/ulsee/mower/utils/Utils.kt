@@ -9,6 +9,8 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 private val TAG = Utils::class.java.simpleName
 
@@ -22,6 +24,21 @@ class Utils {
                 result = result or (bytes[i].toInt() shl 8 * i)
             }
             return result
+        }
+
+        fun convert(bytes: ByteArray): String {
+//            val bytes = byteArrayOf(0xAE.toByte(), 0x00, 0x00, 0x00)
+//            println(ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).int)
+//            val bytes2 = byteArrayOf(0xAE.toByte(), 0x00)
+//            println(ByteBuffer.wrap(bytes2).order(ByteOrder.LITTLE_ENDIAN).short)
+
+            return if (bytes.size == 4) {
+                ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).int.toString()
+            } else if (bytes.size == 2) {
+                ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).short.toString()
+            } else {
+                ""
+            }
         }
 
         fun checkLocationSetting(activity: Activity) {

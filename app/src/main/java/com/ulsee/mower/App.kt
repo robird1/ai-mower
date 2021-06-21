@@ -1,11 +1,27 @@
 package com.ulsee.mower
 
 import android.app.Application
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
+import android.util.Log
+import com.ulsee.mower.data.BluetoothLeService
 import io.realm.Realm
 import io.realm.RealmConfiguration
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+
+private val TAG = App::class.java.simpleName
 
 class App: Application() {
+    var bluetoothService: BluetoothLeService? = null
+
     override fun onCreate() {
+        Log.d(TAG, "[Enter] onCreate()")
         super.onCreate()
         Realm.init(this)
         val config = RealmConfiguration.Builder()
@@ -25,7 +41,51 @@ class App: Application() {
             .build()
         Realm.setDefaultConfiguration(config)
 
-
+        bindService()
     }
+
+    private val serviceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(
+            componentName: ComponentName,
+            service: IBinder
+        ) {
+            Log.d(TAG, "[Enter] onServiceConnected")
+            bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
+//            clientCallback?.onServiceConnected(bluetoothService!!)
+        }
+
+        override fun onServiceDisconnected(componentName: ComponentName) {
+            bluetoothService = null
+        }
+    }
+
+    fun bindService() {
+        Log.d(TAG, "[Enter] bindService()")
+        val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
+        bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    //    suspend fun bindService() = suspendCoroutine<BluetoothLeService?> {
+//        Log.d(TAG, "[Enter] bindService()")
+//        val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
+//
+//        val serviceConnection = object : ServiceConnection {
+//            override fun onServiceConnected(
+//                componentName: ComponentName,
+//                service: IBinder
+//            ) {
+//                Log.d(TAG, "[Enter] onServiceConnected")
+//                bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
+//                it.resume(bluetoothService)
+//            }
+//
+//            override fun onServiceDisconnected(componentName: ComponentName) {
+//                bluetoothService = null
+//                it.resume(null)
+//            }
+//        }
+//
+//        bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+//    }
 
 }

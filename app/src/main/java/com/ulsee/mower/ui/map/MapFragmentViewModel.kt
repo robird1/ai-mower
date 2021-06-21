@@ -1,4 +1,4 @@
-package com.ulsee.mower
+package com.ulsee.mower.ui.map
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -7,7 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.ulsee.mower.data.ACTION_STATUS_RESPONSE
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_STATUS_RESPONSE
 import com.ulsee.mower.data.BluetoothLeRepository
 import com.ulsee.mower.utils.MD5
 import com.ulsee.mower.utils.Utils

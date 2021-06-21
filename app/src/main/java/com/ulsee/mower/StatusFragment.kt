@@ -3,6 +3,7 @@ package com.ulsee.mower
 import android.app.AlertDialog
 import android.content.IntentFilter
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,11 +24,15 @@ class StatusFragment: Fragment() {
     lateinit var bluetoothService: BluetoothLeService
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "[Enter] onCreate")
+
         super.onCreate(savedInstanceState)
-        bluetoothService = (activity as MainActivity).bluetoothService!!
+        bluetoothService = (requireActivity().application as App).bluetoothService!!
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        Log.d(TAG, "[Enter] onCreateView")
+
         binding = ActivityStatusBinding.inflate(inflater, container, false)
 
         initViewModel()
@@ -39,7 +44,7 @@ class StatusFragment: Fragment() {
         addOnBackPressedCallback()
 
         binding.setupButton.setOnClickListener {
-            findNavController().navigate(R.id.mapFragment)
+            findNavController().navigate(R.id.setupMapFragment)
         }
 
         return binding.root

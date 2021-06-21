@@ -1,4 +1,4 @@
-package com.ulsee.mower
+package com.ulsee.mower.ui.map
 
 import android.content.IntentFilter
 import android.os.Bundle
@@ -14,18 +14,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.ulsee.mower.MainActivity
+import com.ulsee.mower.R
 import com.ulsee.mower.data.*
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_STATUS_RESPONSE
 import com.ulsee.mower.databinding.FragmentMapBinding
 import kotlin.math.abs
 
 private val TAG = MapFragment::class.java.simpleName
 
-class MapFragment: Fragment(), BindServiceCallback, OnMapReadyCallback, GoogleMap.OnPolylineClickListener, GoogleMap.OnPolygonClickListener {
+class MapFragment: Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickListener, GoogleMap.OnPolygonClickListener {
     private lateinit var binding: FragmentMapBinding
     private lateinit var viewModel: MapFragmentViewModel
-    private var bluetoothService: BluetoothLeService? = null
+    private lateinit var bluetoothService: BluetoothLeService
     private lateinit var bleRepository: BluetoothLeRepository
 
     private val positionList = arrayListOf<Position>()
@@ -35,15 +37,15 @@ class MapFragment: Fragment(), BindServiceCallback, OnMapReadyCallback, GoogleMa
         var y: Double
     )
 
-    override fun onServiceConnected(service: BluetoothLeService) {
-        bluetoothService = service
-        bleRepository.setBleService(bluetoothService!!)
-    }
+//    override fun onServiceConnected(service: BluetoothLeService) {
+//        bluetoothService = service
+//        bleRepository.setBleService(bluetoothService!!)
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        (activity as MainActivity).registerServiceCallback(this)
-        bluetoothService = (activity as MainActivity).bluetoothService
+//        (activity as MainActivity).registerServiceCallback(this)
+        bluetoothService = (activity as MainActivity).bluetoothService!!
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

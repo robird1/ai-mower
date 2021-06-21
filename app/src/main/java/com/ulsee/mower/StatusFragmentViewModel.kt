@@ -37,9 +37,9 @@ class StatusFragmentViewModel(private val bleRepository: BluetoothLeRepository):
         }
     }
 
-    fun getMowerStatus() {
-        bleRepository.getStatus()
-    }
+//    fun getMowerStatus() {
+//        bleRepository.getStatus()
+//    }
 
     fun disconnectDevice() {
         bleRepository.disconnectDevice()

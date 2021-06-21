@@ -1,4 +1,4 @@
-package com.ulsee.mower
+package com.ulsee.mower.ui.login
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,7 +11,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
-import com.ulsee.mower.ui.login.LoggedInUserView
+import com.ulsee.mower.R
 
 
 class LoginActivity : AppCompatActivity() {

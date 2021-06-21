@@ -32,6 +32,7 @@ class RobotListState: BLEState() {
 class RobotStatusState: BLEState() {
     companion object {
         const val ACTION_STATUS_RESPONSE = "action_status_response"
+        const val ACTION_BORDER_RECORD_RESPONSE = "action_border_record_response"
     }
 
     override fun getAction() = ACTION_STATUS_RESPONSE

@@ -22,11 +22,15 @@
         android:name="com.ulsee.mower.StatusFragment"
         android:label="StatusFragment" >
         <action
-            android:id="@+id/action_statusFragment_to_mapFragment"
-            app:destination="@id/mapFragment" />
+            android:id="@+id/action_statusFragment_to_setupMapFragment"
+            app:destination="@id/setupMapFragment" />
     </fragment>
     <fragment
         android:id="@+id/mapFragment"
-        android:name="com.ulsee.mower.MapFragment"
+        android:name="com.ulsee.mower.ui.map.MapFragment"
         android:label="MapFragment" />
+    <fragment
+        android:id="@+id/setupMapFragment"
+        android:name="com.ulsee.mower.ui.map.SetupMapFragment"
+        android:label="SetupMapFragment" />
 </navigation>

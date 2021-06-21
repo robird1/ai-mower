@@ -1,4 +1,4 @@
-package com.ulsee.mower
+package com.ulsee.mower.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

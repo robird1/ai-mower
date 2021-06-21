@@ -1,12 +1,10 @@
-package com.ulsee.mower
+package com.ulsee.mower.ui.login
 
 import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.ulsee.mower.ui.login.LoggedInUserView
-import com.ulsee.mower.ui.login.LoginFormState
-import com.ulsee.mower.ui.login.LoginResult
+import com.ulsee.mower.R
 import com.ulsee.mower.data.LoginRepository
 import com.ulsee.mower.data.Result
 

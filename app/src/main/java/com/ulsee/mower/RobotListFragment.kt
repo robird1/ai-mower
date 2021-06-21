@@ -4,7 +4,9 @@ import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.bluetooth.BluetoothAdapter
-import android.content.*
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -27,6 +29,13 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.ulsee.mower.data.*
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_CONNECT_FAILED
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_DEVICE_NOT_FOUND
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_CONNECTED
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_DISCONNECTED
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_NOT_SUCCESS
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_FAILED
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_SUCCESS
 import com.ulsee.mower.data.model.AppPreference
 import com.ulsee.mower.databinding.FragmentRobotListBinding
 
@@ -35,11 +44,11 @@ private const val LOCATION_PERMISSION_REQUEST_CODE = 2
 
 private val TAG = RobotListFragment::class.java.simpleName
 
-class RobotListFragment: Fragment(), BindServiceCallback {
+class RobotListFragment: Fragment() {
     private lateinit var binding: FragmentRobotListBinding
     private lateinit var progressBar: ConstraintLayout
     private lateinit var viewModel: RobotListFragmentViewModel
-    private var bluetoothService: BluetoothLeService? = null
+    private lateinit var bluetoothService: BluetoothLeService
     private lateinit var bleRepository: BluetoothLeRepository
     val isLocationPermissionGranted
         get() = requireActivity().hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -54,7 +63,9 @@ class RobotListFragment: Fragment(), BindServiceCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "[Enter] onCreate")
         super.onCreate(savedInstanceState)
-        (activity as MainActivity).registerServiceCallback(this)
+        bluetoothService = (requireActivity().application as App).bluetoothService!!
+
+//        (activity as MainActivity).registerServiceCallback(this)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -98,17 +109,17 @@ class RobotListFragment: Fragment(), BindServiceCallback {
         super.onDetach()
     }
 
-    override fun onServiceConnected(service: BluetoothLeService) {
-        bluetoothService = service
-
-        bleRepository.setBleService(bluetoothService!!)
-
-        viewModel.startBLEScan(this@RobotListFragment)
-
-        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
-            promptEnableBluetooth()
-        }
-    }
+//    override fun onServiceConnected(service: BluetoothLeService) {
+//        bluetoothService = service
+//
+//        bleRepository.setBleService(bluetoothService!!)
+//
+//        viewModel.startBLEScan(this@RobotListFragment)
+//
+//        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
+//            promptEnableBluetooth()
+//        }
+//    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(TAG, "[Enter] onCreateView")
@@ -334,7 +345,7 @@ class RobotListFragment: Fragment(), BindServiceCallback {
     }
 
     private fun promptEnableBluetooth() {
-        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
+        if (!bluetoothService.bluetoothAdapter.isEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableBtIntent, ENABLE_BLUETOOTH_REQUEST_CODE)
         }

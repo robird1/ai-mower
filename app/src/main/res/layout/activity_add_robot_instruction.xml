@@ -17,11 +17,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:background="@null"
+        android:background="#A5E009"
         android:text="Next"
         android:textColor="@color/white"
         android:textSize="13sp"
-        app:backgroundTint="#A5E009"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/tabLayout" />
 

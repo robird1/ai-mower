@@ -7,53 +7,53 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.ulsee.mower.data.BluetoothLeService
 import com.ulsee.mower.databinding.ActivityMainBinding
 import com.ulsee.mower.utils.Utils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 private val TAG = MainActivity::class.java.simpleName
 
-interface BindServiceCallback {
-    fun onServiceConnected(service: BluetoothLeService)
-}
-
 class MainActivity: AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
-    var bluetoothService: BluetoothLeService? = null
-    private var clientCallback: BindServiceCallback? = null
-
-    fun registerServiceCallback(client: BindServiceCallback) {
-        clientCallback = client
-    }
-
-//     Code to manage Service lifecycle.
-    private val serviceConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(
-                componentName: ComponentName,
-                service: IBinder
-        ) {
-            Log.d(TAG, "[Enter] onServiceConnected")
-            bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
-            clientCallback?.onServiceConnected(bluetoothService!!)
-        }
-
-        override fun onServiceDisconnected(componentName: ComponentName) {
-            bluetoothService = null
-        }
-    }
+     var bluetoothService: BluetoothLeService? = null
+    lateinit var viewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "[Enter] onCreate")
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-//        setSupportActionBar(binding.toolbar)
 
-        bindService()
+//        val model: MainActivityViewModel by viewModels()
+//
+//        lifecycleScope.launch {
+//            Log.d(TAG, "[Enter] bluetoothService = bindService()")
+//
+//                bluetoothService = bindService()
+//
+//        }
+//
+//        Log.d(TAG, "[Finish] onCreate")
+        bluetoothService = (application as App).bluetoothService
+
+        if (bluetoothService == null) {
+           Thread.sleep(50)
+        }
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+
+        setContentView(binding.root)
 
         val navController = findNavController(R.id.nav_host_fragment)
+
+
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
 //        val appBarConfiguration = AppBarConfiguration(
@@ -86,7 +86,7 @@ class MainActivity: AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        unbindService(serviceConnection)
+//        unbindService(serviceConnection)
         super.onDestroy()
     }
 
@@ -107,8 +107,26 @@ class MainActivity: AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    fun bindService() {
+    suspend fun bindService() = suspendCoroutine<BluetoothLeService?> {
+        Log.d(TAG, "[Enter] bindService()")
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
+
+        val serviceConnection = object : ServiceConnection {
+            override fun onServiceConnected(
+                componentName: ComponentName,
+                service: IBinder
+            ) {
+                Log.d(TAG, "[Enter] onServiceConnected")
+                bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
+                it.resume(bluetoothService)
+            }
+
+            override fun onServiceDisconnected(componentName: ComponentName) {
+                bluetoothService = null
+                it.resume(null)
+            }
+        }
+
         bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
@@ -124,4 +142,5 @@ class MainActivity: AppCompatActivity() {
 //    private fun hideBottomNav() {
 //        binding.navView.visibility = View.GONE
 //    }
+
 }

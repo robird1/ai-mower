@@ -23,17 +23,21 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.ulsee.mower.LoginActivity"
+            android:name="com.ulsee.mower.ui.login.LoginActivity"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity"/>
         <activity
-            android:name="com.ulsee.mower.VerificationActivity"
+            android:name="com.ulsee.mower.ui.login.VerificationActivity"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity"/>
         <activity
             android:name="com.ulsee.mower.MainActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity"/>
+<!--        <activity-->
+<!--            android:name="com.ulsee.mower.SetupMapActivity"-->
+<!--            android:screenOrientation="landscape"/>-->
 
         <service android:name=".data.BluetoothLeService"
             android:exported="false" />

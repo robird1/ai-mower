@@ -10,9 +10,19 @@ import android.content.Intent
 import android.os.*
 import android.util.Log
 import android.widget.Toast
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_CONNECT_FAILED
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_DEVICE_NOT_FOUND
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_CONNECTED
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_DISCONNECTED
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_NOT_SUCCESS
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_STATUS_RESPONSE
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_FAILED
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_SUCCESS
 import com.ulsee.mower.utils.MD5
+import com.ulsee.mower.utils.Utils
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.experimental.xor
 
 private val TAG = BluetoothLeService::class.java.simpleName
 
@@ -21,16 +31,6 @@ private val SERVICE_UUID = UUID.fromString("0000abf0-0000-1000-8000-00805f9b34fb
 private val CHARACTERISTIC_WRITE_UUID = UUID.fromString("0000abf1-0000-1000-8000-00805f9b34fb")
 private val CHARACTERISTIC_READ_UUID = UUID.fromString("0000abf2-0000-1000-8000-00805f9b34fb")
 private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
-
-const val ACTION_CONNECT_FAILED = "action_connect_failed"
-const val ACTION_DEVICE_NOT_FOUND = "action_device_not_found"
-const val ACTION_GATT_CONNECTED = "action_gatt_connected"
-const val ACTION_GATT_DISCONNECTED = "action_gatt_disconnected"
-const val ACTION_GATT_NOT_SUCCESS = "action_gatt_not_success"
-const val ACTION_VERIFICATION_SUCCESS = "action_verification_success"
-const val ACTION_VERIFICATION_FAILED = "action_verification_failed"
-const val ACTION_STATUS_RESPONSE = "action_status_response"
-
 private const val GATT_MAX_MTU_SIZE = 200
 
 class BluetoothLeService : Service() {
@@ -176,7 +176,6 @@ class BluetoothLeService : Service() {
                 return
             }
         }
-
         broadcastUpdate(ACTION_DEVICE_NOT_FOUND)
     }
 
@@ -193,16 +192,22 @@ class BluetoothLeService : Service() {
         })
     }
 
-    fun getStatus() {
+    fun getStatusPeriodically() {
         getStatusTask = Runnable {
             enqueueOperation(BleOperationType.CHARACTERISTIC_WRITE {
                 writeCharacteristic(getStatusPayload())
             })
-            statusHandler.postDelayed(getStatusTask!!, 3000)
+            statusHandler.postDelayed(getStatusTask!!, 1000)
         }
 
         statusHandler.post(getStatusTask!!)
     }
+
+//    fun getStatus() {
+//        enqueueOperation(BleOperationType.CHARACTERISTIC_WRITE {
+//            writeCharacteristic(getStatusPayload())
+//        })
+//    }
 
     fun moveRobot(rotation: Int, movement: Double) {
         moveHandler.postDelayed({
@@ -210,10 +215,21 @@ class BluetoothLeService : Service() {
         }, 50)
     }
 
+    fun startRecordChargingPath() {
+
+    }
+
+    // TODO
+//    fun setWorkingBorderPoint() {
+//        enqueueOperation(BleOperationType.CHARACTERISTIC_WRITE {
+//            writeCharacteristic(getStatusPayload())
+//        })
+//    }
 
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             val deviceAddress = gatt.device.address
+
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -234,7 +250,7 @@ class BluetoothLeService : Service() {
 
                     broadcastUpdate(ACTION_GATT_CONNECTED, status.toString())
 
-                    getStatus()
+//                    getStatusPeriodically()
 
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     Log.d(TAG, "Successfully disconnected from $deviceAddress")
@@ -312,7 +328,7 @@ class BluetoothLeService : Service() {
             Log.d(TAG, "[Enter] onCharacteristicChanged")
 
             with(characteristic) {
-                Log.i(TAG, "Characteristic changed | value: ${value.toHexString()}")
+                Log.i("test123", "Characteristic changed | value: ${value.toHexString()}")
 
 //                broadcastUpdate(ACTION_VERIFICATION_SUCCESS)
 //                bleState.onCharacteristicChanged(this@BluetoothLeService, value.toHexString())
@@ -321,18 +337,53 @@ class BluetoothLeService : Service() {
                 val instructionType = value[3].toInt()
                 Log.d(TAG, "instructionType: $instructionType")
                 when (instructionType) {
-                    16 -> {
+                    BLECommandTable.VERIFICATION -> {
                         broadcastUpdate(ACTION_VERIFICATION_SUCCESS, value.toHexString())
                         handler.removeCallbacks(verificationTask!!)
                     }
-                    80 -> {
-                        val xByteArray = byteArrayOf(value[6]) + value[7] + value[8] + value[9]
-                        val yByteArray = byteArrayOf(value[10]) + value[11] + value[12] + value[13]
-                        val angle = byteArrayOf(value[15]) + value[16]
-                        broadcastUpdate(ACTION_STATUS_RESPONSE, xByteArray, yByteArray, angle)
+                    BLECommandTable.STATUS -> {
+//                         val checkSum = verifyChecksum(value)
+
+
+                        val xByteArray = byteArrayOf(value[5]) + value[6] + value[7] + value[8]
+                        val yByteArray = byteArrayOf(value[9]) + value[10] + value[11] + value[12]
+//                        val angleByteArray = byteArrayOf(value[15]) + value[14]
+                        val angleByteArray = byteArrayOf(value[14]) + value[15]
+
+//                        val x = BigInteger(xByteArray).toInt()
+//                        val y = BigInteger(yByteArray).toInt()
+//                        val angle = Utils.littleEndianConversion(angleByteArray) / 10f
+                        val x = Utils.convert(xByteArray).toInt()
+                        val y = Utils.convert(yByteArray).toInt()
+//                        val x = Utils.convert(xByteArray)
+//                        val y = Utils.convert(yByteArray)
+                        val angle = Utils.convert(angleByteArray).toShort() / 10f
+//                        val angle2 = BigInteger(angleByteArray).toInt() / 10f
+//                        val angle2 = Utils.littleEndianConversion(angleByteArray2) / 10f
+
+                        Log.d("test123", "xByteArray: ${xByteArray.toHexString()} x: $x yByteArray: ${yByteArray.toHexString()} y: $y")
+                        Log.d("test123", "angleByteArray: ${angleByteArray.toHexString()} angle: $angle")
+                        broadcastUpdate(ACTION_STATUS_RESPONSE, x, y, angle)
                     }
                 }
             }
+        }
+
+        private fun getCheckSum2(byteArray: ByteArray): Int {
+            var xorChecksum: Int = 0
+            for (element in byteArray) {
+                xorChecksum = xorChecksum xor element.toInt()
+            }
+//            Log.d("test123", "Checksum Via xoring is : $xorChecksum")
+            return xorChecksum.toInt()
+        }
+
+        private fun verifyChecksum(byteArray: ByteArray): Int {
+            val sliceArray = byteArray.sliceArray(0.. (byteArray.size-3))
+            Log.d("test123", "sliceArray: ${sliceArray.toHexString()}")
+            val checkSum = getCheckSum2(sliceArray)
+            Log.d("test123", "checkSum: $checkSum")
+            return checkSum
         }
 
         override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
@@ -574,14 +625,11 @@ class BluetoothLeService : Service() {
         sendBroadcast(intent)
     }
 
-    private fun broadcastUpdate(action: String, x: ByteArray, y: ByteArray, angle: ByteArray) {
-//        Log.d(TAG, "[Enter] broadcastUpdate() action: $action message: $message")
+    private fun broadcastUpdate(action: String, x: Int, y: Int, angle: Float) {
         val intent = Intent(action)
-//        if (message.isNotEmpty()) {
         intent.putExtra("x", x)
         intent.putExtra("y", y)
         intent.putExtra("angle", angle)
-//        }
         sendBroadcast(intent)
     }
 
