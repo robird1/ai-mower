@@ -28,6 +28,7 @@ class LoginActivity : AppCompatActivity() {
         val login = findViewById<Button>(R.id.login)
         val loading = findViewById<ProgressBar>(R.id.loading)
 
+
         login.isEnabled = true
 
 //        loginViewModel = ViewModelProvider(this, LoginViewModelFactory())
