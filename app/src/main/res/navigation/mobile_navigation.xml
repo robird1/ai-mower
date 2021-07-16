@@ -81,4 +81,54 @@
             android:id="@+id/action_instruction2Fragment_to_setupMapFragment"
             app:destination="@id/setupMapFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.ulsee.mower.ui.settings.SettingsFragment"
+        android:label="SettingsFragment">
+        <action
+            android:id="@+id/action_settingsFragment_to_mowerSettingsFragment"
+            app:destination="@id/mowerSettingsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/mowerSettingsFragment"
+        android:name="com.ulsee.mower.ui.settings.mower.MowerSettingsFragment"
+        android:label="MowerSettingsFragment">
+        <action
+            android:id="@+id/action_settingsFragment_to_settingWorkOnRainDaysFragment"
+            app:destination="@id/settingsWorkOnRainDaysFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_settingUpdateSoftwareFragment"
+            app:destination="@id/settingsUpdateSoftwareFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_settingGradualFragment"
+            app:destination="@id/settingsGradualFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_settingExplosiveFragment"
+            app:destination="@id/settingsExplosiveFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_settingsBladeHeightFragment"
+            app:destination="@id/settingsBladeHeightFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsWorkOnRainDaysFragment"
+        android:name="com.ulsee.mower.ui.settings.mower.MowerSettingsWorkOnRainDaysFragment"
+        android:label="SettingWorkOnRainDaysFragment"/>
+    <fragment
+        android:id="@+id/settingsUpdateSoftwareFragment"
+        android:name="com.ulsee.mower.ui.settings.mower.MowerSettingsUpdateSoftwareFragment"
+        android:label="SettingUpdateSoftwareFragment"/>
+    <fragment
+        android:id="@+id/settingsGradualFragment"
+        android:name="com.ulsee.mower.ui.settings.mower.MowerSettingsGradualFragment"
+        android:label="SettingGradualFragment"/>
+    <fragment
+        android:id="@+id/settingsExplosiveFragment"
+        android:name="com.ulsee.mower.ui.settings.mower.MowerSettingsExplosiveFragment"
+        android:label="SettingExplosiveFragment"/>
+    <fragment
+        android:id="@+id/settingsBladeHeightFragment"
+        android:name="com.ulsee.mower.ui.settings.mower.MowerSettingsBladeHeightFragment"
+        android:label="SettingsBladeHeightFragment"/>
 </navigation>
