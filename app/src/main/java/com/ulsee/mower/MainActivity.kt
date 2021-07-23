@@ -11,7 +11,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
-import com.ulsee.mower.data.BluetoothLeService
+import com.ulsee.mower.ble.BluetoothLeService
 import com.ulsee.mower.databinding.ActivityMainBinding
 import com.ulsee.mower.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -63,10 +63,14 @@ class MainActivity: AppCompatActivity() {
 
 //        binding.navView.setupWithNavController(navController)
 
-//        navController.addOnDestinationChangedListener { _, destination, _ ->
+        navController.addOnDestinationChangedListener { _, destination, _ ->
 //            binding.toolbar.collapseActionView()
-//            when (destination.id) {
-//                R.id.navigation_people -> setTitle("People")
+            when (destination.id) {
+                R.id.setupMapFragment -> {
+                    if (supportActionBar != null) {
+                        supportActionBar?.hide();
+                    }
+                }
 //                R.id.navigation_record -> setTitle("Record")
 //                R.id.attend_record -> hideBottomNav()
 //                R.id.device_settings -> hideBottomNav()
@@ -78,10 +82,13 @@ class MainActivity: AppCompatActivity() {
 //                R.id.volume_config -> hideBottomNav()
 //                R.id.time_config -> hideBottomNav()
 //                R.id.capture_config -> hideBottomNav()
-//                else -> showBottomNav()
-//            }
-//
-//        }
+                else -> {
+                    if (supportActionBar != null) {
+                        supportActionBar?.show();
+                    }
+                }
+            }
+        }
 //        Log.d(TAG, "isLocationPermissionGranted: $isLocationPermissionGranted")
     }
 

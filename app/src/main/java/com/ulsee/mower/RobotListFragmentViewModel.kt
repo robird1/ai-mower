@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.*
+import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.data.*
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_CONNECT_FAILED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_DEVICE_NOT_FOUND

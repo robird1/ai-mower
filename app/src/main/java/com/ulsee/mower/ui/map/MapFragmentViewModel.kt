@@ -7,13 +7,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_STATUS_RESPONSE
-import com.ulsee.mower.data.BluetoothLeRepository
-import com.ulsee.mower.utils.MD5
+import com.ulsee.mower.ble.BluetoothLeRepository
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_STATUS
 import com.ulsee.mower.utils.Utils
 import java.math.BigInteger
 import java.nio.ByteBuffer
-import kotlin.experimental.and
 
 
 class MapFragmentViewModel(private val bleRepository: BluetoothLeRepository): ViewModel() {
@@ -33,7 +31,7 @@ class MapFragmentViewModel(private val bleRepository: BluetoothLeRepository): Vi
             val angle = intent.getByteArrayExtra("angle")!!
 //            Log.d(TAG, "action: $action message: $message")
             when (action){
-                ACTION_STATUS_RESPONSE -> {
+                ACTION_STATUS -> {
 //                    val temp = message!!.split(" ")
 //                    val msg = "offset: ${message!!.substring(17, 40)} angle: ${message!!.substring(44, 49)}"
 

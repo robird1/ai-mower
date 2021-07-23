@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/mobile_navigation"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
     app:startDestination="@id/robotListFragment">
     <fragment
         android:id="@+id/robotListFragment"
@@ -19,8 +21,8 @@
         android:label="AddRobotInstructionFragment" />
     <fragment
         android:id="@+id/statusFragment"
-        android:name="com.ulsee.mower.StatusFragment"
-        android:label="StatusFragment" >
+        android:name="com.ulsee.mower.ui.map.StatusFragment"
+        android:label="StatusFragment">
         <action
             android:id="@+id/action_statusFragment_to_setupMapFragment"
             app:destination="@id/setupMapFragment" />

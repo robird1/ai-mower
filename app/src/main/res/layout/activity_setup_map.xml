@@ -2,9 +2,21 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_map_landscape">
+
+    <View
+        android:id="@+id/viewBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.6"
+        android:background="#000000"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <View
         android:id="@+id/view"
@@ -37,13 +49,13 @@
         app:JV_buttonSizeRatio="35%"
         app:JV_enabled="true"
         app:JV_fixedCenter="false"
-        app:layout_constraintBottom_toBottomOf="@id/mapView"
-        app:layout_constraintStart_toStartOf="@id/mapView" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <com.ulsee.mower.ui.map.MapView
+    <com.ulsee.mower.ui.map.SetupMapView
         android:id="@+id/mapView"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:backgroundTint="#6A3030"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -65,7 +77,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/footerViewStep1"
+        android:id="@+id/footerViewStartGrass"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone"
@@ -74,44 +86,11 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/view2"
-        app:layout_constraintVertical_bias="0.0">
+        app:layout_constraintVertical_bias="0.0"
+        tools:visibility="gone">
 
         <ImageView
-            android:id="@+id/chargeStationView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            app:layout_constraintBottom_toTopOf="@+id/textView6"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/ic_setmap_start" />
-
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="9dp"
-            android:text="SET"
-            android:textColor="#FFFFFFFF"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/footerViewStep2"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/view2"
-        app:layout_constraintVertical_bias="0.0">
-
-        <ImageView
-            android:id="@+id/startWorkingBoundaryView"
+            android:id="@+id/startGrassIcon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
@@ -119,7 +98,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/ic_setmap_mowing"
-            tools:visibility="gone" />
+            tools:visibility="visible" />
 
         <TextView
             android:id="@+id/textView7"
@@ -131,10 +110,11 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/footerViewStep3"
+        android:id="@+id/footerViewMode"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone"
@@ -144,93 +124,139 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/view2"
         app:layout_constraintVertical_bias="0.0"
-        tools:visibility="visible">
+        tools:visibility="gone">
 
         <TextView
-            android:id="@+id/step3SwitchText"
+            android:id="@+id/resetText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="switch mode"
+            android:layout_marginBottom="9dp"
+            android:text="Reset"
             android:textColor="#FFFFFFFF"
-            app:layout_constraintBaseline_toBaselineOf="@+id/step3SetPointText"
-            app:layout_constraintEnd_toEndOf="@+id/step3SwitchButton"
-            app:layout_constraintStart_toStartOf="@+id/step3SwitchButton" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/resetBtn"
+            app:layout_constraintStart_toStartOf="@+id/resetBtn" />
 
         <ImageView
-            android:id="@+id/step3SwitchButton"
+            android:id="@+id/resetBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="22dp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginStart="92dp"
+            android:layout_marginTop="62dp"
+            app:layout_constraintStart_toEndOf="@+id/driveModeBtn"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_setmap_delete" />
+
+        <Switch
+            android:id="@+id/driveModeBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="62dp"
+            android:checked="true"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/step3SetPointButton"
+            app:layout_constraintStart_toEndOf="@+id/setPointBtnDisabled"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.62"
-            app:srcCompat="@drawable/ic_setmap_start" />
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
 
         <TextView
-            android:id="@+id/step3SetPointText"
+            android:id="@+id/driveModeText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:text="Drive-mode"
+            android:textColor="#FFFFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/driveModeBtn"
+            app:layout_constraintStart_toStartOf="@+id/driveModeBtn" />
+
+        <ImageView
+            android:id="@+id/setPointBtnDisabled"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="56dp"
+            android:layout_marginEnd="62dp"
+            app:layout_constraintEnd_toStartOf="@+id/driveModeBtn"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/setPointButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_setmap_point_un" />
+
+        <TextView
+            android:id="@+id/setPointTextDisabled"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:text="Set Point"
+            android:textColor="#FF323232"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/setPointBtnDisabled"
+            app:layout_constraintStart_toStartOf="@+id/setPointBtnDisabled" />
+
+        <TextView
+            android:id="@+id/setPointText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
             android:text="Set Point"
             android:textColor="#FFFFFFFF"
             android:visibility="gone"
-            app:layout_constraintBaseline_toBaselineOf="@+id/step3EndText"
-            app:layout_constraintEnd_toEndOf="@+id/step3SetPointButton"
-            app:layout_constraintStart_toStartOf="@+id/step3SetPointButton" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/setPointButton"
+            app:layout_constraintStart_toStartOf="@+id/setPointButton" />
 
         <ImageView
-            android:id="@+id/step3SetPointButton"
+            android:id="@+id/setPointButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="22dp"
+            android:layout_marginTop="56dp"
+            android:layout_marginEnd="62dp"
             android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="@+id/step3EndButton"
-            app:layout_constraintEnd_toStartOf="@+id/step3SwitchButton"
+            app:layout_constraintEnd_toStartOf="@+id/setPointBtnDisabled"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/step3EndButton"
+            app:layout_constraintStart_toEndOf="@+id/endButton"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_setmap_point" />
 
         <ImageView
-            android:id="@+id/step3EndButton"
+            android:id="@+id/endButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="22dp"
-            android:layout_marginBottom="4dp"
-            app:layout_constraintBottom_toTopOf="@+id/step3EndText"
-            app:layout_constraintEnd_toStartOf="@+id/step3SetPointButton"
+            android:layout_marginTop="56dp"
+            android:layout_marginEnd="45dp"
+            app:layout_constraintEnd_toStartOf="@+id/setPointButton"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_setmap_done" />
 
         <TextView
-            android:id="@+id/step3EndText"
+            android:id="@+id/endText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="9dp"
             android:text="END"
             android:textColor="#FFFFFFFF"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/step3EndButton"
-            app:layout_constraintStart_toStartOf="@+id/step3EndButton" />
+            app:layout_constraintEnd_toEndOf="@+id/endButton"
+            app:layout_constraintStart_toStartOf="@+id/endButton" />
 
         <TextView
-            android:id="@+id/step3Instruction"
+            android:id="@+id/instructionText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Long pree “Set point” button switch to the driving mode."
+            android:text="Drive mode: Drive route will be saved as the mowing area boundary​"
             android:textColor="#FFFFFFFF"
             android:textSize="13sp"
-            app:layout_constraintBottom_toTopOf="@+id/step3EndButton"
+            app:layout_constraintBottom_toTopOf="@+id/endButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/footerViewStep4"
+        android:id="@+id/footerViewControlPanel"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone"
@@ -239,86 +265,114 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/view2"
-        app:layout_constraintVertical_bias="1.0">
+        app:layout_constraintVertical_bias="1.0"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/chargingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:text="Charging Route"
+            android:textColor="#FFFFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/chargingButton"
+            app:layout_constraintStart_toStartOf="@+id/chargingButton" />
+
+        <ImageView
+            android:id="@+id/chargingButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="54dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/routeButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_setmap_start" />
+
+        <ImageView
+            android:id="@+id/routeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="54dp"
+            android:layout_marginEnd="48dp"
+            app:layout_constraintEnd_toStartOf="@+id/chargingButton"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/obstacleButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_setmap_route" />
 
         <TextView
             android:id="@+id/textView12"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Done"
+            android:layout_marginBottom="9dp"
+            android:text="Route"
             android:textColor="#FFFFFFFF"
-            app:layout_constraintBaseline_toBaselineOf="@+id/textView11"
-            app:layout_constraintEnd_toEndOf="@+id/step4DoneButton"
-            app:layout_constraintStart_toStartOf="@+id/step4DoneButton" />
-
-        <ImageView
-            android:id="@+id/step4DoneButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="22dp"
-            app:layout_constraintBottom_toBottomOf="@+id/step4ObstacleButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/step4ObstacleButton"
-            app:srcCompat="@drawable/ic_setmap_done" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/routeButton"
+            app:layout_constraintStart_toStartOf="@+id/routeButton" />
 
         <TextView
             android:id="@+id/textView11"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
             android:text="Obstacle"
             android:textColor="#FFFFFFFF"
-            app:layout_constraintBaseline_toBaselineOf="@+id/step4NextLawnText"
-            app:layout_constraintEnd_toEndOf="@+id/step4ObstacleButton"
-            app:layout_constraintStart_toStartOf="@+id/step4ObstacleButton" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/obstacleButton"
+            app:layout_constraintStart_toStartOf="@+id/obstacleButton" />
 
         <ImageView
-            android:id="@+id/step4ObstacleButton"
+            android:id="@+id/obstacleButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="22dp"
-            android:layout_marginEnd="22dp"
-            app:layout_constraintBottom_toBottomOf="@+id/step4NextLawnButton"
-            app:layout_constraintEnd_toStartOf="@+id/step4DoneButton"
+            android:layout_marginTop="54dp"
+            android:layout_marginEnd="48dp"
+            app:layout_constraintEnd_toStartOf="@+id/routeButton"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/step4NextLawnButton"
+            app:layout_constraintStart_toEndOf="@+id/nextLawnButton"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_setmap_obstacle" />
 
         <TextView
             android:id="@+id/step4NextLawnText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
             android:text="Next lawn"
             android:textColor="#FFFFFFFF"
-            app:layout_constraintBaseline_toBaselineOf="@+id/step4EditText"
-            app:layout_constraintEnd_toEndOf="@+id/step4NextLawnButton"
-            app:layout_constraintStart_toStartOf="@+id/step4NextLawnButton" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/nextLawnButton"
+            app:layout_constraintStart_toStartOf="@+id/nextLawnButton" />
 
         <ImageView
-            android:id="@+id/step4NextLawnButton"
+            android:id="@+id/nextLawnButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="22dp"
-            android:layout_marginEnd="22dp"
 
-            app:layout_constraintBottom_toBottomOf="@+id/step4EditButton"
-            app:layout_constraintEnd_toStartOf="@+id/step4ObstacleButton"
+            android:layout_marginTop="54dp"
+            android:layout_marginEnd="48dp"
+            app:layout_constraintEnd_toStartOf="@+id/obstacleButton"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/step4EditButton"
+            app:layout_constraintStart_toEndOf="@+id/editButton"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_setmap_mowing" />
 
         <ImageView
-            android:id="@+id/step4EditButton"
+            android:id="@+id/editButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="22dp"
-            android:layout_marginBottom="4dp"
 
-            app:layout_constraintBottom_toTopOf="@+id/step4EditText"
-            app:layout_constraintEnd_toStartOf="@+id/step4NextLawnButton"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="54dp"
+            android:layout_marginEnd="48dp"
+            app:layout_constraintEnd_toStartOf="@+id/nextLawnButton"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_setmap_edit" />
 
         <TextView
@@ -329,13 +383,24 @@
             android:text="Edit map"
             android:textColor="#FFFFFFFF"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/step4EditButton"
-            app:layout_constraintStart_toStartOf="@+id/step4EditButton" />
+            app:layout_constraintEnd_toEndOf="@+id/editButton"
+            app:layout_constraintStart_toStartOf="@+id/editButton" />
+
+        <TextView
+            android:id="@+id/finishText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="34dp"
+            android:text="Finish setup >"
+            android:textColor="#FFFFFFFF"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/footerViewSetObstacle"
+        android:id="@+id/footerViewStartObstacle"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone"
@@ -344,52 +409,232 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/view2"
-        app:layout_constraintVertical_bias="0.0">
+        app:layout_constraintVertical_bias="0.0"
+        tools:visibility="gone">
 
         <TextView
             android:id="@+id/obstacleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
             android:text="Obstacle"
             android:textColor="#FFFFFFFF"
-            app:layout_constraintBaseline_toBaselineOf="@+id/obstacleEndText"
-            app:layout_constraintEnd_toEndOf="@+id/obstacleButton"
-            app:layout_constraintStart_toStartOf="@+id/obstacleButton" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/startObstacleIcon"
+            app:layout_constraintStart_toStartOf="@+id/startObstacleIcon" />
 
         <ImageView
-            android:id="@+id/obstacleButton"
+            android:id="@+id/startObstacleIcon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="22dp"
-            app:layout_constraintBottom_toBottomOf="@+id/obstacleEndButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/obstacleEndButton"
-            app:srcCompat="@drawable/ic_setmap_obstacle" />
-
-        <ImageView
-            android:id="@+id/obstacleEndButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="22dp"
             android:layout_marginBottom="4dp"
-            app:layout_constraintBottom_toTopOf="@+id/obstacleEndText"
-            app:layout_constraintEnd_toStartOf="@+id/obstacleButton"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintBottom_toTopOf="@+id/obstacleText"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/ic_setmap_done" />
+            app:srcCompat="@drawable/ic_setmap_obstacle"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/progressView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC000000"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/footerViewStartCharging"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/view2">
 
         <TextView
-            android:id="@+id/obstacleEndText"
+            android:id="@+id/setStationText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="9dp"
-            android:text="END"
+            android:text="Set Station"
             android:textColor="#FFFFFFFF"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/obstacleEndButton"
-            app:layout_constraintStart_toStartOf="@+id/obstacleEndButton" />
+            app:layout_constraintEnd_toEndOf="@+id/startChargingIcon"
+            app:layout_constraintStart_toStartOf="@+id/startChargingIcon" />
+
+        <ImageView
+            android:id="@+id/startChargingIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/setStationText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ic_setmap_start" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/footerViewStartRoute"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/view2">
+
+        <TextView
+            android:id="@+id/textView10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:text="Add Route"
+            android:textColor="#FFFFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/startRouteIcon"
+            app:layout_constraintStart_toStartOf="@+id/startRouteIcon" />
+
+        <ImageView
+            android:id="@+id/startRouteIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/textView10"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ic_setmap_route" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/footerViewSelectDeleteType"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/viewBackground"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/view2"
+        tools:visibility="gone">
+
+        <ImageView
+            android:id="@+id/chargingIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/textView14"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/routeIcon"
+            app:srcCompat="@drawable/ic_setmap_start" />
+
+        <TextView
+            android:id="@+id/textView14"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:text="Charging path"
+            android:textColor="#FFFFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/chargingIcon"
+            app:layout_constraintStart_toStartOf="@+id/chargingIcon" />
+
+        <ImageView
+            android:id="@+id/routeIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="48dp"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/textView13"
+            app:layout_constraintEnd_toStartOf="@+id/chargingIcon"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/obstacleIcon"
+            app:srcCompat="@drawable/ic_setmap_route" />
+
+        <TextView
+            android:id="@+id/textView13"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:text="Lawn route"
+            android:textColor="#FFFFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/routeIcon"
+            app:layout_constraintStart_toStartOf="@+id/routeIcon" />
+
+        <ImageView
+            android:id="@+id/obstacleIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="48dp"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/textView9"
+            app:layout_constraintEnd_toStartOf="@+id/routeIcon"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/grassIcon"
+            app:srcCompat="@drawable/ic_setmap_obstacle" />
+
+        <TextView
+            android:id="@+id/textView9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:text="Obstacle"
+            android:textColor="#FFFFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/obstacleIcon"
+            app:layout_constraintStart_toStartOf="@+id/obstacleIcon" />
+
+        <ImageView
+            android:id="@+id/grassIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="48dp"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/textView5"
+            app:layout_constraintEnd_toStartOf="@+id/obstacleIcon"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ic_setmap_mowing" />
+
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:text="Lawn"
+            android:textColor="#FFFFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/grassIcon"
+            app:layout_constraintStart_toStartOf="@+id/grassIcon" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/footerViewDeleteElement"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/viewBackground"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/view2">
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

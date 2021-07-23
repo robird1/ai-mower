@@ -26,6 +26,12 @@ class Utils {
             return result
         }
 
+        fun intToBytes(i: Short): ByteArray {
+            val bb = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN)
+            bb.putShort(i)
+            return bb.array()
+        }
+
         fun convert(bytes: ByteArray): String {
 //            val bytes = byteArrayOf(0xAE.toByte(), 0x00, 0x00, 0x00)
 //            println(ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).int)
@@ -40,6 +46,10 @@ class Utils {
                 ""
             }
         }
+
+//        fun getElementKey(intent: Intent): String {
+//
+//        }
 
         fun checkLocationSetting(activity: Activity) {
             val mLocationRequest = LocationRequest.create()

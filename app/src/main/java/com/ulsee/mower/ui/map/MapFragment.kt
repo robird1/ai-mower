@@ -17,8 +17,10 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
 import com.ulsee.mower.MainActivity
 import com.ulsee.mower.R
+import com.ulsee.mower.ble.BluetoothLeRepository
+import com.ulsee.mower.ble.BluetoothLeService
 import com.ulsee.mower.data.*
-import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_STATUS_RESPONSE
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_STATUS
 import com.ulsee.mower.databinding.FragmentMapBinding
 import kotlin.math.abs
 
@@ -78,7 +80,7 @@ class MapFragment: Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickList
 
     private fun registerBLEReceiver() {
         val filter = IntentFilter()
-        filter.addAction(ACTION_STATUS_RESPONSE)
+        filter.addAction(ACTION_STATUS)
         requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
     }
 

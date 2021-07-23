@@ -1,41 +1,34 @@
 package com.ulsee.mower.ui.map
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.view.View
+import android.util.Log
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
-import com.ulsee.mower.data.RobotStatusState
+import com.ulsee.mower.data.RecordBoundary.Command.Companion.CANCEL_RECORD
+import com.ulsee.mower.data.RecordBoundary.Command.Companion.FINISH_POINT_MODE
+import com.ulsee.mower.data.RecordBoundary.Command.Companion.FINISH_RECORD
+import com.ulsee.mower.data.RecordBoundary.Command.Companion.SET_POINT
+import com.ulsee.mower.data.RecordBoundary.Command.Companion.START_POINT_MODE
+import com.ulsee.mower.data.RecordBoundary.Command.Companion.START_RECORD
+import com.ulsee.mower.data.RecordBoundary.Subject.Companion.CHARGING
+import com.ulsee.mower.data.RecordBoundary.Subject.Companion.GRASS
+import com.ulsee.mower.data.RecordBoundary.Subject.Companion.GRASS_PATH
+import com.ulsee.mower.data.RecordBoundary.Subject.Companion.OBSTACLE
+
+
+private val TAG = SetupMapState::class.java.simpleName
 
 abstract class SetupMapState(private val fragment: SetupMapFragment) {
-    var gattUpdateReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                RobotStatusState.ACTION_STATUS_RESPONSE -> {
-                    val x = intent.getIntExtra("x", 0)
-                    val y = intent.getIntExtra("y", 0)
-                    val angle = intent.getFloatExtra("angle", 0F)
-//                    Log.d(TAG, "x: $x y: $y angle: $angle")
-
-                    // TODO OperationType
-//                    binding.mapView.updateRobotPosition(x, y, angle, MapView.OperationType.WorkingBorder)
-                    binding.mapView.notifyRobotCoordinate(x, y, angle, fragment.state)
-                }
-
-                RobotStatusState.ACTION_BORDER_RECORD_RESPONSE -> {
-
-                }
-            }
-        }
-    }
 
     val binding = fragment.binding
     val bleService = fragment.bluetoothService
     val viewModel = fragment.viewModel
+    val context = fragment.context
 
     fun createView() {
+        Log.d("456", "[Enter] createView() state: ${fragment.state}")
         setTitleHint()
+        onResetView()
         onSetupListeners()
         hideAllFooterButtons()
         onFooterButtonsView().isVisible = true
@@ -44,170 +37,422 @@ abstract class SetupMapState(private val fragment: SetupMapFragment) {
     abstract fun onTitleHintText(): String
     abstract fun onFooterButtonsView(): ConstraintLayout
     abstract fun onSetupListeners()
-    abstract fun onNextState(): SetupMapState
+    abstract fun onNextState()
+    abstract fun onBackPressed()
+    abstract fun onResetView()
 
     private fun setTitleHint() {
         binding.titleHintText.text = onTitleHintText()
     }
 
     private fun hideAllFooterButtons() {
-        binding.footerViewStep1.isVisible = false
-        binding.footerViewStep2.isVisible = false
-        binding.footerViewStep3.isVisible = false
-        binding.footerViewStep4.isVisible = false
-        binding.footerViewSetObstacle.isVisible = false
+        binding.footerViewStartGrass.isVisible = false
+        binding.footerViewStartObstacle.isVisible = false
+        binding.footerViewStartCharging.isVisible = false
+        binding.footerViewStartRoute.isVisible = false
+        binding.footerViewMode.isVisible = false
+        binding.footerViewControlPanel.isVisible = false
+        binding.footerViewSelectDeleteType.isVisible = false
+        binding.footerViewDeleteElement.isVisible = false
     }
 
-    fun goToNextState() {
-        fragment.state = onNextState()
+}
+
+
+class StartGrass(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
+
+    override fun onTitleHintText() = "STEP 1. Drive the mower to the lawn. Tap START when arrive the boundary.\u200B\n" +
+            "* If there is more than one mowing area, start from the one closest to the charging station\u200B"
+
+    override fun onFooterButtonsView() = binding.footerViewStartGrass
+
+    override fun onSetupListeners() {
+        binding.startGrassIcon.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            viewModel.recordBoundary(START_RECORD, GRASS)
+        }
+    }
+
+    override fun onNextState() {
+        fragment.state = RecordGrass(fragment)
         fragment.state.createView()
     }
 
-}
-
-class SetChargingStation(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
-
-    override fun onTitleHintText() = "STEP 1. Set the charging station and plan the route to the lawn"
-
-    override fun onFooterButtonsView() = binding.footerViewStep1
-
-    override fun onSetupListeners() {
-        binding.chargeStationView.setOnClickListener {
-            viewModel.getStatusPeriodically()
-            binding.mapView.showChargingStation()
-//            viewModel.startRecordChargingPath()
-
-//            fragment.state = onNextState()
-//            fragment.state.createView()
-            goToNextState()
-//            onNextState().createView()
-        }
+    override fun onBackPressed() {
+        fragment.state = StateControlPanel(fragment)
+        fragment.state.createView()
     }
 
-    override fun onNextState() = SetupChargingPath(fragment)
-
-//    fun showChargingStation() {
-//        binding.mapView.showChargingStation()
-//        onNextState().createView()
-//    }
-
-}
-
-
-class SetupChargingPath(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
-
-    override fun onTitleHintText() = "STEP 2. Once you arrive the mowing area, tap the start button."
-
-    override fun onFooterButtonsView() = binding.footerViewStep2
-
-    override fun onSetupListeners() {
-        binding.startWorkingBoundaryView.setOnClickListener {
-            binding.mapView.showWorkingStartPoint()
-
-//            onNextState().createView()
-//            fragment.state = onNextState()
-//            fragment.state.createView()
-            goToNextState()
-        }
+    override fun onResetView() {
+        binding.startGrassIcon.setOnClickListener(null)
     }
 
-    override fun onNextState() = SetWorkingBoundary(fragment)
-
 }
 
 
-class SetWorkingBoundary(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
+class StartObstacle(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
 
-    override fun onTitleHintText() = "STEP 3. Drive the lawn mower along the lawn’s boundary, " +
-            "and set the boundary point when it needs.\n Tap the “END” button when this lawn area is done. "
+    override fun onTitleHintText() = "Drive your lawn mower to the obstacle and tap ”START” to start record obstacle boundary."
 
-    override fun onFooterButtonsView() = binding.footerViewStep3
+    override fun onFooterButtonsView() = binding.footerViewStartObstacle
 
     override fun onSetupListeners() {
-        binding.step3EndButton.setOnClickListener {
-            binding.mapView.finishWorkingBorder()
-//            binding.mapView.isWithinCanvasBound2()
-//            onNextState().createView()
-            goToNextState()
-        }
-        binding.step3SetPointButton.setOnClickListener {
-//            viewModel.setWorkingBorderPoint()
-            binding.mapView.setWorkingBoundaryPoint()
-        }
-//        binding.step3SetPointButton.setOnLongClickListener {
-//            true
-//        }
-        binding.step3SwitchButton.setOnClickListener {
-            if (binding.mapView.mode == MapView.Mode.Drive) {
-                binding.mapView.changeMode(MapView.Mode.SetPoint)
-            } else {
-                binding.mapView.changeMode(MapView.Mode.Drive)
+        binding.startObstacleIcon.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
-
-            val visible = binding.step3SetPointButton.isVisible
-            binding.step3SetPointButton.isVisible = !visible
-            binding.step3SetPointText.isVisible = !visible
+            viewModel.recordBoundary(START_RECORD, OBSTACLE)
         }
     }
 
-    override fun onNextState() = FinishWorkingBoundary(fragment)
-
-}
-
-
-class FinishWorkingBoundary(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
-
-    override fun onTitleHintText() = "STEP 4. Tap “Edit map” to edit the boundary. Tap “Next lawn” to " +
-            "set another lawn in this map. \nTap “Obstacle” to set the obstacle boundary. Tap “Done” to save this map."
-
-    override fun onFooterButtonsView() = binding.footerViewStep4
-
-    override fun onSetupListeners() {
-        binding.step4EditButton.setOnClickListener {
-
-        }
-        binding.step4NextLawnButton.setOnClickListener {
-
-        }
-        binding.step4ObstacleButton.setOnClickListener {
-//            val offsetX = arrayListOf(300, 300, -150)
-//            val offsetY = arrayListOf(300, 0, -400)
-//            val angles = arrayListOf(90F, 90F, -160F)
-//            createFakeRoute(offsetX, offsetY, angles, MapView.OperationType.Obstacle)
-
-            SetObstacle(fragment).createView()
-        }
-        binding.step4DoneButton.setOnClickListener {
-
-        }
+    override fun onNextState() {
+        fragment.state = RecordObstacle(fragment)
+        fragment.state.createView()
     }
 
-    override fun onNextState(): SetupMapState {
-        TODO("Not yet implemented")
+    override fun onBackPressed() {
+        fragment.state = StateControlPanel(fragment)
+        fragment.state.createView()
+    }
+
+    override fun onResetView() {
+        binding.startObstacleIcon.setOnClickListener(null)
     }
 
 }
 
 
-class SetObstacle(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
+class StartChargingPath(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
 
-    override fun onTitleHintText() = "Obstacle: Drive your lawn mower to the obstacle and " +
-            "tap ”Obstacle” to set the obstacle’s boundary. \nTap “END” when it’s finished."
+    override fun onTitleHintText() = "Charging route: Tap the button \"Set Station\" after mower is parked at charging station."
 
-    override fun onFooterButtonsView() = binding.footerViewSetObstacle
+    override fun onFooterButtonsView() = binding.footerViewStartCharging
 
     override fun onSetupListeners() {
+        binding.startChargingIcon.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            viewModel.recordBoundary(START_RECORD, CHARGING)
+        }
+    }
+
+    override fun onNextState() {
+        fragment.state = RecordChargingPath(fragment)
+        fragment.state.createView()
+    }
+
+    override fun onBackPressed() {
+        fragment.state = StateControlPanel(fragment)
+        fragment.state.createView()
+    }
+
+    override fun onResetView() {
+        binding.startChargingIcon.setOnClickListener(null)
+    }
+
+}
+
+
+class StartGrassRoute(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
+
+    override fun onTitleHintText() = "Tap the button \"Add Route\" when mower is in grass area."
+
+    override fun onFooterButtonsView() = binding.footerViewStartRoute
+
+    override fun onSetupListeners() {
+        binding.startRouteIcon.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            viewModel.recordBoundary(START_RECORD, GRASS_PATH)
+        }
+    }
+
+    override fun onNextState() {
+        fragment.state = RecordGrassRoute(fragment)
+        fragment.state.createView()
+    }
+
+    override fun onBackPressed() {
+        fragment.state = StateControlPanel(fragment)
+        fragment.state.createView()
+    }
+
+    override fun onResetView() {
+        binding.startRouteIcon.setOnClickListener(null)
+    }
+
+}
+
+
+class StateControlPanel(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
+
+    override fun onTitleHintText() = ""
+
+    override fun onFooterButtonsView() = binding.footerViewControlPanel
+
+    override fun onSetupListeners() {
+        binding.editButton.setOnClickListener {
+            fragment.state = SelectDeleteType(fragment)
+            fragment.state.createView()
+        }
+        binding.nextLawnButton.setOnClickListener {
+            fragment.state = StartGrass(fragment)
+            fragment.state.createView()
+        }
         binding.obstacleButton.setOnClickListener {
-            binding.mapView.setObstaclePoint()
+            fragment.state = StartObstacle(fragment)
+            fragment.state.createView()
         }
-        binding.obstacleEndButton.setOnClickListener {
-            binding.mapView.finishObstacleBorder()
-            goToNextState()
+        binding.routeButton.setOnClickListener {
+            fragment.state = StartGrassRoute(fragment)
+            fragment.state.createView()
+        }
+        binding.chargingButton.setOnClickListener {
+            fragment.state = StartChargingPath(fragment)
+            fragment.state.createView()
+        }
+        binding.finishText.setOnClickListener {
+            onNextState()
         }
     }
 
-    override fun onNextState() = FinishWorkingBoundary(fragment)
+    override fun onNextState() {
+        fragment.backToStatusScreen()
+    }
+
+    override fun onBackPressed() {
+        fragment.backToStatusScreen()
+    }
+
+    override fun onResetView() {
+        binding.editButton.setOnClickListener(null)
+        binding.nextLawnButton.setOnClickListener(null)
+        binding.obstacleButton.setOnClickListener(null)
+        binding.routeButton.setOnClickListener(null)
+    }
 
 }
+
+
+open class RecordGrass(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
+
+    override fun onTitleHintText() = "Use “switch button” to change mode\u200B. Drive the mower along the lawn boundary.  The drive route will be saved as the mowing area border line."
+
+    override fun onFooterButtonsView() = binding.footerViewMode
+
+    override fun onSetupListeners() {
+        initEndButtonListener()
+        initSetPointBtnListener()
+        initDriveBtnListener()
+        initResetBtnListener()
+    }
+
+    open fun onRecordType() = GRASS
+
+    private fun initResetBtnListener() {
+        binding.resetBtn.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            viewModel.recordBoundary(CANCEL_RECORD, onRecordType())
+        }
+    }
+
+    private fun initDriveBtnListener() {
+        binding.driveModeBtn.setOnCheckedChangeListener { _, isChecked ->
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnCheckedChangeListener
+            }
+            if (isChecked) {
+                // drive mode
+                viewModel.recordBoundary(FINISH_POINT_MODE, onRecordType())
+            } else {
+                // set point mode
+                viewModel.recordBoundary(START_POINT_MODE, onRecordType())
+            }
+        }
+    }
+
+    private fun initSetPointBtnListener() {
+        binding.setPointButton.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            viewModel.recordBoundary(SET_POINT, onRecordType())
+        }
+    }
+
+    private fun initEndButtonListener() {
+        binding.endButton.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            binding.progressView.isVisible = true
+            if (!binding.driveModeBtn.isChecked) {        // Point mode
+    //                binding.titleHintText.text = "Step 2, use “switch button” to change mode\u200B. Drive the mower to the corners of lawn and tap Set point.  Points will be connected by straight line as the boundary of the mowing area. \u200B"
+                viewModel.recordBoundary(FINISH_POINT_MODE, onRecordType())
+
+            } else {      // Drive mode
+    //                binding.titleHintText.text = "Step 2, use “switch button” to change mode\u200B. Drive the mower along the lawn boundary.  The drive route will be saved as the mowing area border line."
+
+            }
+            viewModel.recordBoundary(FINISH_RECORD, onRecordType())
+        }
+    }
+
+    override fun onNextState() {
+        fragment.state = StateControlPanel(fragment)
+        fragment.state.createView()
+    }
+
+    override fun onBackPressed() {
+        // do nothing
+    }
+
+    override fun onResetView() {
+        binding.endButton.setOnClickListener(null)
+        binding.setPointButton.setOnClickListener(null)
+        binding.driveModeBtn.setOnCheckedChangeListener(null)
+        binding.resetBtn.setOnClickListener(null)
+        binding.driveModeBtn.isChecked = true
+        binding.setPointButton.isVisible = false
+        binding.setPointBtnDisabled.isVisible = true
+        binding.setPointText.isVisible = false
+        binding.setPointTextDisabled.isVisible = true
+        binding.titleHintText.text = onTitleHintText()
+    }
+}
+
+
+class RecordObstacle(fragment: SetupMapFragment): RecordGrass(fragment) {
+
+    override fun onTitleHintText() = "Drive mower to a obstacle and tap ”Obstacle” to set obstacle’s boundary. Tap “END” when it’s finished."
+
+    override fun onRecordType() = OBSTACLE
+
+}
+
+
+class RecordChargingPath(fragment: SetupMapFragment): RecordGrass(fragment) {
+
+    override fun onTitleHintText() = "Drive mower to the grass area that is closet to charging station. Tap “END” when it’s finished."
+
+    override fun onRecordType() = CHARGING
+
+}
+
+
+class RecordGrassRoute(fragment: SetupMapFragment): RecordGrass(fragment) {
+
+    override fun onTitleHintText() = "Drive mower to the target grass area. Tap “END” when it’s finished."
+
+    override fun onRecordType() = GRASS_PATH
+
+}
+
+
+class SelectDeleteType(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
+
+    override fun onTitleHintText() = "Select the element type you want to delete."
+
+    override fun onFooterButtonsView() = binding.footerViewSelectDeleteType
+
+    override fun onSetupListeners() {
+        binding.grassIcon.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            binding.mapView.deleteMode = SetupMapView.DeleteType.GRASS
+            onNextState()
+        }
+        binding.obstacleIcon.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            binding.mapView.deleteMode = SetupMapView.DeleteType.OBSTACLE
+            onNextState()
+        }
+        binding.chargingIcon.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            binding.mapView.deleteMode = SetupMapView.DeleteType.CHARGING_ROUTE
+            onNextState()
+        }
+        binding.routeIcon.setOnClickListener {
+            if (fragment.signalQuality == 0) {
+                Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            binding.mapView.deleteMode = SetupMapView.DeleteType.GRASS_ROUTE
+            onNextState()
+        }
+    }
+
+    override fun onNextState() {
+        fragment.state = DeleteElement(fragment)
+        fragment.state.createView()
+        binding.mapView.postInvalidate()
+    }
+
+    override fun onBackPressed() {
+        fragment.state = StateControlPanel(fragment)
+        fragment.state.createView()
+    }
+
+    override fun onResetView() {
+        binding.grassIcon.setOnClickListener(null)
+        binding.obstacleIcon.setOnClickListener(null)
+        binding.chargingIcon.setOnClickListener(null)
+        binding.routeIcon.setOnClickListener(null)
+    }
+
+}
+
+
+class DeleteElement(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
+
+    override fun onTitleHintText() = "Tap the trash can icon to delete specified element."
+
+    override fun onFooterButtonsView() = binding.footerViewDeleteElement
+
+    override fun onSetupListeners() {
+        // do nothing
+    }
+
+    override fun onNextState() {
+        // stay at current screen
+    }
+
+    override fun onBackPressed() {
+        fragment.state = SelectDeleteType(fragment)
+        fragment.state.createView()
+        binding.mapView.deleteMode = SetupMapView.DeleteType.NONE
+        binding.mapView.postInvalidate()
+    }
+
+    override fun onResetView() {
+        // do nothing
+    }
+
+}
+
+
+
 
 

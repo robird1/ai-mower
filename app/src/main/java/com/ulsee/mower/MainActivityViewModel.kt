@@ -8,8 +8,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.ulsee.mower.data.BluetoothLeRepository
-import com.ulsee.mower.data.BluetoothLeService
+import com.ulsee.mower.ble.BluetoothLeRepository
+import com.ulsee.mower.ble.BluetoothLeService
+import com.ulsee.mower.ui.map.StatusFragmentViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,12 +53,12 @@ class MainActivityViewModel(): ViewModel() {
 }
 
 
-class MainActivityFactory(private val bleRepository: BluetoothLeRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(StatusFragmentViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return StatusFragmentViewModel(bleRepository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}
+//class MainActivityFactory(private val bleRepository: BluetoothLeRepository) : ViewModelProvider.Factory {
+//    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+//        if (modelClass.isAssignableFrom(StatusFragmentViewModel::class.java)) {
+//            @Suppress("UNCHECKED_CAST")
+//            return StatusFragmentViewModel(bleRepository) as T
+//        }
+//        throw IllegalArgumentException("Unknown ViewModel class")
+//    }
+//}

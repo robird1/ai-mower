@@ -7,7 +7,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
-import com.ulsee.mower.data.BluetoothLeService
+import com.ulsee.mower.ble.BluetoothLeService
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import kotlinx.coroutines.MainScope

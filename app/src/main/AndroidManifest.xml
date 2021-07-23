@@ -32,14 +32,13 @@
             tools:ignore="LockedOrientationActivity"/>
         <activity
             android:name="com.ulsee.mower.MainActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity"/>
 <!--        <activity-->
 <!--            android:name="com.ulsee.mower.SetupMapActivity"-->
 <!--            android:screenOrientation="landscape"/>-->
 
-        <service android:name=".data.BluetoothLeService"
+        <service android:name=".ble.BluetoothLeService"
             android:exported="false" />
 
         <meta-data

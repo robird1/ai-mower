@@ -28,6 +28,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import com.ulsee.mower.ble.BluetoothLeRepository
+import com.ulsee.mower.ble.BluetoothLeService
 import com.ulsee.mower.data.*
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_CONNECT_FAILED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_DEVICE_NOT_FOUND
