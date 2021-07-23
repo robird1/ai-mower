@@ -51,6 +51,7 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
         get() = _mowingDataList
 
 
+
     val gattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
 

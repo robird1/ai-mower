@@ -6,8 +6,8 @@
     app:startDestination="@id/robotListFragment">
     <fragment
         android:id="@+id/robotListFragment"
-        android:name="com.ulsee.mower.RobotListFragment"
-        android:label="RobotListFragment" >
+        android:name="com.ulsee.mower.ui.connect.RobotListFragment"
+        android:label="RobotListFragment">
         <action
             android:id="@+id/action_robotListFragment_to_addRobotInstructionFragment"
             app:destination="@id/addRobotInstructionFragment" />
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/addRobotInstructionFragment"
-        android:name="com.ulsee.mower.AddRobotInstructionFragment"
+        android:name="com.ulsee.mower.ui.connect.AddRobotInstructionFragment"
         android:label="AddRobotInstructionFragment" />
     <fragment
         android:id="@+id/statusFragment"

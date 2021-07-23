@@ -1,4 +1,4 @@
-package com.ulsee.mower
+package com.ulsee.mower.ui.connect
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.ulsee.mower.R
 import com.ulsee.mower.data.model.Device
 
 private val TAG = RobotListAdapter::class.java.simpleName

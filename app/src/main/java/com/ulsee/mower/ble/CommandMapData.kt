@@ -66,7 +66,6 @@ class CommandGrassBoundary(service: BluetoothLeService): AbstractCommand(service
     }
 
     override fun receive(value: ByteArray) {
-        Log.d("654", "value: ${value.toHexString()}")
         val serialNumber = value[1]
         val packetCount = value[7]
         val packetNumber = value[9]
@@ -85,7 +84,6 @@ class CommandGrassBoundary(service: BluetoothLeService): AbstractCommand(service
             IntRange(idx + 1, value.size - 3)
         }
 
-        Log.d("654", "value.sliceArray: ${value.sliceArray(dataIndexRange).toHexString()}")
         intent.putExtra("data", value.sliceArray(dataIndexRange))
         sendBroadcast(intent)
     }
@@ -196,7 +194,7 @@ class CommandGrassPath(service: BluetoothLeService): AbstractCommand(service) {
         val packetNumber = value[9]
         val grassNumber = value[13]
         val targetGrassNumber = value[getIndex(value, 0x6A)+1]
-        val pathNumber = value[value.indexOf(0x6B)+1]
+        val pathNumber = value[getIndex(value, 0x6B)+1]
 
         val intent = Intent(BLEBroadcastAction.ACTION_GRASS_PATH)
         intent.putExtra("serialNumber", serialNumber)

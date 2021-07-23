@@ -100,7 +100,6 @@ class StatusView@JvmOverloads constructor(
         confirmedGrassRoute = MapData.grassPathData
         confirmedChargingRoute = MapData.chargingPathData
 
-        Log.d("654", "confirmedGrass.size: ${confirmedGrass.size}")
         postInvalidate()
     }
 
@@ -172,40 +171,32 @@ class StatusView@JvmOverloads constructor(
     }
 
     private fun Canvas.drawGrass() {
-        confirmedGrass.forEach { (key, pointList) ->
+        confirmedGrass.forEach { (_, pointList) ->
             addPath(confirmedPathGrass, pointList)
-
-//            trashCanList[key] = pointList[0]
         }
 
         drawPath(confirmedPathGrass, paintConfirmedGrass)
     }
 
     private fun Canvas.drawObstacle() {
-        confirmedObstacle.forEach { (key, pointList) ->
+        confirmedObstacle.forEach { (_, pointList) ->
             addPath(confirmedPathObstacle, pointList)
-
-//            trashCanList[key] = pointList[0]
         }
 
         drawPath(confirmedPathObstacle, paintConfirmedObstacle)
     }
 
     private fun Canvas.drawGrassRoute() {
-        confirmedGrassRoute.forEach { (key, pointList) ->
+        confirmedGrassRoute.forEach { (_, pointList) ->
             addPath(confirmedPathGrassRoute, pointList)
-
-//            trashCanList[key] = pointList[0]
         }
 
         drawPath(confirmedPathGrassRoute, paintConfirmedGrassRoute)
     }
 
     private fun Canvas.drawChargingRoute() {
-        confirmedChargingRoute.forEach { (key, pointList) ->
+        confirmedChargingRoute.forEach { (_, pointList) ->
             addPath(confirmedPathCharging, pointList)
-
-//            trashCanList[key] = pointList[0]
 
             val position = getPixelPosition(pointList[pointList.size-1])
             drawBitmap(
@@ -263,7 +254,7 @@ class StatusView@JvmOverloads constructor(
 
     private fun getCenterOfGrass(): PointF {
         val grassCenterList = ArrayList<PointF>()
-        confirmedGrass.forEach { (key, pointList) ->
+        confirmedGrass.forEach { (_, pointList) ->
             if (pointList.size > 0) {
                 confirmedPathGrass.reset()
                 confirmedPathGrass.moveTo(pointList[0].x * xScale, -pointList[0].y * yScale)

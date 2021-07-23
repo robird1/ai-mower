@@ -11,6 +11,10 @@ const val INDEX_LENGTH = 2
 abstract class AbstractCommand(val service: BluetoothLeService) {
     companion object {
         var serialNumber = 1
+
+        fun resetSerialNumber() {
+            serialNumber = 1
+        }
     }
 
     abstract fun getSendPayload(): ByteArray

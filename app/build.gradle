@@ -16,17 +16,6 @@ android {
         versionCode 1
         versionName "1.0"
 
-        // ...
-        // Set the properties within `local.properties` into a `Properties` class so that values
-        // within `local.properties` (e.g. Maps API key) are accessible in this file.
-        Properties properties = new Properties()
-        if (rootProject.file("local.properties").exists()) {
-            properties.load(rootProject.file("local.properties").newDataInputStream())
-        }
-
-        // Inject the Maps API key into the manifest
-        manifestPlaceholders = [ mapsApiKey : properties.getProperty("MAPS_API_KEY", "") ]
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -62,9 +51,6 @@ dependencies {
 
     // BLE needs location permission
     implementation 'com.google.android.gms:play-services-location:18.0.0'
-
-    // google map
-    implementation 'com.google.android.gms:play-services-maps:17.0.0'
 
     // joystick
     implementation 'io.github.controlwear:virtualjoystick:1.10.1'

@@ -71,17 +71,6 @@ class MainActivity: AppCompatActivity() {
                         supportActionBar?.hide();
                     }
                 }
-//                R.id.navigation_record -> setTitle("Record")
-//                R.id.attend_record -> hideBottomNav()
-//                R.id.device_settings -> hideBottomNav()
-//                R.id.language_config -> hideBottomNav()
-//                R.id.temperature_config -> hideBottomNav()
-//                R.id.panel_ui_config -> hideBottomNav()
-//                R.id.others_config -> hideBottomNav()
-//                R.id.light_mode_config -> hideBottomNav()
-//                R.id.volume_config -> hideBottomNav()
-//                R.id.time_config -> hideBottomNav()
-//                R.id.capture_config -> hideBottomNav()
                 else -> {
                     if (supportActionBar != null) {
                         supportActionBar?.show();

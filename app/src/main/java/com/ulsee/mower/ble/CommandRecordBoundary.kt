@@ -19,23 +19,23 @@ class CommandRecordBoundary(service: BluetoothLeService): AbstractCommand(servic
         intent.putExtra("command", value[7].toInt())
         intent.putExtra("subject", value[9].toInt())
 
-        val subject = value[value.indexOf(0x73)+1].toInt()
+        val subject = value[getIndex(value, 0x73)+1].toInt()
         when (subject) {
             0x00 -> {
-                intent.putExtra("grass_number", value[value.indexOf(0x74)+1].toInt())
+                intent.putExtra("grass_number", value[getIndex(value, 0x74)+1].toInt())
             }
             0x01 -> {
-                intent.putExtra("grass_number", value[value.indexOf(0x74)+1].toInt())
-                intent.putExtra("obstacle_number", value[value.indexOf(0x75)+1].toInt())
+                intent.putExtra("grass_number", value[getIndex(value, 0x74)+1].toInt())
+                intent.putExtra("obstacle_number", value[getIndex(value, 0x75)+1].toInt())
             }
             0x02 -> {
-                intent.putExtra("grass_number", value[value.indexOf(0x74)+1].toInt())
-                intent.putExtra("path_number", value[value.indexOf(0x77)+1].toInt())
+                intent.putExtra("grass_number", value[getIndex(value, 0x74)+1].toInt())
+                intent.putExtra("path_number", value[getIndex(value, 0x77)+1].toInt())
             }
             0x03 -> {
-                intent.putExtra("grass_number", value[value.indexOf(0x74)+1].toInt())
-                intent.putExtra("target_grass_number", value[value.indexOf(0x76)+1].toInt())
-                intent.putExtra("path_number", value[value.indexOf(0x77)+1].toInt())
+                intent.putExtra("grass_number", value[getIndex(value, 0x74)+1].toInt())
+                intent.putExtra("target_grass_number", value[getIndex(value, 0x76)+1].toInt())
+                intent.putExtra("path_number", value[getIndex(value, 0x77)+1].toInt())
             }
             else -> {
                 // do nothing

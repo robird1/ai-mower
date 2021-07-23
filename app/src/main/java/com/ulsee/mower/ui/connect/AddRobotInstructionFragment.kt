@@ -1,5 +1,6 @@
-package com.ulsee.mower
+package com.ulsee.mower.ui.connect
 
+import android.content.Intent
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.view.LayoutInflater
@@ -12,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
+import com.ulsee.mower.R
 import com.ulsee.mower.data.model.AppPreference
 import com.ulsee.mower.databinding.ActivityAddRobotInstructionBinding
 
@@ -53,6 +55,7 @@ class AddRobotInstructionFragment: Fragment() {
                 val appPreference = AppPreference(PreferenceManager.getDefaultSharedPreferences(activity))
                 appPreference.setFirstAddDevice()
 
+                requireContext().sendBroadcast(Intent("FINISH_ADD_INSTRUCTION"))
                 findNavController().popBackStack()
             }
         }

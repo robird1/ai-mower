@@ -1,4 +1,4 @@
-package com.ulsee.mower
+package com.ulsee.mower.ui.connect
 
 import android.bluetooth.le.ScanResult
 import android.content.BroadcastReceiver
@@ -55,6 +55,10 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
 
     private var deviceSerialNumber: String? = null
 
+    private var _isGuideFinish = MutableLiveData<Event<Boolean>>()
+    val isGuideFinish : LiveData<Event<Boolean>>
+        get() = _isGuideFinish
+
 
     val gattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -90,16 +94,30 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
         }
     }
 
+    val guideFinishReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == "FINISH_ADD_INSTRUCTION") {
+                _isGuideFinish.value = Event(true)
+            }
+        }
+    }
+
     fun startBLEScan(fragment: RobotListFragment) {
         Utils.checkLocationSetting(fragment.requireActivity())
 
         if (!fragment.isLocationPermissionGranted) {
+            Log.d("111", "[Enter] !fragment.isLocationPermissionGranted")
+
             fragment.requestLocationPermission()
         }
         else {
+            Log.d("111", "[Enter] fragment.isLocationPermissionGranted")
+
 //        val filters = arrayListOf(filter)
             if (_isScanning.value == true)
                 stopBleScan()
+
+            Log.d("111", "[Enter] bleRepository.startBLEScan()")
 
             bleRepository.startBLEScan()
             _isScanning.value = true

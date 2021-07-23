@@ -45,13 +45,13 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="54dp"
             android:layout_marginBottom="4dp"
+            android:background="@drawable/tab_button_selector"
             app:layout_constraintBottom_toTopOf="@+id/textView6"
             app:layout_constraintEnd_toStartOf="@+id/startMowingBtn"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toEndOf="@+id/view3"
-            app:srcCompat="@drawable/ic_tab_chargingstation"
-            android:background="@drawable/tab_button_selector"/>
+            app:srcCompat="@drawable/ic_tab_chargingstation" />
 
         <TextView
             android:id="@+id/textView6"
@@ -70,12 +70,12 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="54dp"
             android:layout_marginBottom="4dp"
+            android:background="@drawable/tab_button_selector"
             app:layout_constraintBottom_toTopOf="@+id/startText"
             app:layout_constraintEnd_toStartOf="@+id/pauseButton"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/parkingButton"
-            app:srcCompat="@drawable/ic_tab_start"
-            android:background="@drawable/tab_button_selector"/>
+            app:srcCompat="@drawable/ic_tab_start" />
 
         <TextView
             android:id="@+id/startText"
@@ -94,13 +94,13 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="54dp"
             android:layout_marginBottom="4dp"
+            android:background="@drawable/tab_button_selector"
             android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@+id/pauseText"
             app:layout_constraintEnd_toStartOf="@+id/scheduleButton"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/startMowingBtn"
             app:srcCompat="@drawable/ic_tab_pause"
-            android:background="@drawable/tab_button_selector"
             tools:visibility="visible" />
 
         <TextView
@@ -122,12 +122,12 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="54dp"
             android:layout_marginBottom="4dp"
+            android:background="@drawable/tab_button_selector"
             app:layout_constraintBottom_toTopOf="@+id/textView17"
             app:layout_constraintEnd_toStartOf="@+id/settingButton"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/pauseButton"
-            app:srcCompat="@drawable/ic_tab_schedule"
-            android:background="@drawable/tab_button_selector"/>
+            app:srcCompat="@drawable/ic_tab_schedule" />
 
         <TextView
             android:id="@+id/textView17"
@@ -156,12 +156,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
+            android:background="@drawable/tab_button_selector"
             app:layout_constraintBottom_toTopOf="@+id/textView18"
             app:layout_constraintEnd_toStartOf="@+id/view3"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/scheduleButton"
-            app:srcCompat="@drawable/ic_tab_settings"
-            android:background="@drawable/tab_button_selector"/>
+            app:srcCompat="@drawable/ic_tab_settings" />
 
         <Button
             android:id="@+id/testButton"
@@ -285,12 +285,6 @@
         app:layout_constraintBottom_toBottomOf="@+id/signalView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/signalView" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/progressView"

@@ -1,4 +1,4 @@
-package com.ulsee.mower
+package com.ulsee.mower.ui.connect
 
 import android.Manifest
 import android.app.Activity
@@ -10,7 +10,6 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
@@ -28,9 +27,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import com.ulsee.mower.App
+import com.ulsee.mower.BuildConfig
+import com.ulsee.mower.R
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
-import com.ulsee.mower.data.*
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_CONNECT_FAILED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_DEVICE_NOT_FOUND
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_CONNECTED
@@ -38,7 +39,7 @@ import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_DISCONNECTE
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_NOT_SUCCESS
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_FAILED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_SUCCESS
-import com.ulsee.mower.data.model.AppPreference
+import com.ulsee.mower.data.DatabaseRepository
 import com.ulsee.mower.databinding.FragmentRobotListBinding
 
 private const val ENABLE_BLUETOOTH_REQUEST_CODE = 1
@@ -67,6 +68,11 @@ class RobotListFragment: Fragment() {
         super.onCreate(savedInstanceState)
         bluetoothService = (requireActivity().application as App).bluetoothService!!
 
+        initViewModel()
+
+        registerBLEReceiver()
+        registerGuideFinishReceiver()
+
 //        (activity as MainActivity).registerServiceCallback(this)
     }
 
@@ -76,8 +82,9 @@ class RobotListFragment: Fragment() {
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        Log.d(TAG, "[Enter] onActivityCreated")
         super.onActivityCreated(savedInstanceState)
+        Log.d(TAG, "[Enter] onActivityCreated")
+        initGuideFinishObserver()
     }
 
     override fun onStart() {
@@ -97,12 +104,13 @@ class RobotListFragment: Fragment() {
 
     override fun onDestroyView() {
         Log.d(TAG, "[Enter] onDestroyView")
-        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
         super.onDestroyView()
     }
 
     override fun onDestroy() {
         Log.d(TAG, "[Enter] onDestroy")
+        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
+        requireActivity().unregisterReceiver(viewModel.guideFinishReceiver)
         super.onDestroy()
     }
 
@@ -128,11 +136,9 @@ class RobotListFragment: Fragment() {
 
         binding = FragmentRobotListBinding.inflate(inflater, container, false)
 
-        initViewModel()
+//        initViewModel()
 
-        registerBLEReceiver()       // TODO: consider move this line to onCreate(), then receiver need to be moved from viewModel to Fragment.
-
-//        viewModel.startBLEScan(this)
+        viewModel.startBLEScan(this)
         viewModel.getDeviceList()
 
         initProgressBar()
@@ -165,6 +171,12 @@ class RobotListFragment: Fragment() {
         requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
     }
 
+    private fun registerGuideFinishReceiver() {
+        val filter = IntentFilter()
+        filter.addAction("FINISH_ADD_INSTRUCTION")
+        requireActivity().registerReceiver(viewModel.guideFinishReceiver, filter)
+    }
+
     override fun onResume() {
         Log.d(TAG, "[Enter] onResume")
         super.onResume()
@@ -189,10 +201,12 @@ class RobotListFragment: Fragment() {
             permissions: Array<String?>,
             grantResults: IntArray) {
         Log.d(TAG, "[Enter] onRequestPermissionsResult")
+        Log.d("111", "[Enter] onRequestPermissionsResult()")
 
         if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             // now, you have permission go ahead
             Log.d(TAG, "[Enter] grantResults[0] == PackageManager.PERMISSION_GRANTED")
+            Log.d("111", "[Enter] onRequestPermissionsResult() viewModel.startBLEScan()")
             viewModel.startBLEScan(this)
 
         } else {
@@ -215,13 +229,13 @@ class RobotListFragment: Fragment() {
 
     private fun configAddDeviceBtn() {
         binding.button.setOnClickListener {
-            val appPreference = AppPreference(PreferenceManager.getDefaultSharedPreferences(activity))
-            val isFirstAddDevice = appPreference.getFirstAddDevice()
-            if (isFirstAddDevice) {
+//            val appPreference = AppPreference(PreferenceManager.getDefaultSharedPreferences(activity))
+//            val isFirstAddDevice = appPreference.getFirstAddDevice()
+//            if (isFirstAddDevice) {
                 findNavController().navigate(R.id.addRobotInstructionFragment)
-            } else {
-                showAddDeviceDialog()
-            }
+//            } else {
+//                showAddDeviceDialog()
+//            }
         }
     }
 
@@ -231,7 +245,7 @@ class RobotListFragment: Fragment() {
         val dialog = AlertDialog.Builder(activity)
         dialog.setTitle("Please enter serial number")
             .setView(input)
-            .setCancelable(false)
+            .setCancelable(true)
             .setPositiveButton(android.R.string.ok) { _, _ ->
 
                 val textInput = input.text.toString()
@@ -324,8 +338,18 @@ class RobotListFragment: Fragment() {
         }
     }
 
+    private fun initGuideFinishObserver() {
+        viewModel.isGuideFinish.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { result ->
+                if (result) {
+                    showAddDeviceDialog()
+                }
+            }
+        }
+    }
+
     private fun initProgressBar() {
-        progressBar = binding.progressView
+        progressBar = binding.progressView2
     }
 
     private fun showPermissionIsNecessary(activity: Activity) {

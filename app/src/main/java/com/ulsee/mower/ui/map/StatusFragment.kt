@@ -85,7 +85,6 @@ class StatusFragment: Fragment() {
         binding.progressView.isVisible = true
         viewModel.getMapGlobalParameters()
 
-
         return binding.root
     }
 
@@ -141,7 +140,7 @@ class StatusFragment: Fragment() {
                     }
 
                     val dialog = AlertDialog.Builder(context)
-                    dialog.setMessage("Disconnect and return to home page ?")
+                    dialog.setMessage("Disconnect and return to device list page ?")
                         .setCancelable(false)
                         .setPositiveButton(R.string.button_confirm) { _, _ ->
 
@@ -178,12 +177,13 @@ class StatusFragment: Fragment() {
         viewModel.hasMapData.observe(viewLifecycleOwner) { result->
             if (result) {
                 binding.constraintLayoutNoMap.isVisible = false
-                binding.statusView.isVisible = true
+                binding.constraintLayoutCustomView.isVisible = true
+
             } else {
                 binding.progressView.isVisible = false
 
                 binding.constraintLayoutNoMap.isVisible = true
-                binding.statusView.isVisible = false
+                binding.constraintLayoutCustomView.isVisible = false
             }
         }
     }
