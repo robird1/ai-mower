@@ -26,60 +26,29 @@
             android:layout_height="match_parent">
 
             <TextView
+                android:id="@+id/textView_toolbar_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:text="@string/title_settings_gradual"
+                android:layout_centerInParent="true"
+                android:text="Schedules"
                 android:textColor="#ffffff"
-                android:textSize="16sp"></TextView>
+                android:textSize="16sp">
+            </TextView>
         </RelativeLayout>
 
 
     </androidx.appcompat.widget.Toolbar>
 
-
-    <LinearLayout
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        app:layoutManager="LinearLayoutManager"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:layout_constraintStart_toStartOf="parent"
-        android:orientation="vertical">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@color/settings_item_bg"
-            android:padding="12dp"
-            android:layout_marginTop="1dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                style="@style/Settings_item_title"
-                android:text="@string/title_settings_gradual"></TextView>
-
-            <RadioButton
-                android:id="@+id/radioButton_gradual"
-                android:layout_width="26dp"
-                android:layout_height="20dp"
-                android:theme="@style/Checkbox"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"></RadioButton>
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/text_settings_gradual"
-            style="@style/Settings_detail_description"
-            android:layout_marginTop="32dp"
-            android:layout_marginStart="40dp"
-            android:layout_marginEnd="40dp"></TextView>
-    </LinearLayout>
-
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+    </androidx.recyclerview.widget.RecyclerView>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/progress_view"

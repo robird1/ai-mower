@@ -60,13 +60,15 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 style="@style/Settings_item_title"
                 android:text="@string/title_settings_explosive"></TextView>
+
             <RadioButton
                 android:id="@+id/radioButton_explosive"
-                android:layout_width="32dp"
-                android:layout_height="wrap_content"
+                android:layout_width="21dp"
+                android:layout_height="20dp"
+                android:theme="@style/Checkbox"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"></RadioButton>
+                app:layout_constraintTop_toTopOf="parent"></RadioButton>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <TextView

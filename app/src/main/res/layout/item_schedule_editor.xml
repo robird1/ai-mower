@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/transparent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="7dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="#1C1C1C"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginStart="16dp">
+
+                <TextView
+                    android:id="@+id/textView_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Schedule1"
+                    android:textColor="#fff"
+                    android:textSize="16sp"
+                    android:layout_centerVertical="true"></TextView>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:orientation="horizontal"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true">
+
+                    <TextView
+                        android:id="@+id/textView_beginAt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/shape_bg_schedule_time"
+                        android:paddingStart="8dp"
+                        android:paddingTop="4dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="4dp"
+                        android:text="09:41"
+                        android:textColor="#fff"
+                        android:textSize="22sp"></TextView>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:background="@drawable/shape_bg_schedule_time"
+                        android:layout_marginStart="6dp"
+                        android:padding="2dp">
+                        <Button
+                            android:id="@+id/button_am"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:text="AM"
+                            android:textSize="13sp"
+                            android:background="@drawable/selector_bg_button_schedule"></Button>
+                        <Button
+                            android:id="@+id/button_pm"
+                            android:layout_width="60dp"
+                            android:layout_height="match_parent"
+                            android:text="PM"
+                            android:textSize="13sp"
+                            android:background="@drawable/selector_bg_button_schedule"></Button>
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/linearLayout_lawns"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="24dp">
+
+                <!-- lawns... -->
+                <RelativeLayout
+                    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <CheckBox
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:text="lawn1 r1"
+                        android:theme="@style/Checkbox"
+                        android:textColor="#fff"
+                        android:textSize="13sp"
+                        android:paddingStart="16dp"
+                        android:layout_marginStart="16dp"></CheckBox>
+
+                </RelativeLayout>
+                <CheckBox
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="lawn1 c1"
+                    android:theme="@style/Checkbox"
+                    android:textColor="#fff"
+                    android:textSize="13sp"
+                    android:paddingStart="16dp"
+                    android:layout_marginStart="16dp"></CheckBox>
+
+            </LinearLayout>
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

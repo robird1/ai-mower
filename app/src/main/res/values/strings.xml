@@ -36,4 +36,24 @@
     <string name="text_settings_gradual">TODO: \nDescription of “Gradual mode”.\n...\n...\n... </string>
     <string name="text_settings_explosive">TODO: \nDescription of “Explosive”.\n...\n...\n... </string>
     <string name="text_settings_bladeheight">Drag to set up the mowing height</string>
+
+    <!-- schedule -->
+    <string name="title_schedule">Schedule</string>
+    <string name="title_schedule_calendar">Schedule Table</string>
+    <!-- weeks -->
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wensday">Wensday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
+    <string name="saturday">Saturday</string>
+    <string name="sunday">Sunday</string>
+
+    <string name="mon">Mon</string>
+    <string name="tue">Tue</string>
+    <string name="wen">Wen</string>
+    <string name="thu">Thu</string>
+    <string name="fri">Fri</string>
+    <string name="sat">Sat</string>
+    <string name="sun">Sun</string>
 </resources>

@@ -82,6 +82,7 @@
             app:destination="@id/setupMapFragment" />
     </fragment>
 
+    <!-- settings begin -->
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.ulsee.mower.ui.settings.SettingsFragment"
@@ -131,4 +132,24 @@
         android:id="@+id/settingsBladeHeightFragment"
         android:name="com.ulsee.mower.ui.settings.mower.MowerSettingsBladeHeightFragment"
         android:label="SettingsBladeHeightFragment"/>
+    <!-- settings end -->
+
+    <!-- schedule begin -->
+    <fragment
+        android:id="@+id/scheduleListFragment"
+        android:name="com.ulsee.mower.ui.schedule.ScheduleListFragment"
+        android:label="ScheduleListFragment">
+        <action
+            android:id="@+id/action_scheduleListFragment_to_scheduleCalendarFragment"
+            app:destination="@id/scheduleCalendarFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/scheduleCalendarFragment"
+        android:name="com.ulsee.mower.ui.schedule.ScheduleCalendarFragment"
+        android:label="ScheduleCalendarFragment"/>
+    <fragment
+        android:id="@+id/scheduleEditorFragment"
+        android:name="com.ulsee.mower.ui.schedule.ScheduleEditorFragment"
+        android:label="ScheduleEditorFragment"/>
+    <!-- schedule end -->
 </navigation>
