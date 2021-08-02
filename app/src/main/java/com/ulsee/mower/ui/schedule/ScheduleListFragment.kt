@@ -1,25 +1,19 @@
 package com.ulsee.mower.ui.schedule
 
-import android.bluetooth.BluetoothGattCharacteristic
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SimpleExpandableListAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.ulsee.mower.App
 import com.ulsee.mower.R
-import com.ulsee.mower.RobotListAdapter
-import com.ulsee.mower.data.BluetoothLeRepository
-import com.ulsee.mower.data.BluetoothLeService
+import com.ulsee.mower.ble.BluetoothLeRepository
+import com.ulsee.mower.ble.BluetoothLeService
 import com.ulsee.mower.databinding.FragmentScheduleListBinding
-import java.util.*
-
 
 private val TAG = ScheduleListFragment::class.java.simpleName
 

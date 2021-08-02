@@ -12,8 +12,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.ulsee.mower.App
 import com.ulsee.mower.R
-import com.ulsee.mower.data.BluetoothLeRepository
-import com.ulsee.mower.data.BluetoothLeService
+import com.ulsee.mower.ble.BluetoothLeRepository
+import com.ulsee.mower.ble.BluetoothLeService
 import com.ulsee.mower.databinding.FragmentScheduleEditorBinding
 
 private val TAG = ScheduleEditorFragment::class.java.simpleName

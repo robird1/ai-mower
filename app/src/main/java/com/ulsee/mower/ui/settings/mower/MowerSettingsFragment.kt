@@ -11,8 +11,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.ulsee.mower.App
 import com.ulsee.mower.R
-import com.ulsee.mower.data.BluetoothLeRepository
-import com.ulsee.mower.data.BluetoothLeService
+import com.ulsee.mower.ble.BluetoothLeRepository
+import com.ulsee.mower.ble.BluetoothLeService
 import com.ulsee.mower.databinding.FragmentSettingsBinding
 import com.ulsee.mower.databinding.FragmentSettingsMowerBinding
 

@@ -9,8 +9,8 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.ulsee.mower.App
-import com.ulsee.mower.data.BluetoothLeRepository
-import com.ulsee.mower.data.BluetoothLeService
+import com.ulsee.mower.ble.BluetoothLeRepository
+import com.ulsee.mower.ble.BluetoothLeService
 import com.ulsee.mower.databinding.FragmentSettingsMowerWorkonrainydaysBinding
 
 private val TAG = MowerSettingsWorkOnRainDaysFragment::class.java.simpleName

@@ -2,7 +2,7 @@ package com.ulsee.mower.ui.schedule
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.ulsee.mower.data.BluetoothLeRepository
+import com.ulsee.mower.ble.BluetoothLeRepository
 
 class ScheduleListFragmentViewModelFactory(private val bleRepository: BluetoothLeRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
