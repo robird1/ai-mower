@@ -1,6 +1,7 @@
 package com.ulsee.mower.ui.map
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
@@ -27,7 +28,9 @@ import com.ulsee.mower.data.StartStop.Command.Companion.RESUME_MOWING
 import com.ulsee.mower.data.StartStop.Command.Companion.START_MOWING
 import com.ulsee.mower.data.Status.*
 import com.ulsee.mower.data.Status.WorkingMode.Companion.LEARNING_MODE
+import com.ulsee.mower.data.Status.WorkingMode.Companion.MANUAL_MODE
 import com.ulsee.mower.data.Status.WorkingMode.Companion.SUSPEND_WORKING_MODE
+import com.ulsee.mower.data.Status.WorkingMode.Companion.TESTING_BOUNDARY_MODE
 import com.ulsee.mower.data.Status.WorkingMode.Companion.WORKING_MODE
 import com.ulsee.mower.databinding.ActivityStatusBinding
 
@@ -42,6 +45,8 @@ class StatusFragment: Fragment() {
     private val emergencyStopIdxList = ArrayList<Int>()
     private val interruptionIdxList = ArrayList<Int>()
     private var signalQuality = -1
+    private var isMowingStatus = false
+    private var workingMode = MANUAL_MODE
 
     private var state = MowingState.Stop
     enum class MowingState {
@@ -98,16 +103,10 @@ class StatusFragment: Fragment() {
         super.onActivityCreated(savedInstanceState)
 //        initPowerObserver()
         initStatusObserver()
-        initStartStopObserver()
         initMapDataObserver()
         initGlobalParameterObserver()
         initMowingDataObserver()
-    }
-
-    private fun initMowingDataObserver() {
-        viewModel.mowingDataList.observe(viewLifecycleOwner) {
-            binding.statusView.updateMowingArea(it)
-        }
+        initGattConnectedStatus()
     }
 
     override fun onDestroyView() {
@@ -167,6 +166,8 @@ class StatusFragment: Fragment() {
             filter.addAction(BLEBroadcastAction.ACTION_GRASS_PATH)
             filter.addAction(BLEBroadcastAction.ACTION_CHARGING_PATH)
             filter.addAction(BLEBroadcastAction.ACTION_MOWING_DATA)
+            filter.addAction(BLEBroadcastAction.ACTION_GATT_CONNECTED)
+            filter.addAction(BLEBroadcastAction.ACTION_GATT_NOT_SUCCESS)
             requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
 
             isReceiverRegistered = true
@@ -190,7 +191,6 @@ class StatusFragment: Fragment() {
 
     private fun initGlobalParameterObserver() {
         viewModel.requestMapFinished.observe(viewLifecycleOwner) { isFinished ->
-            Log.d("777", "[Enter] requestMapFinished.observe()")
             binding.progressView.isVisible = false
             if (isFinished) {
                 binding.statusView.initData()
@@ -198,43 +198,27 @@ class StatusFragment: Fragment() {
         }
     }
 
-    private fun initStartStopObserver() {
-        viewModel.startStopResult.observe(viewLifecycleOwner) { (isSuccess, type) ->
-            if (isSuccess) {
-                when (type.toInt()) {
-                    START_MOWING -> {
-                        Log.d("678", "startStopResult.observe() START_MOWING")
-                        binding.startMowingBtn.isVisible = false
-                        binding.startText.isVisible = false
-                        binding.pauseButton.isVisible = true
-                        binding.pauseText.isVisible = true
-                        state = MowingState.Mowing
+    private fun initMowingDataObserver() {
+        viewModel.mowingDataList.observe(viewLifecycleOwner) {
+//            Log.d("666", "[Enter] updateMowingArea() size: ${it.size} isMowingStatus: $isMowingStatus")
 
-                        viewModel.getMowingData(0x00)
-                    }
-                    PAUSE_MOWING -> {
-                        Log.d("678", "startStopResult.observe() PAUSE_MOWING")
-                        binding.pauseText.text = "Resume"
-                        state = MowingState.Pause
-                    }
-                    RESUME_MOWING -> {
-                        Log.d("678", "startStopResult.observe() RESUME_MOWING")
-                        binding.pauseText.text = "Pause"
-                        state = MowingState.Mowing
+            // 刀盤啟動中或作業暫停中
+            if (isMowingStatus || workingMode == SUSPEND_WORKING_MODE) {
+                binding.statusView.updateMowingArea(it)
+            }
+        }
+    }
 
-                        viewModel.getMowingData(0x00)
-                    }
-                    BACK_CHARGING_STATION -> {
-                        Log.d("678", "startStopResult.observe() BACK_CHARGING_STATION")
-                        binding.startMowingBtn.isVisible = true
-                        binding.startText.isVisible = true
-                        binding.pauseButton.isVisible = false
-                        binding.pauseText.isVisible = false
-                        state = MowingState.Stop
-                    }
-                }
+    private fun initGattConnectedStatus() {
+        viewModel.gattConnected.observe(viewLifecycleOwner) { isConnected ->
+            if (isConnected) {
+                binding.connectedView.isVisible = true
+                binding.disconnectedView.isVisible = false
+                binding.connectStausText.text = "Connected"
             } else {
-                Toast.makeText(context, "$type", Toast.LENGTH_SHORT).show()
+                binding.connectedView.isVisible = false
+                binding.disconnectedView.isVisible = true
+                binding.connectStausText.text = "Disconnected"
             }
         }
     }
@@ -245,27 +229,41 @@ class StatusFragment: Fragment() {
             val y = intent.getIntExtra("y", 0)
             val angle = intent.getFloatExtra("angle", 0F)
             val power = intent.getIntExtra("power", -1)
-            val workingMode = intent.getIntExtra("working_mode", -1)
+            workingMode = intent.getIntExtra("working_mode", -1)
             val errorCode = intent.getIntExtra("working_error_code", -1)
             val robotStatus = intent.getStringExtra("robot_status") ?: ""
-//            val robotPositionStatus = intent.getStringExtra("robot_position_status") ?: ""
+            val isCharging = intent.getBooleanExtra("charging_status", false)
+            isMowingStatus = intent.getBooleanExtra("mowing_status", false)
             val interruptionCode = intent.getStringExtra("interruption_code") ?: ""
             signalQuality = intent.getIntExtra("signal_quality", -1)
 
-//            Log.d("888", "robotStatus: $robotStatus")
-
-            binding.powerPercentage.text = "$power %"
-
+            setWorkingAreaText(intent)
+            setWorkingTime(intent)
+            setPowerPercentage(power)
+            setChargingText(isCharging)
             checkSatelliteSignal()
-
             binding.statusView.notifyRobotCoordinate(x, y, angle)
-
             checkWorkingErrorCode(errorCode)
             checkRobotStatus(robotStatus)
-//            checkRobotPositionStatus(robotPositionStatus)
             checkInterruptionCode(interruptionCode)
             checkWorkingMode(workingMode)
         }
+    }
+
+    private fun setPowerPercentage(power: Int) {
+        binding.powerPercentage.text = "$power %"
+    }
+
+    private fun setWorkingTime(intent: Intent) {
+        val estimatedTime = intent.getStringExtra("estimated_time")
+        val elapsedTime = intent.getStringExtra("elapsed_time")
+        binding.workingTimeText.text = "$elapsedTime / $estimatedTime"
+    }
+
+    private fun setWorkingAreaText(intent: Intent) {
+        val totalArea = intent.getShortExtra("total_area", -1)
+        val finishedArea = intent.getShortExtra("finished_area", -1)
+        binding.workingAreaText.text = "$finishedArea㎡ / $totalArea㎡"
     }
 
     private fun checkSatelliteSignal() {
@@ -282,19 +280,21 @@ class StatusFragment: Fragment() {
     }
 
     private fun checkWorkingMode(workingMode: Int) {
-        Log.d("678", "workingMode: $workingMode")
         when (workingMode) {
             WORKING_MODE, LEARNING_MODE -> {
-                Log.d("678", "[Enter] WORKING_MODE")
-
+                Log.d("777", "[Enter] WORKING_MODE, LEARNING_MODE")
                 binding.startMowingBtn.isVisible = false
                 binding.startText.isVisible = false
                 binding.pauseButton.isVisible = true
                 binding.pauseText.isVisible = true
+                binding.pauseText.text = "Pause"
                 state = MowingState.Mowing
+
+                viewModel.getMowingData(0x00)
+
             }
             SUSPEND_WORKING_MODE -> {
-                Log.d("678", "[Enter] SUSPEND_WORKING_MODE")
+                Log.d("777", "[Enter] SUSPEND_WORKING_MODE")
 
                 binding.startMowingBtn.isVisible = false
                 binding.startText.isVisible = false
@@ -302,8 +302,24 @@ class StatusFragment: Fragment() {
                 binding.pauseText.isVisible = true
                 binding.pauseText.text = "Resume"
                 state = MowingState.Pause
+
+//                viewModel.cancelGetMowingData()
+                viewModel.getMowingData(0x00)
+
             }
-            else -> {
+            MANUAL_MODE -> {
+                Log.d("777", "[Enter] MANUAL_MODE")
+
+                binding.startMowingBtn.isVisible = true
+                binding.startText.isVisible = true
+                binding.pauseButton.isVisible = false
+                binding.pauseText.isVisible = false
+                state = MowingState.Stop
+
+                viewModel.cancelGetMowingData()
+            }
+            TESTING_BOUNDARY_MODE -> {
+                Log.d("777", "[Enter] TESTING_BOUNDARY_MODE")
 
             }
         }
@@ -331,7 +347,6 @@ class StatusFragment: Fragment() {
 
     private fun checkWorkingErrorCode(code: Int) {
         if (code > 0 && code != workingErrorCode) {
-            Log.d("888", "errorCode: $code")
             val message = WorkingErrorCode.map[code] ?: "errorCode: $code"
             showWorkingErrorDialog(message)
             workingErrorCode = code
@@ -340,7 +355,7 @@ class StatusFragment: Fragment() {
 
     private fun initSetupButtonListener() {
         binding.setupButton.setOnClickListener {
-            findNavController().navigate(R.id.setupMapFragment)
+            findNavController().navigate(R.id.instruction0Fragment)
         }
     }
 
@@ -358,14 +373,12 @@ class StatusFragment: Fragment() {
 
     private fun initStartButtonListener() {
         binding.startMowingBtn.setOnClickListener {
-            Log.d("777", "state: $state")
             if (signalQuality == 0) {
                 Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 //            when (state) {
 //                MowingState.Stop -> {
-                    Log.d("777", "[Enter] START_MOWING")
                     viewModel.startStop(START_MOWING)
 //                }
 //            }
@@ -374,19 +387,15 @@ class StatusFragment: Fragment() {
 
     private fun initPauseButtonListener() {
         binding.pauseButton.setOnClickListener {
-            Log.d("777", "state: $state")
             if (signalQuality == 0) {
                 Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             when (state) {
                 MowingState.Mowing -> {
-                    Log.d("777", "[Enter] PAUSE_MOWING")
                     viewModel.startStop(PAUSE_MOWING)
                 }
                 MowingState.Pause -> {
-                    Log.d("777", "[Enter] RESUME_MOWING")
-
                     viewModel.startStop(RESUME_MOWING)
                 }
             }
@@ -395,7 +404,6 @@ class StatusFragment: Fragment() {
 
     private fun initParkingButtonListener() {
         binding.parkingButton.setOnClickListener {
-            Log.d("777", "state: $state")
             if (signalQuality == 0) {
                 Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -404,15 +412,9 @@ class StatusFragment: Fragment() {
                 MowingState.Pause -> {
                     viewModel.startStop(BACK_CHARGING_STATION)
                     viewModel.startStop(RESUME_MOWING)
-
-                    Log.d("777", "[Enter] BACK_CHARGING_STATION")
-                    Log.d("777", "[Enter] RESUME_MOWING")
-
                 }
                 MowingState.Mowing -> {
                     viewModel.startStop(BACK_CHARGING_STATION)
-                    Log.d("777", "[Enter] BACK_CHARGING_STATION")
-
                 }
                 MowingState.Stop -> {
                     // do nothing
@@ -427,6 +429,7 @@ class StatusFragment: Fragment() {
             .setMessage(message)
             .setCancelable(false)
             .setPositiveButton("ok") { it, _ ->
+                viewModel.startStop(RESUME_FROM_INTERRUPT)
                 it.dismiss()
                 workingErrorCode = -1
             }
@@ -460,25 +463,8 @@ class StatusFragment: Fragment() {
         dialog.show()
     }
 
-    //    private fun checkRobotPositionStatus(code: String) {
-//        code.forEachIndexed { idx, value ->
-//            when (idx) {
-//                20 -> {    // 组合导航状态
-//                    if (value.toInt() == 1) {
-//
-//                    } else {
-//
-//                    }
-//                }
-//                23 -> {    // 定位状态
-//                    if (value.toInt() == 1) {
-//
-//                    } else {
-//
-//                    }
-//                }
-//            }
-//        }
-//    }
+    private fun setChargingText(isCharging: Boolean) {
+        binding.chargingTxt.isVisible = isCharging
+    }
 
 }

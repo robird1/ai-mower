@@ -9,55 +9,71 @@ import com.ulsee.mower.utils.Utils
 
 class CommandMowingData(service: BluetoothLeService): AbstractCommand(service) {
 
+    companion object {
+        fun convertBytesToCoordinate(list: ArrayList<Byte>): ArrayList<PointF> {
+            val coordinateList = ArrayList<PointF>()
+            try {
+                var index = 0
+                while (index < list.size) {
+                    val xByteArray = byteArrayOf(list[index++]) + list[index++] + list[index++] + list[index++]
+                    val yByteArray = byteArrayOf(list[index++]) + list[index++] + list[index++] + list[index++]
+                    val x = Utils.convert(xByteArray).toInt()
+                    val y = Utils.convert(yByteArray).toInt()
+//                    Log.d("666", "xByteArray: ${xByteArray.toHexString()}")
+//                    Log.d("666", "yByteArray: ${yByteArray.toHexString()}")
+                    coordinateList.add(PointF(x.toFloat(), y.toFloat()))
+                }
+            } catch (e: Exception) {
+                coordinateList.clear()
+                Log.d("666", "[Exception] convertBytesToCoordinate() =================================")
+            }
+            return coordinateList
+        }
+    }
+
     override fun getSendPayload(): ByteArray {
         TODO("Not yet implemented")
     }
 
     override fun receive(value: ByteArray) {
-        Log.d("888", "[Enter] CommandMowingData.receive() value: ${value.toHexString()}")
-
+        Log.d("666", "[Enter] CommandMowingData.receive() value: ${value.toHexString()}")
         val packetCountArray = byteArrayOf(value[7]) + value[8]
         val packetCount = Utils.convert(packetCountArray).toInt()
         val packetNumberArray = byteArrayOf(value[10]) + value[11]
         val packetNumber = Utils.convert(packetNumberArray).toInt()
-        var index = value.indexOf(0xB4.toByte()) + 1
-        var hasDataGrassCount = 0
-        var dataLen = 0
-        if (packetNumber == 0) {
-            hasDataGrassCount = value[index++].toInt()
-            val lenArray = byteArrayOf(value[index++]) + value[index++]
-            dataLen = Utils.convert(lenArray).toInt()
-        } else {
 
+        // 0xB4.toByte() -> -76
+        var index = getIndex(value, -76) + 1
+
+        if (packetNumber == 0) {
+            val finishGrassCount = value[index++].toInt()
+//            Log.d("666", "finishGrassCount: $finishGrassCount")
+            var finishGrassNumber = -1
+            for (i in 0 until finishGrassCount) {
+                finishGrassNumber = value[index++].toInt()
+//                Log.d("666", "finishGrassNumber: $finishGrassNumber")
+            }
+            var dataLen = value[index++]
+            dataLen = value[index++]
         }
 
-//        if (hasDataGrassCount > 0) {
-//            val grassNumber = value[index++]
-
-            Log.d("888", "packetCount: $packetCount packetNumber: $packetNumber dataLen: $dataLen")
-
-            val arrayList = ArrayList<PointF>()
-//            while (index < index + dataLen * 8) {
+        val arrayList = ArrayList<Byte>()
         while (index < value.size - 2) {
-            val xByteArray = byteArrayOf(value[index++]) + value[index++] + value[index++] + value[index++]
-                val yByteArray = byteArrayOf(value[index++]) + value[index++] + value[index++] + value[index++]
-                val x = Utils.convert(xByteArray).toInt()
-                val y = Utils.convert(yByteArray).toInt()
-                arrayList.add(PointF(x.toFloat(), y.toFloat()))
-            }
+            arrayList.add(value[index++])
+        }
 
+        if (arrayList.size > 0) {
             val intent = Intent(BLEBroadcastAction.ACTION_MOWING_DATA)
             intent.putExtra("packetCount", packetCount)
             intent.putExtra("packetNumber", packetNumber)
             intent.putExtra("data", Gson().toJson(arrayList))
             sendBroadcast(intent)
-//        }
+        }
 
     }
 
     fun getSendPayload(packetNumber: Int): ByteArray {
         val byteArray = Utils.intToBytes(packetNumber.toShort())
-        Log.d("888", "[Enter] getSendPayload() packetNumber byteArray: ${byteArray.toHexString()}")
         val checksumArray = byteArrayOf(0xFA.toByte()) + getSerialNumber().toByte() + 0x04 + 0xB0.toByte() + 0xB1.toByte() + byteArray
         return checksumArray + getCheckSum(checksumArray).toByte() + 0xFF.toByte()
     }

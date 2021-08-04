@@ -48,6 +48,9 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
     private var _gattStatusCode = MutableLiveData<Event<Int>>()
     val gattStatusCode : LiveData<Event<Int>>
         get() = _gattStatusCode
+    private var _gattNotSuccess = MutableLiveData<Event<String>>()
+    val gattNotSuccess : LiveData<Event<String>>
+        get() = _gattNotSuccess
 
     private var _deviceList = MutableLiveData<List<Device>>()
     val deviceList : LiveData<List<Device>>
@@ -76,10 +79,11 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
                     _gattStatusCode.value = Event(message!!.toInt())
                 }
                 ACTION_GATT_DISCONNECTED -> {
-                    _gattStatusCode.value = Event(message!!.toInt())
+//                    _gattStatusCode.value = Event(message!!.toInt())
+                    // TODO
                 }
                 ACTION_GATT_NOT_SUCCESS -> {
-                    _connectFailedLog.value = Event(message!!)
+                    _gattNotSuccess.value = Event(message!!)
                 }
                 ACTION_VERIFICATION_SUCCESS -> {
 
@@ -106,18 +110,12 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
         Utils.checkLocationSetting(fragment.requireActivity())
 
         if (!fragment.isLocationPermissionGranted) {
-            Log.d("111", "[Enter] !fragment.isLocationPermissionGranted")
-
             fragment.requestLocationPermission()
         }
         else {
-            Log.d("111", "[Enter] fragment.isLocationPermissionGranted")
-
 //        val filters = arrayListOf(filter)
             if (_isScanning.value == true)
                 stopBleScan()
-
-            Log.d("111", "[Enter] bleRepository.startBLEScan()")
 
             bleRepository.startBLEScan()
             _isScanning.value = true

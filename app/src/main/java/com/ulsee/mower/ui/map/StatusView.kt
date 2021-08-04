@@ -89,6 +89,7 @@ class StatusView@JvmOverloads constructor(
         initObstacleConfirmedPaint()
         initGrassRouteConfirmedPaint()
         initChargingConfirmedPaint()
+        initMowingPaint()
 
         initData()
     }
@@ -128,8 +129,10 @@ class StatusView@JvmOverloads constructor(
             drawChargingRoute()
 //            drawWorkingStartPoint()
             drawChargingStation()
+            if (confirmedGrass.size > 0) {
+                drawMowingArea()
+            }
             drawRobotPosition()
-            drawMowingArea()
         }
     }
 
@@ -147,8 +150,10 @@ class StatusView@JvmOverloads constructor(
     }
 
     fun updateMowingArea(data: ArrayList<PointF>) {
-        mowingData = data
-        postInvalidate()
+        mowingAreaPath.reset()
+        mowingData.clear()
+        mowingData.addAll(data)
+//        postInvalidate()
     }
 
     private fun getPixelPosition(coordinatePoint: PointF) = PointF(
@@ -167,7 +172,7 @@ class StatusView@JvmOverloads constructor(
         if (mowingData.size > 0) {
             addPath(mowingAreaPath, mowingData)
         }
-        drawPath(mowingAreaPath, paintConfirmedObstacle)
+        drawPath(mowingAreaPath, paintMowingArea)
     }
 
     private fun Canvas.drawGrass() {
@@ -307,6 +312,14 @@ class StatusView@JvmOverloads constructor(
     private fun getStartPositionY() = height / 2f
 
     private fun getStartPositionX() = width / 2f
+
+    private fun initMowingPaint() {
+        paintMowingArea = Paint()
+        paintMowingArea.style = Paint.Style.STROKE
+        paintMowingArea.strokeWidth = dp2px(10)
+        paintMowingArea.isAntiAlias = true
+        paintMowingArea.color = Color.parseColor("#94CD9A")
+    }
 
     private fun initGrassConfirmedPaint() {
         paintConfirmedGrass = Paint()

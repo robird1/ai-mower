@@ -12,12 +12,11 @@
         android:id="@+id/constraintLayoutCustomView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="4dp"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/connectStatusView"
+        app:layout_constraintTop_toTopOf="@+id/guideline"
         tools:visibility="visible">
 
         <com.ulsee.mower.ui.map.StatusView
@@ -27,8 +26,10 @@
             android:background="@drawable/bg_map"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
         <View
             android:id="@+id/view3"
@@ -172,6 +173,44 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
+        <ImageView
+            android:id="@+id/imageView8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="6dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_operated_area" />
+
+        <TextView
+            android:id="@+id/workingAreaText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/imageView8"
+            app:layout_constraintStart_toEndOf="@+id/imageView8"
+            app:layout_constraintTop_toTopOf="@+id/imageView8" />
+
+        <ImageView
+            android:id="@+id/imageView9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="6dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView8"
+            app:srcCompat="@drawable/ic_operated_time" />
+
+        <TextView
+            android:id="@+id/workingTimeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/imageView9"
+            app:layout_constraintStart_toEndOf="@+id/imageView9"
+            app:layout_constraintTop_toTopOf="@+id/imageView9" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -179,13 +218,12 @@
         android:id="@+id/constraintLayoutNoMap"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="4dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/connectStatusView"
+        app:layout_constraintTop_toTopOf="@+id/guideline"
         tools:visibility="gone">
 
         <TextView
@@ -223,33 +261,47 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ImageView
-        android:id="@+id/connectStatusView"
+        android:id="@+id/connectedView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="17dp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_connected_s" />
+        app:srcCompat="@drawable/ic_connected_s"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/disconnectedView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_disconnected_s" />
 
     <TextView
         android:id="@+id/connectStausText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="8dp"
         android:text="Connected"
-        app:layout_constraintBottom_toBottomOf="@+id/connectStatusView"
-        app:layout_constraintStart_toEndOf="@+id/connectStatusView"
-        app:layout_constraintTop_toTopOf="@+id/connectStatusView" />
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="@+id/guideline4"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/batteryView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="74dp"
+        android:layout_marginStart="50dp"
         app:layout_constraintBottom_toBottomOf="@+id/connectStausText"
         app:layout_constraintStart_toEndOf="@+id/connectStausText"
         app:layout_constraintTop_toTopOf="@+id/connectStausText"
@@ -282,9 +334,21 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="12dp"
         android:text="Good"
-        app:layout_constraintBottom_toBottomOf="@+id/signalView"
+        app:layout_constraintBottom_toBottomOf="@+id/power_percentage"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/signalView" />
+        app:layout_constraintTop_toTopOf="@+id/power_percentage" />
+
+    <TextView
+        android:id="@+id/chargingTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="(charging)"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/power_percentage"
+        app:layout_constraintStart_toEndOf="@+id/power_percentage"
+        app:layout_constraintTop_toTopOf="@+id/power_percentage"
+        tools:visibility="visible" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/progressView"
@@ -308,8 +372,22 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="47dp" />
 
-<!--    <LinearLayout-->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="45dp" />
+
+
+    <!--    <LinearLayout-->
 <!--        android:layout_width="match_parent"-->
 <!--        android:layout_height="84dp"-->
 <!--        android:background="#000000"-->

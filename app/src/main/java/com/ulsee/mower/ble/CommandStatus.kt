@@ -4,6 +4,8 @@ import android.content.Intent
 import android.util.Log
 import com.ulsee.mower.data.BLEBroadcastAction
 import com.ulsee.mower.utils.Utils
+import java.text.SimpleDateFormat
+import java.util.*
 
 class CommandStatus(service: BluetoothLeService): AbstractCommand(service) {
 
@@ -31,8 +33,13 @@ class CommandStatus(service: BluetoothLeService): AbstractCommand(service) {
         intent.putExtra("working_mode", getWorkingMode(value))
         intent.putExtra("working_error_code", getWorkingErrorCode(value))
         intent.putExtra("robot_status", getRobotStatus(value))
-//        intent.putExtra("robot_position_status", getRobotPositionStatus(value))
+        intent.putExtra("mowing_status", getMowingStatus(value))
+        intent.putExtra("charging_status", getChargingStatus(value))
         intent.putExtra("interruption_code", getInterruptionCode(value))
+        intent.putExtra("total_area", getTotalWorkingArea(value))
+        intent.putExtra("finished_area", getFinishedArea(value))
+        intent.putExtra("estimated_time", getEstimatedWorkingTime(value))
+        intent.putExtra("elapsed_time", getWorkingElapsedTime(value))
 
         val testBoundaryIndex = getIndex(value, 0x61)
         if (testBoundaryIndex != -1) {
@@ -40,6 +47,38 @@ class CommandStatus(service: BluetoothLeService): AbstractCommand(service) {
         }
 
         sendBroadcast(intent)
+    }
+
+    private fun getWorkingElapsedTime(value: ByteArray): String {
+        val idx = getIndex(value, 0x58)
+        val byteArray = byteArrayOf(value[idx + 1]) + value[idx + 2]
+        val elapsedTime = Utils.convert(byteArray).toShort()
+//        Log.d("666", "elapsedTime: $elapsedTime")
+        val hours = elapsedTime / 60
+        val minutes = elapsedTime % 60
+        return String.format("%02d:%02d", hours, minutes)
+    }
+
+    private fun getEstimatedWorkingTime(value: ByteArray): String {
+        val idx = getIndex(value, 0x65)
+        val byteArray = byteArrayOf(value[idx + 1]) + value[idx + 2]
+        val totalMinutes = Utils.convert(byteArray).toShort()
+//        Log.d("666", "totalMinutes: $totalMinutes")
+        val hours = totalMinutes / 60
+        val minutes = totalMinutes % 60
+        return String.format("%02d:%02d", hours, minutes)
+    }
+
+    private fun getFinishedArea(value: ByteArray): Short {
+        val idx = getIndex(value, 0x59)
+        val byteArray = byteArrayOf(value[idx + 1]) + value[idx + 2]
+        return Utils.convert(byteArray).toShort()
+    }
+
+    private fun getTotalWorkingArea(value: ByteArray): Short {
+        val idx = getIndex(value, 0x5A)
+        val byteArray = byteArrayOf(value[idx + 1]) + value[idx + 2]
+        return Utils.convert(byteArray).toShort()
     }
 
     private fun getInterruptionCode(value: ByteArray): String {
@@ -56,6 +95,53 @@ class CommandStatus(service: BluetoothLeService): AbstractCommand(service) {
         }
         Log.d("888", "[Enter] getInterruptionCode() $code")
         return code
+
+    }
+
+    /**
+     * 充電狀態
+     */
+    private fun getChargingStatus(value: ByteArray): Boolean {
+        var status = false
+        val idx = getIndex(value,  0x54)
+        val intValue = value[idx + 3].toInt()
+        var temp = Integer.toBinaryString(intValue)
+        while (temp.length < 8) {
+            temp = "0$temp"
+        }
+
+//        Log.d("666", "robotStatus: $temp")
+        temp.forEachIndexed { idx, value ->
+//            Log.d("666", "idx: $idx value: $value")
+            if (idx == 6 && value == '1') {
+                status = true
+            }
+        }
+//        Log.d("666", "[Enter] getMowingStatus() $status")
+        return status
+    }
+
+    /**
+     * 刀盤開啟狀態
+     */
+    private fun getMowingStatus(value: ByteArray): Boolean {
+        var status = false
+        val idx = getIndex(value,  0x54)
+        val intValue = value[idx + 3].toInt()
+        var temp = Integer.toBinaryString(intValue)
+        while (temp.length < 8) {
+            temp = "0$temp"
+        }
+
+//        Log.d("666", "robotStatus: $temp")
+        temp.forEachIndexed { idx, value ->
+//            Log.d("666", "idx: $idx value: $value")
+            if (idx == 5 && value == '1') {
+                status = true
+            }
+        }
+//        Log.d("666", "[Enter] getMowingStatus() $status")
+        return status
 
     }
 
@@ -91,35 +177,14 @@ class CommandStatus(service: BluetoothLeService): AbstractCommand(service) {
         val lastCoordinateIdx = 12
         value.forEachIndexed { idx, byte ->
             val isDesiredIndex = idx != INDEX_SN && idx != INDEX_LENGTH && idx != checksumIndex
-                    && idx > lastCoordinateIdx
+                    && idx > lastCoordinateIdx && idx != 14 && idx != 15 && idx != 26 && idx != 27
+                    && idx != 31 && idx != 32 && idx != 34 && idx != 35 && idx != 37 && idx != 38
+                    && idx != 40 && idx != 41 && idx != 45 && idx != 46
             if (byte.toInt() == byteNumber && isDesiredIndex) {
                 index = idx
             }
         }
         return index
     }
-
-    //    private fun getRobotPositionStatus(value: ByteArray): String {
-//        Log.d("888", "[Enter] getRobotPositionStatus()")
-//        var status = ""
-//        val idx = getIndex(value,  0x54)
-//
-//        for (i in 3 until 5) {                // get the last 2 bytes
-//            val intValue = value[idx + i].toInt()
-////            Log.d("888", "intValue: $intValue")
-//            var temp = Integer.toBinaryString(intValue)
-////            Log.d("888", "Integer.toBinaryString(intValue): ${temp}")
-//            while (temp.length < 8) {
-//                temp = "0$temp"
-//            }
-////            Log.d("888", "after add 0: ${temp}")
-//            status += temp
-//        }
-//        for (i in 0 until 16) {
-//            status = "0$status"
-//        }
-//        Log.d("888", "final status string: ${status}")
-//        return status
-//    }
 
 }

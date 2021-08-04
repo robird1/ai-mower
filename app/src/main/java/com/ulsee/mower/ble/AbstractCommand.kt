@@ -11,6 +11,13 @@ const val INDEX_LENGTH = 2
 abstract class AbstractCommand(val service: BluetoothLeService) {
     companion object {
         var serialNumber = 1
+        set(value) {
+            field = if (value == 256) {      //  0xFF + 1 = 256
+                0       // 序號一開始從1開始，循環往復則從0開始...
+            } else {
+                value
+            }
+        }
 
         fun resetSerialNumber() {
             serialNumber = 1
@@ -35,7 +42,12 @@ abstract class AbstractCommand(val service: BluetoothLeService) {
     fun ByteArray.toHexString(): String =
         joinToString(separator = " ", prefix = "0x") { String.format("%02X", it) }
 
-    fun getSerialNumber() = serialNumber++
+    fun getSerialNumber(): Int {
+        synchronized(serialNumber) {
+            Log.d("666", "[Enter] getSerialNumber() serialNumber: $serialNumber")
+            return serialNumber++
+        }
+    }
 
     open fun getIndex(value: ByteArray, byteNumber: Int): Int {
         var index = -1
@@ -43,7 +55,7 @@ abstract class AbstractCommand(val service: BluetoothLeService) {
         value.forEachIndexed { idx, byte ->
             val isDesiredIndex = idx != INDEX_SN && idx != INDEX_LENGTH && idx != checksumIndex
             if (byte.toInt() == byteNumber && isDesiredIndex) {
-                index = idx
+                return idx
             }
         }
         return index

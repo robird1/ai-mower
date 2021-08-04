@@ -18,6 +18,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -70,8 +71,8 @@ class RobotListFragment: Fragment() {
 
         initViewModel()
 
-        registerBLEReceiver()
-        registerGuideFinishReceiver()
+//        registerBLEReceiver()
+//        registerGuideFinishReceiver()
 
 //        (activity as MainActivity).registerServiceCallback(this)
     }
@@ -104,13 +105,15 @@ class RobotListFragment: Fragment() {
 
     override fun onDestroyView() {
         Log.d(TAG, "[Enter] onDestroyView")
+        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
+        requireActivity().unregisterReceiver(viewModel.guideFinishReceiver)
         super.onDestroyView()
     }
 
     override fun onDestroy() {
         Log.d(TAG, "[Enter] onDestroy")
-        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
-        requireActivity().unregisterReceiver(viewModel.guideFinishReceiver)
+//        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
+//        requireActivity().unregisterReceiver(viewModel.guideFinishReceiver)
         super.onDestroy()
     }
 
@@ -141,15 +144,21 @@ class RobotListFragment: Fragment() {
         viewModel.startBLEScan(this)
         viewModel.getDeviceList()
 
+        addOnBackPressedCallback()
+
         initProgressBar()
         initRecyclerView()
         initDeviceListObserver()
         initDeviceNotFoundObserver()
         initConnectFailedObserver()
         initGattStatusObserver()
+        initGattNotSuccessObserver()
         initVerificationObserver()
         initInputSnObserver()
         configAddDeviceBtn()
+
+        registerBLEReceiver()
+        registerGuideFinishReceiver()
 
         Log.d(TAG, "isLocationPermissionGranted: $isLocationPermissionGranted")
 //        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
@@ -158,6 +167,22 @@ class RobotListFragment: Fragment() {
 
         return binding.root
     }
+
+    private fun addOnBackPressedCallback() {
+        activity?.onBackPressedDispatcher?.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (binding.progressView2.isVisible) {
+                        binding.progressView2.isVisible = false
+                        bleRepository.disconnectDevice()
+                    } else {
+                        findNavController().popBackStack()
+                    }
+                }
+            })
+    }
+
 
     private fun registerBLEReceiver() {
         val filter = IntentFilter()
@@ -201,12 +226,10 @@ class RobotListFragment: Fragment() {
             permissions: Array<String?>,
             grantResults: IntArray) {
         Log.d(TAG, "[Enter] onRequestPermissionsResult")
-        Log.d("111", "[Enter] onRequestPermissionsResult()")
 
         if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             // now, you have permission go ahead
             Log.d(TAG, "[Enter] grantResults[0] == PackageManager.PERMISSION_GRANTED")
-            Log.d("111", "[Enter] onRequestPermissionsResult() viewModel.startBLEScan()")
             viewModel.startBLEScan(this)
 
         } else {
@@ -302,16 +325,22 @@ class RobotListFragment: Fragment() {
         }
     }
 
+    private fun initGattNotSuccessObserver() {
+        viewModel.gattNotSuccess.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { message ->
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun initVerificationObserver() {
         viewModel.isVerificationSuccess.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { isSuccess ->
-                progressBar.isVisible = false
                 if (isSuccess) {
+                    progressBar.isVisible = false
                     Toast.makeText(context, "verification success", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.statusFragment)
                 } else {
-                    // to avoid double subscribe notification
-                    viewModel.disconnectDevice()
                     Toast.makeText(context, "verification failed", Toast.LENGTH_SHORT).show()
                 }
             }

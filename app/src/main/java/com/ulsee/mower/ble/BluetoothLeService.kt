@@ -58,17 +58,19 @@ class BluetoothLeService : Service() {
     private var scanResults: ArrayList<ScanResult> = ArrayList()
     private var bluetoothGatt: BluetoothGatt? = null
 
-    private var serialNumberInput: String? = null
-
-    // TODO update value when gatt is closed
-//    private var bleState: BLEState = RobotListState()
-//    private var isMovingState = false
+    private var robotSerialNumber: String? = null
 
     private val operationQueue = ConcurrentLinkedQueue<BleOperationType>()
     private var pendingOperation: BleOperationType? = null
 
     // 記錄上次送出command的serial number, 以利下次response回來時可確保serial number的一致性
-    private var commandSerialNumber : Byte = 0
+    // do not consider the verification, move robot and status command
+    private var writeCharacteristicSN : Byte = 0
+
+    // do not consider the verification, move robot and status command
+    private var characteristicChangedSN : Byte = 0
+
+    // 記錄最近一次送出的command, 若5秒後仍未收到response，則重送。
     private var commandPayload = ByteArray(0)
 
     private var verificationTask: Runnable? = null
@@ -82,6 +84,7 @@ class BluetoothLeService : Service() {
     private lateinit var statusHandler: StatusHandler
     private lateinit var mowingDataHandler: Handler
 
+    private var isReconnect = false
 
     // Handler that receives messages from the thread
     private inner class StatusHandler(looper: Looper) : Handler(looper) {
@@ -160,7 +163,6 @@ class BluetoothLeService : Service() {
                     val manufacturerId = manufacturerData.keyAt(0)
                     if (manufacturerId == MANUFACTURER_ID) {
                         val data = scanRecord.getManufacturerSpecificData(manufacturerId)?.toHexString()
-                        Log.d("111", "manufacturerId: $manufacturerId manufacturerData: $data")
 
                         val indexQuery =  scanResults.indexOfFirst { it.device.address == address }
                         if (indexQuery != -1) {  // A scan result already exists with the same address
@@ -189,11 +191,12 @@ class BluetoothLeService : Service() {
         Log.d(TAG, "[Enter] connectDevice()")
         stopScan()
 
-        serialNumberInput = serialNumber
+        robotSerialNumber = serialNumber
         val inputSN = inputSerialNumberToMD5()
         for (i in scanResults) {
             if (inputSN == getScanDeviceSN(i)) {
                 enqueueOperation(BleOperationType.CONNECT {
+                    Log.d(TAG, "[Enter] i.device.connectGatt()")
                     i.device.connectGatt(this, false, gattCallback)
                 })
 
@@ -213,15 +216,42 @@ class BluetoothLeService : Service() {
             pendingOperation = null
             operationQueue.clear()
             AbstractCommand.resetSerialNumber()
-            getStatusTask?.let { statusHandler.removeCallbacks(it) }
+            cancelStatusTask()
+            cancelGetMowingData()
         })
 
+    }
+
+    private fun reconnectDevice() {
+        Log.d("666", "[Enter] reconnectDevice")
+//        if (isReconnect) {
+//            return
+//        }
+        bluetoothGatt?.close()
+        bluetoothGatt = null
+        pendingOperation = null
+        operationQueue.clear()
+        commandTimeoutTask?.let { handler.removeCallbacks(it) }
+
+//        Log.d("666", "commandSerialNumber: $commandSerialNumber")
+//        AbstractCommand.serialNumber = commandSerialNumber.toInt()
+        AbstractCommand.serialNumber = characteristicChangedSN.toInt() + 1
+
+        cancelStatusTask()
+        cancelGetMowingData()
+        isReconnect = true
+        handler.post {
+            Toast.makeText(this@BluetoothLeService, "reconnect device...", Toast.LENGTH_SHORT).show()
+        }
+
+        connectDevice(robotSerialNumber!!)
     }
 
     fun cancelStatusTask() {
         getStatusTask?.let {
             statusHandler.removeCallbacks(it)
         }
+        getStatusTask = null
     }
 
     fun getStatusPeriodically() {
@@ -307,18 +337,29 @@ class BluetoothLeService : Service() {
         enqueueCommand(payload)
     }
 
+    /**
+     * 每一秒去檢查割草機的狀態回覆時，會判斷目前的作業模式，若為作業模式或學習模式時，且getMowingDataTask尚未被啟動時，
+     * 則會每5秒去執行getMowingDataTask.
+     */
     fun getMowingData(packetNumber: Int) {
+        if (getMowingDataTask == null) {
+            Log.d("777", "getMowingDataTask == null")
+            getMowingDataTask = Runnable {
+                val payload = CommandMowingData(this).getSendPayload(packetNumber)
+                enqueueCommand(payload)
+                mowingDataHandler.postDelayed(getMowingDataTask!!, 5000)
+                Log.d("777", "mowingDataHandler.postDelayed(getMowingDataTask!!, 5000)")
+            }
+            mowingDataHandler.post(getMowingDataTask!!)
+        }
+    }
+
+    fun cancelGetMowingData() {
         getMowingDataTask?.let {
+            Log.d("777", "[Enter] mowingDataHandler.removeCallbacks()")
             mowingDataHandler.removeCallbacks(it)
         }
-
-        getMowingDataTask = Runnable {
-            val payload = CommandMowingData(this).getSendPayload(packetNumber)
-            enqueueCommand(payload)
-            mowingDataHandler.postDelayed(getMowingDataTask!!, 5000)
-        }
-
-        mowingDataHandler.post(getMowingDataTask!!)
+        getMowingDataTask = null
     }
 
     private fun enqueueCommand(payload: ByteArray) {
@@ -354,7 +395,10 @@ class BluetoothLeService : Service() {
                 is BleOperationType.CHARACTERISTIC_WRITE -> {
                     val oldPayload = it.payload
                     val instructionType = oldPayload[3]
-                    if (instructionType == BLECommandTable.MAP_DATA.toByte() || instructionType == BLECommandTable.MOWING_DATA.toByte()) {              // TODO 获取小车最新涂覆数据及升级指令帧
+//                    if (instructionType == BLECommandTable.MAP_DATA.toByte() || instructionType == BLECommandTable.MOWING_DATA.toByte()) {              // TODO 升级指令帧
+                    if (instructionType != BLECommandTable.MOVE.toByte() &&
+                        instructionType != BLECommandTable.STATUS.toByte() &&
+                        instructionType != BLECommandTable.VERIFICATION.toByte()) {
                         val snIndex = 1
                         val newPayload = oldPayload.clone()
                         newPayload[snIndex] = (oldPayload[snIndex] + 1).toByte()
@@ -370,10 +414,7 @@ class BluetoothLeService : Service() {
                     }
                 }
                 else -> {
-                    Log.d(
-                        TAG,
-                        "is NOT BleOperationType.CHARACTERISTIC_WRITE ============================="
-                    )
+                    // do nothing
                 }
             }
 
@@ -396,7 +437,6 @@ class BluetoothLeService : Service() {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     Log.d(TAG, "Successfully connected to $deviceAddress")
-                    Log.d("222", "bluetoothGatt = gatt")
                     bluetoothGatt = gatt
 
                     if (pendingOperation is BleOperationType.CONNECT) {
@@ -413,9 +453,8 @@ class BluetoothLeService : Service() {
 
                     broadcastUpdate(ACTION_GATT_CONNECTED, status.toString())
 
-                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {                // TODO 主動斷線不會進入此Block
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {                // TODO 主動斷線不會進入此Block, 何時會進入此block ?
                     Log.d(TAG, "Successfully disconnected from $deviceAddress")
-                    Log.d("222", "Successfully disconnected from $deviceAddress")
 
                     broadcastUpdate(ACTION_GATT_DISCONNECTED)
 
@@ -424,21 +463,14 @@ class BluetoothLeService : Service() {
                     pendingOperation = null
                     operationQueue.clear()
                     AbstractCommand.resetSerialNumber()
-                    getStatusTask?.let { statusHandler.removeCallbacks(it) }
+                    cancelStatusTask()
+                    cancelGetMowingData()
 
                 }
-            } else {
+            } else {           // 距離割草機過遠，斷線會進入此block
                 broadcastUpdate(ACTION_GATT_NOT_SUCCESS, "Error $status encountered for $deviceAddress! Disconnecting...")
-
-                gatt.close()
-                bluetoothGatt = null
-                pendingOperation = null
-                operationQueue.clear()
-                AbstractCommand.resetSerialNumber()
-                getStatusTask?.let { statusHandler.removeCallbacks(it) }
-
+                reconnectDevice()
             }
-
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
@@ -455,6 +487,7 @@ class BluetoothLeService : Service() {
                     enableNotifications()
                 })
 
+                getStatusPeriodically()
             }
         }
 
@@ -498,13 +531,11 @@ class BluetoothLeService : Service() {
 
             with(characteristic) {
                 val instructionType = value[3].toInt()
-                if (instructionType != BLECommandTable.STATUS) {
+//                if (instructionType != BLECommandTable.STATUS) {
                     Log.d(TAG, "instructionType: $instructionType")
                     Log.d(TAG, "instructionType2: ${value[3]}")
                     Log.d(TAG, "Characteristic changed | value: ${value.toHexString()}")
-                    Log.d("888", "instructionType: $instructionType")
-//                    Log.d("888", "Characteristic changed | value: ${value.toHexString()}")
-                }
+//                }
 
                 val command = getCommandInstance(instructionType)
                 command.receive(value)
@@ -513,12 +544,12 @@ class BluetoothLeService : Service() {
                     signalEndOfOperation()
 
                 } else {
-
                     val serialNumber = value[1]
                     val isSerialNumberValid = checkSerialNumber(serialNumber)
                     if (isSerialNumberValid) {
+                        characteristicChangedSN = serialNumber
 
-                        if (isAllPacketsObtained(instructionType)) {          // TODO 获取小车最新涂覆数据及升级指令帧
+                        if (isAllPacketsObtained(instructionType)) {          // TODO 升级指令帧
                             signalEndOfOperation()
 
                         } else {
@@ -532,6 +563,7 @@ class BluetoothLeService : Service() {
                     } else {
                         // TODO
                         Log.d(TAG, "[Enter] serialNumber != commandSerialNumber ......................................................")
+                        Log.d("666", "serialNumber: $serialNumber writeCharacteristicSN: $writeCharacteristicSN")
                     }
 
                 }
@@ -539,7 +571,7 @@ class BluetoothLeService : Service() {
         }
 
         private fun BluetoothGattCharacteristic.configNewPayload(serialNumber: Byte, command: AbstractCommand, instructionType: Int) {
-            Log.d("888", "[Before] commandPayload: ${commandPayload.toHexString()}")
+            Log.d("666", "[Before] configNewPayload() commandPayload: ${commandPayload.toHexString()}")
 
             // update packet number
             when (instructionType) {
@@ -550,34 +582,43 @@ class BluetoothLeService : Service() {
                     commandPayload[packetSendIdx] = (packetNumber + 1).toByte()
                 }
                 BLECommandTable.MOWING_DATA -> {
-                    Log.d("888", "[Enter] BLECommandTable.MOWING_DATA -> ")
                     val tempArray = byteArrayOf(value[10]) + value[11]
                     val packetNumber = Utils.convert(tempArray).toShort()
                     val byteArray = Utils.intToBytes((packetNumber + 1).toShort())
 
-                    Log.d("888", "[Enter] configNewPayload() packetNumber: $packetNumber byteArray: ${byteArray.toHexString()}")
+//                    Log.d("666", "packetNumber: $packetNumber byteArray: ${byteArray.toHexString()}")
 
                     val packetSendIdx = 5
                     commandPayload[packetSendIdx] = byteArray[0]
                     commandPayload[packetSendIdx + 1] = byteArray[1]
-
                 }
                 else -> {
-                    Log.d("888", "[Enter] configNewPayload() else section................")
+                    // do nothing
                 }
             }
-
-            // update serial number
-            val snIndex = 1
-            commandPayload[snIndex] = (serialNumber + 1).toByte()
-            AbstractCommand.serialNumber++
+            val snIndex = updatePayloadSerialNumber(serialNumber)
 
             // update checksum
             val checkSumArray = commandPayload.sliceArray(IntRange(0, commandPayload.size - 3))
             val checksumIdx = commandPayload.size - 2
             commandPayload[checksumIdx] = command.getCheckSum(checkSumArray).toByte()
 
-            Log.d("888", "[After] commandPayload: ${commandPayload.toHexString()}")
+            Log.d("666", "[After] configNewPayload() serialNumber: ${commandPayload[snIndex]} commandPayload: ${commandPayload.toHexString()}")
+
+        }
+
+        private fun updatePayloadSerialNumber(serialNumber: Byte): Int {
+            // update serial number
+            val snIndex = 1
+            if ((serialNumber + 1) == 0) {         // 0xFF.toByte() = -1
+                commandPayload[snIndex] = 0
+            } else {
+                commandPayload[snIndex] = (serialNumber + 1).toByte()
+            }
+            AbstractCommand.serialNumber++
+//            AbstractCommand.addSerialNumber()
+            Log.d("666", "AbstractCommand.serialNumber: ${AbstractCommand.serialNumber}")
+            return snIndex
         }
 
         override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
@@ -587,10 +628,13 @@ class BluetoothLeService : Service() {
                         Log.i(TAG, "Wrote to descriptor ${this?.uuid} | value: ${this?.value?.toHexString()}")
                         startVerificationTimer()
 
-                        val payload = CommandVerification(this@BluetoothLeService, serialNumberInput!!).getSendPayload()
-                        enqueueOperation(BleOperationType.CHARACTERISTIC_WRITE(payload) {
-                            writeCharacteristic(payload)
-                        })
+                        if (!isReconnect) {
+                            val payload = CommandVerification(this@BluetoothLeService, robotSerialNumber!!).getSendPayload()
+                            enqueueOperation(BleOperationType.CHARACTERISTIC_WRITE(payload) {
+                                writeCharacteristic(payload)
+                            })
+                        }
+                        isReconnect = false
 
                     }
                     BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH -> {
@@ -617,23 +661,30 @@ class BluetoothLeService : Service() {
         }
     }
 
-    private fun checkSerialNumber(serialNumber: Byte): Boolean = (serialNumber == commandSerialNumber)
+    /**
+     * 檢查response的序號是否和request的序號一致.
+     */
+    private fun checkSerialNumber(serialNumber: Byte): Boolean {
+        return if (serialNumber.toInt() != -1) {      // 0xFF.toByte() -> -1
+            (serialNumber == writeCharacteristicSN)
+        } else {
+            true
+        }
+    }
 
 
     private fun BluetoothGattCharacteristic.isAllPacketsObtained(instructionType: Int): Boolean {
-//        Log.d("888", "[Enter] isAllPacketsObtained() instructionType: $instructionType")
         var isAllPacketObtained = true
         if (instructionType == BLECommandTable.MAP_DATA) {
             val packetCount = value[7]
             val packetNumber = value[9].toInt()
             isAllPacketObtained = (packetNumber == packetCount - 1)
         } else if (instructionType == BLECommandTable.MOWING_DATA) {
-//            Log.d("888", "instructionType == BLECommandTable.MOWING_DATA")
             val packetCountArray = byteArrayOf(value[7]) + value[8]
             val packetCount = Utils.convert(packetCountArray).toInt()
             val packetNumberArray = byteArrayOf(value[10]) + value[11]
             val packetNumber = Utils.convert(packetNumberArray).toInt()
-            Log.d("888", "packetCount: $packetCount packetNumber: $packetNumber")
+//            Log.d("666", "isAllPacketsObtained() packetCount: $packetCount packetNumber: $packetNumber")
 
             isAllPacketObtained = (packetNumber == packetCount - 1)
         }
@@ -654,6 +705,7 @@ class BluetoothLeService : Service() {
 
         characteristic.getDescriptor(CCCD_UUID)?.let { cccDescriptor ->
             if (bluetoothGatt?.setCharacteristicNotification(characteristic, true) == false) {
+                Log.d("666", "bluetoothGatt?.setCharacteristicNotification(characteristic, true) == false")
                 broadcastUpdate(ACTION_CONNECT_FAILED, "setCharacteristicNotification failed for ${characteristic.uuid}")
                 return
             }
@@ -662,64 +714,70 @@ class BluetoothLeService : Service() {
     }
 
     fun writeCharacteristic(payload: ByteArray, isWriteWithoutResponse: Boolean = false) {
-        Log.d(TAG, "[Enter] writeCharacteristic() payload: ${payload.toHexString()}")
-
-        if (payload.size < 4) {
+        if (bluetoothGatt?.getService(SERVICE_UUID) == null) {
+            Log.d("666", "[Enter] bluetoothGatt?.getService(SERVICE_UUID) == null")
+            reconnectDevice()
             return
         }
-        if (payload[3].toInt() == 0x70) {
-            val type = when (payload[5].toInt()) {
-                0x00 -> "[START RECORD]"
-                0x01 -> "[FINISH RECORD]"
-                0x02 -> "[START POINT RECORD]"
-                0x03 -> "[SET POINT]"
-                0x04 -> "[FINISH SET POINT]"
-                0x05 -> "[CANCEL RECORD]"
-                0x06 -> "[SAVE BOUNDARY]"
-                0x07 -> "[DISCARD BOUNDARY]"
-                else -> "[NULL]"
-            }
-            Log.d("123", "[Enter] writeCharacteristic() instruction: $type")
+
+        if (payload.size < 4) {
+            Log.d("666", "[Enter] payload.size < 4")
+            return
+        }
+//        if (payload[3].toInt() == 0x70) {
+//            val type = when (payload[5].toInt()) {
+//                0x00 -> "[START RECORD]"
+//                0x01 -> "[FINISH RECORD]"
+//                0x02 -> "[START POINT RECORD]"
+//                0x03 -> "[SET POINT]"
+//                0x04 -> "[FINISH SET POINT]"
+//                0x05 -> "[CANCEL RECORD]"
+//                0x06 -> "[SAVE BOUNDARY]"
+//                0x07 -> "[DISCARD BOUNDARY]"
+//                else -> "[NULL]"
+//            }
+//            Log.d("123", "[Enter] writeCharacteristic() instruction: $type")
+//        }
+        val serialNumber = payload[1]
+//        if (serialNumber.toInt() != 0) {         // do not consider the verification, move robot and status command
+        val instructionType = payload[3].toInt()
+        if ((instructionType != BLECommandTable.STATUS) &&
+            (instructionType != BLECommandTable.MOVE) &&
+            (instructionType != BLECommandTable.VERIFICATION)) {
+
+            writeCharacteristicSN = serialNumber
+        }
+        val showLog = (instructionType != BLECommandTable.STATUS) && (instructionType != BLECommandTable.MOVE)
+        if (showLog) {
+            Log.d("666", "[Enter] writeCharacteristic() sn: $writeCharacteristicSN payload: ${payload.toHexString()}")
         }
 
-        val showLog = (payload[3].toInt() != BLECommandTable.STATUS) && (payload[3].toInt() != BLECommandTable.MOVE)
-        if (showLog) {
-            Log.d(TAG, "[Enter] writeCharacteristic() payload: ${payload.toHexString()}")
-        }
-        val serialNumber = payload[1]
-//        Log.d(TAG, "serialNumber: $serialNumber")
-//        if (serialNumber.toInt() != 0) {         // do not consider the verification, move robot and status command
-            commandSerialNumber = serialNumber
-            commandPayload = payload
-//        }
-//        Log.d(TAG, "commandSerialNumber: $commandSerialNumber")
+        commandPayload = payload
 
         if (bluetoothGatt == null) {
             Toast.makeText(this, "disconnected state", Toast.LENGTH_SHORT).show()
+            Log.d("666", "bluetoothGatt == null")
             return
         }
         val characteristic = bluetoothGatt?.getService(SERVICE_UUID)
             ?.getCharacteristic(CHARACTERISTIC_WRITE_UUID)
-
-        if (characteristic == null) {
-            Log.d("222", "characteristic == null ============================================")
-        }
 
         val writeType = when {
             characteristic?.isWritable() == true -> BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             characteristic?.isWritableWithoutResponse() == true -> {
                 BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
             }
-            else -> error("Characteristic ${characteristic?.uuid} cannot be written to")
+            else -> {
+                Log.d("666", "Characteristic ${characteristic?.uuid} cannot be written to")
+                error("Characteristic ${characteristic?.uuid} cannot be written to")
+            }
         }
 
         bluetoothGatt?.let { gatt ->
             characteristic.writeType = if (isWriteWithoutResponse) {
                 BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-//                Log.d(TAG, "WRITE_TYPE_NO_RESPONSE")
             } else {
                 BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-//                Log.d(TAG, "WRITE_TYPE_DEFAULT")
             }
 
             characteristic.value = payload
@@ -747,15 +805,10 @@ class BluetoothLeService : Service() {
         if (pendingOperation == null) {
             doNextOperation()
         }
-//        else {
-//            Log.d(TAG, "pendingOperation != null")
-//        }
     }
 
     @Synchronized
     private fun doNextOperation() {
-//        Log.d(TAG, "[Enter] doNextOperation")
-
         if (pendingOperation != null) {
             Log.e(TAG, "doNextOperation() called when an operation is pending! Aborting.")
             return
@@ -767,13 +820,14 @@ class BluetoothLeService : Service() {
         }
         pendingOperation = operation
 
-        startCommandTimeoutTimer()
-
         when (operation) {
             is BleOperationType.CONNECT -> operation.lambda()
             is BleOperationType.DISCONNECT -> operation.lambda()
             is BleOperationType.DISCOVER_SERVICE -> operation.lambda()
-            is BleOperationType.CHARACTERISTIC_WRITE -> operation.lambda()
+            is BleOperationType.CHARACTERISTIC_WRITE -> {
+                startCommandTimeoutTimer()
+                operation.lambda()
+            }
             is BleOperationType.DESCRIPTOR_WRITE -> operation.lambda()
             is BleOperationType.MTU_REQUEST -> operation.lambda()
         }
@@ -781,10 +835,13 @@ class BluetoothLeService : Service() {
 
     @Synchronized
     private fun signalEndOfOperation() {
-//        Log.d(TAG, "[Enter] signalEndOfOperation() serialNumber: $commandSerialNumber")
+//        showQueue()
+
         pendingOperation = null
 
-        handler.removeCallbacks(commandTimeoutTask!!)
+        commandTimeoutTask?.let {
+            handler.removeCallbacks(commandTimeoutTask!!)
+        }
 
         if (operationQueue.isNotEmpty()) {
             doNextOperation()
@@ -795,14 +852,14 @@ class BluetoothLeService : Service() {
 //        Log.d(TAG, "[Enter] startVerificationTimer")
         verificationTask = Runnable {
             broadcastUpdate(ACTION_VERIFICATION_FAILED)
+            signalEndOfOperation()
         }
         handler.postDelayed(verificationTask!!, 5000)
     }
 
     private fun startCommandTimeoutTimer() {
-//        Log.d("222", "[Enter] startVerificationTimer")
         commandTimeoutTask = Runnable {
-            Log.d(TAG, "[Enter] resend command due to timeout")
+            Log.d("666", "[Enter] resend command due to timeout")
             // command送出3秒後，逾時未回應則重送
             writeCharacteristic(commandPayload)
             handler.post {
@@ -814,7 +871,7 @@ class BluetoothLeService : Service() {
     }
 
     private fun inputSerialNumberToMD5(): String {
-        return MD5.convertMD5(serialNumberInput)
+        return MD5.convertMD5(robotSerialNumber)
     }
 
     private fun getScanDeviceSN(scanResult: ScanResult): String {
@@ -842,7 +899,7 @@ class BluetoothLeService : Service() {
         return when (instructionType) {
             BLECommandTable.VERIFICATION -> {
                 handler.removeCallbacks(verificationTask!!)
-                CommandVerification(this@BluetoothLeService, serialNumberInput!!)
+                CommandVerification(this@BluetoothLeService, robotSerialNumber!!)
             }
             BLECommandTable.SCHEDULE -> {
                 CommandSchedule(this@BluetoothLeService)
@@ -907,7 +964,9 @@ class BluetoothLeService : Service() {
                 if (value[5].toInt() == 0x01) {
                     CommandMowingData(this@BluetoothLeService)
                 } else {
-                    Log.d("888", "[异常] BLECommandTable.MOWING_DATA")
+                    handler.post {
+                        Toast.makeText(this@BluetoothLeService, "[异常] BLECommandTable.MOWING_DATA", Toast.LENGTH_SHORT).show()
+                    }
                     CommandNull(this@BluetoothLeService)
                 }
             }
@@ -931,7 +990,6 @@ class BluetoothLeService : Service() {
     private fun BluetoothGatt.printGattTable() {
         if (services.isEmpty()) {
             Log.d(TAG, "No service and characteristic available, call discoverServices() first?")
-            Log.d("222", "No service and characteristic available, call discoverServices() first?")
             return
         }
         services.forEach { service ->
@@ -940,7 +998,6 @@ class BluetoothLeService : Service() {
                     prefix = "|--"
             ) { it.uuid.toString() }
             Log.d(TAG, "\nService ${service.uuid}\nCharacteristics:\n$characteristicsTable")
-            Log.d("222", "\nService ${service.uuid}\nCharacteristics:\n$characteristicsTable")
         }
     }
 
@@ -967,6 +1024,27 @@ class BluetoothLeService : Service() {
     fun BluetoothGattCharacteristic.isNotifiable(): Boolean =
             containsProperty(BluetoothGattCharacteristic.PROPERTY_NOTIFY)
 
+    private fun showQueue() {
+        val commandList = operationQueue.toMutableList()
+        if (commandList.size > 0) {
+            Log.d("999", "===================================================")
+        }
+        commandList.forEach {
+            when (it) {
+                is BleOperationType.CHARACTERISTIC_WRITE -> {
+
+                    Log.d("999", "payload sn: ${it.payload[1]}")
+                }
+                else -> {
+                    // do nothing
+                }
+            }
+        }
+        if (commandList.size > 0) {
+            Log.d("999", "===================================================")
+        }
+
+    }
 //        private fun getCheckSum2(byteArray: ByteArray): Int {
 //            var xorChecksum: Int = 0
 //            for (element in byteArray) {

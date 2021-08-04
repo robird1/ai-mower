@@ -14,9 +14,8 @@ class ActionSaveBoundary(val subject: Int, val result: Int, fragment: SetupMapFr
             RecordBoundary.Subject.GRASS -> {
                 Toast.makeText(context, "save successfully", Toast.LENGTH_SHORT).show()
 
-                binding.mapView.resetData()
-
                 binding.progressView.isVisible = true
+                binding.mapView.resetData()
                 viewModel.getMapGlobalParameters()
                 Log.d(TAG, "[Enter] getMapGlobalParameters()")
                 Log.d("123", "[Enter] getMapGlobalParameters()")

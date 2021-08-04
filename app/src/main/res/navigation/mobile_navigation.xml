@@ -26,13 +26,26 @@
         <action
             android:id="@+id/action_statusFragment_to_setupMapFragment"
             app:destination="@id/setupMapFragment" />
+        <action
+            android:id="@+id/action_statusFragment_to_instruction0Fragment3"
+            app:destination="@id/instruction0Fragment" />
     </fragment>
-    <fragment
-        android:id="@+id/mapFragment"
-        android:name="com.ulsee.mower.ui.map.MapFragment"
-        android:label="MapFragment" />
     <fragment
         android:id="@+id/setupMapFragment"
         android:name="com.ulsee.mower.ui.map.SetupMapFragment"
-        android:label="SetupMapFragment" />
+        android:label="SetupMapFragment" >
+        <action
+            android:id="@+id/action_setupMapFragment_to_statusFragment2"
+            app:destination="@id/statusFragment"
+            app:popUpTo="@id/statusFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/instruction0Fragment"
+        android:name="com.ulsee.mower.ui.map.Instruction0Fragment"
+        android:label="Instruction0Fragment" >
+        <action
+            android:id="@+id/action_instruction0Fragment_to_setupMapFragment2"
+            app:destination="@id/setupMapFragment" />
+    </fragment>
 </navigation>

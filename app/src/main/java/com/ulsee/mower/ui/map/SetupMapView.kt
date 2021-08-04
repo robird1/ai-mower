@@ -15,6 +15,7 @@ import com.ulsee.mower.data.MapData
 
 private const val LAWN_WIDTH = 3000         // unit: cm
 private const val LAWN_HEIGHT = 1500
+private const val TRASH_CAN_PADDING = 30
 
 private val TAG = SetupMapView::class.java.simpleName
 
@@ -201,7 +202,7 @@ class SetupMapView@JvmOverloads constructor(
                 trashCanList.forEach { (key, coordinate) ->
 
                     val position = getPixelPosition(coordinate)
-                    val isPressed = ((x > position.x - 10) && (x < position.x + trashCanBitmap.width + 10) && (y > position.y - 10) && (y < position.y + trashCanBitmap.height + 10))
+                    val isPressed = ((x > position.x - TRASH_CAN_PADDING) && (x < position.x + trashCanBitmap.width + TRASH_CAN_PADDING) && (y > position.y - TRASH_CAN_PADDING) && (y < position.y + trashCanBitmap.height + TRASH_CAN_PADDING))
                     val temp = key.split(".")
                     when (deleteMode) {
                         DeleteType.GRASS -> {
@@ -340,41 +341,53 @@ class SetupMapView@JvmOverloads constructor(
     }
 
     private fun Canvas.drawWorkingElement() {
-        state?.let {
-            when (state) {
-                is RecordObstacle -> {
-                    if (workingElement.size > 0) {
-                        addPath(workingPathElement, workingElement)
-                    }
-
-                    drawPath(workingPathElement, paintWorkingObstacle)
-                }
-                is RecordChargingPath -> {
-                    if (workingElement.size > 0) {
-                        addPath(workingPathElement, workingElement)
-                    }
-
-                    drawPath(workingPathElement, paintWorkingCharging)
-                }
-                is RecordGrassRoute -> {
-                    if (workingElement.size > 0) {
-                        addPath(workingPathElement, workingElement)
-                    }
-
-                    drawPath(workingPathElement, paintWorkingGrassRoute)
-                }
-                is RecordGrass -> {
-                    if (workingElement.size > 0) {
-                        addPath(workingPathElement, workingElement)
-                    }
-
-                    drawPath(workingPathElement, paintWorkingGrass)
-                }
-                else -> {
-                    // do nothing
-                }
-            }
+//        state?.let {
+//            when (state) {
+//                is RecordObstacle -> {
+//                    if (workingElement.size > 0) {
+//                        addPath(workingPathElement, workingElement)
+//                    }
+//
+//                    drawPath(workingPathElement, paintWorkingObstacle)
+//                }
+//                is RecordChargingPath -> {
+//                    if (workingElement.size > 0) {
+//                        addPath(workingPathElement, workingElement)
+//                    }
+//
+//                    drawPath(workingPathElement, paintWorkingCharging)
+//                }
+//                is RecordGrassRoute -> {
+//                    if (workingElement.size > 0) {
+//                        addPath(workingPathElement, workingElement)
+//                    }
+//
+//                    drawPath(workingPathElement, paintWorkingGrassRoute)
+//                }
+//                is RecordGrass -> {
+//                    if (workingElement.size > 0) {
+//                        addPath(workingPathElement, workingElement)
+//                    }
+//
+//                    drawPath(workingPathElement, paintWorkingGrass)
+//                }
+//                else -> {
+//                    // do nothing
+//                    if (workingElement.size > 0) {
+//                        addPath(workingPathElement, workingElement)
+//                    }
+//
+//                    drawPath(workingPathElement, paintWorkingGrass)
+//
+//                }
+//            }
+//        }
+        if (workingElement.size > 0) {
+            addPath(workingPathElement, workingElement)
         }
+
+        drawPath(workingPathElement, paintWorkingGrass)
+
     }
 
     private fun Canvas.drawWorkingPoint() {

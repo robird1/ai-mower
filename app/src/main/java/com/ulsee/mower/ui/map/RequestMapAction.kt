@@ -48,9 +48,6 @@ abstract class RequestMapAction(val intent: Intent, val lastItemKey: String, val
 
             val mapData = onMapData()
             mapData[keyIndex] = list
-//            Log.d("111", "keyIndex: $keyIndex size: ${mapData[keyIndex]!!.size}")
-//            Log.d("999", "keyIndex: $keyIndex")
-//            Log.d("999", "lastItemKey: $lastItemKey")
             if (lastItemKey == keyIndex) {
                 requestMapFinished.value = true
             }

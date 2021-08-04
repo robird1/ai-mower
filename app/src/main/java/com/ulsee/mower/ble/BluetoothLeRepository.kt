@@ -86,5 +86,8 @@ class BluetoothLeRepository(private var bleService: BluetoothLeService?) {
         bleService?.getMowingData(packetNumber)
     }
 
+    fun cancelGetMowingData() {
+        bleService?.cancelGetMowingData()
+    }
 
 }

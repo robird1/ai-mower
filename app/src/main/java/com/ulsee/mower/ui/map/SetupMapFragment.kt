@@ -115,7 +115,6 @@ class SetupMapFragment: Fragment() {
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    Log.d("777", "[Enter] handleOnBackPressed()")
                     if (!binding.progressView.isVisible) {
                         state.onBackPressed()
                     } else {
@@ -132,7 +131,9 @@ class SetupMapFragment: Fragment() {
             .setPositiveButton(R.string.button_confirm) { _, _ ->
 
                 activity?.requestedOrientation = SCREEN_ORIENTATION_PORTRAIT
-                findNavController().popBackStack()
+//                findNavController().popBackStack()
+                val action = SetupMapFragmentDirections.actionSetupMapFragmentToStatusFragment2()
+                findNavController().navigate(action)
 
             }
             .setNegativeButton("cancel") { dialog, _ ->

@@ -4,6 +4,7 @@ plugins {
 }
 apply plugin: 'kotlin-kapt'
 apply plugin: 'realm-android'
+apply plugin: "androidx.navigation.safeargs.kotlin"
 
 android {
     compileSdkVersion 30
@@ -48,6 +49,7 @@ dependencies {
     // navigation
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
+    implementation "androidx.navigation:navigation-dynamic-features-fragment:2.3.5"
 
     // BLE needs location permission
     implementation 'com.google.android.gms:play-services-location:18.0.0'
