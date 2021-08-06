@@ -261,9 +261,10 @@ class BluetoothLeService : Service() {
         getStatusTask = Runnable {
             val payload = CommandStatus(this).getSendPayload()
             enqueueCommand(payload)
-            statusHandler.postDelayed(getStatusTask!!, 1000)
+            getStatusTask?.let {
+                statusHandler.postDelayed(it, 1000)
+            }
         }
-
         statusHandler.post(getStatusTask!!)
     }
 
@@ -464,7 +465,7 @@ class BluetoothLeService : Service() {
                     }
 
                     enqueueOperation(BleOperationType.MTU_REQUEST {
-                        bluetoothGatt!!.requestMtu(GATT_MAX_MTU_SIZE)
+                        bluetoothGatt?.requestMtu(GATT_MAX_MTU_SIZE)
                     })
 
                     enqueueOperation(BleOperationType.DISCOVER_SERVICE {

@@ -71,8 +71,8 @@ class RobotListFragment: Fragment() {
 
         initViewModel()
 
-//        registerBLEReceiver()
-//        registerGuideFinishReceiver()
+        registerBLEReceiver()
+        registerGuideFinishReceiver()
 
 //        (activity as MainActivity).registerServiceCallback(this)
     }
@@ -105,15 +105,15 @@ class RobotListFragment: Fragment() {
 
     override fun onDestroyView() {
         Log.d(TAG, "[Enter] onDestroyView")
-        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
-        requireActivity().unregisterReceiver(viewModel.guideFinishReceiver)
+//        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
+//        requireActivity().unregisterReceiver(viewModel.guideFinishReceiver)
         super.onDestroyView()
     }
 
     override fun onDestroy() {
         Log.d(TAG, "[Enter] onDestroy")
-//        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
-//        requireActivity().unregisterReceiver(viewModel.guideFinishReceiver)
+        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
+        requireActivity().unregisterReceiver(viewModel.guideFinishReceiver)
         super.onDestroy()
     }
 
@@ -157,8 +157,8 @@ class RobotListFragment: Fragment() {
         initInputSnObserver()
         configAddDeviceBtn()
 
-        registerBLEReceiver()
-        registerGuideFinishReceiver()
+//        registerBLEReceiver()
+//        registerGuideFinishReceiver()
 
         Log.d(TAG, "isLocationPermissionGranted: $isLocationPermissionGranted")
 //        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
@@ -177,7 +177,9 @@ class RobotListFragment: Fragment() {
                         binding.progressView2.isVisible = false
                         bleRepository.disconnectDevice()
                     } else {
-                        findNavController().popBackStack()
+                        if (!findNavController().popBackStack()) {
+                            requireActivity().finish()
+                        }
                     }
                 }
             })
