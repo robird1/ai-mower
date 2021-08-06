@@ -8,6 +8,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="border">#00D91D</color>
+    <color name="primary">#A5E009</color>
+    <color name="primary_mower">#A5E009</color>
 
     <!-- setting -->
     <color name="settings_item_bg">#151515</color>

@@ -4,11 +4,13 @@ import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.ulsee.mower.R
-import com.ulsee.mower.data.LoginRepository
+import com.ulsee.mower.data.AccountRepository
 import com.ulsee.mower.data.Result
+import kotlinx.coroutines.launch
 
-class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel() {
+class LoginViewModel(private val loginRepository: AccountRepository) : ViewModel() {
 
     private val _loginForm = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginForm
@@ -16,14 +18,56 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> = _loginResult
 
-    fun login(email: String, password: String = "") {
-        // can be launched in a separate asynchronous job
-        val result = loginRepository.login(email, password)
+    private val _requestResetPasswordResult = MutableLiveData<ActionResult>()
+    val requestResetPasswordResult: LiveData<ActionResult> = _requestResetPasswordResult
 
-        if (result is Result.Success) {
-            _loginResult.value = LoginResult(success = LoggedInUserView(displayName = result.data.displayName))
-        } else {
-            _loginResult.value = LoginResult(error = R.string.login_failed)
+    private val _resetPasswordResult = MutableLiveData<ActionResult>()
+    val resetPasswordResult: LiveData<ActionResult> = _resetPasswordResult
+
+    fun login(email: String, password: String = "") {
+        viewModelScope.launch {
+            val result = loginRepository.login(email, password)
+            if (result is Result.Success) {
+                _loginResult.value = LoginResult(success = LoggedInUserView(displayName = result.data.displayname))
+            } else {
+                _loginResult.value = LoginResult(error = (result as Result.Error).exception.message)
+            }
+        }
+    }
+
+    fun register(email: String, password: String = "") {
+        viewModelScope.launch {
+            val result = loginRepository.register(email, password)
+
+            if (result is Result.Success) {
+                _loginResult.value = LoginResult(success = LoggedInUserView(displayName = result.data.result))
+            } else {
+                _loginResult.value = LoginResult(error = (result as Result.Error).exception.message)
+            }
+        }
+    }
+
+    fun requestResetPassword(email: String) {
+        viewModelScope.launch {
+            val result = loginRepository.requestResetPassword(email)
+
+            if (result is Result.Success) {
+                _requestResetPasswordResult.value = ActionResult(null)
+            } else {
+                _requestResetPasswordResult.value = ActionResult(error = (result as Result.Error).exception.message)
+            }
+        }
+    }
+
+    fun resetPassword(email: String, secret: String, password: String) {
+        viewModelScope.launch {
+            val result = loginRepository.resetPassword(email, secret, password)
+
+            if (result is Result.Success) {
+                _resetPasswordResult.value = ActionResult(null)
+            } else {
+                _resetPasswordResult.value = ActionResult(error = (result as Result.Error).exception.message)
+            }
         }
     }
 

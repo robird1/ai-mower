@@ -3,7 +3,7 @@
     <string name="app_name">Mower</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in">Sign in</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="welcome">"Welcome !"</string>
     <string name="invalid_username">Not a valid username</string>
@@ -15,6 +15,13 @@
     <string name="add_robot_instruction1">The power button is beneath the machine. Lift the machine in gentle to locate the power button.  Be careful about the blade nearby. Press the power button and hear the "Beep" sound indicating the machine is ready.</string>
     <string name="add_robot_instruction2">Please wait for the initialization of mower. The process will be completed within one minute. After hearing 4 "Beep" sounds, your mower is ready for pairing.</string>
     <string name="setup_map_instruction">Driving the Ladybug to define the operating area. You can easily tap on the screen to start driving Ladybug with joystick.\nPlease drive Ladybug to the appropriate position and press the start button to draw the boundary.</string>
+
+    <!-- Strings related to login -->
+    <string name="action_sign_up">Sign up</string>
+    <string name="invalid_password_no_number">Password should contain number</string>
+    <string name="agreement_sign_up">I have read and agree to the terms of Service.</string>
+    <string name="hint_register_agreement_check">Please read and agree to the terms of Service.</string>
+    <string name="hint_login_after_register">Please login</string>
 
     <!-- settings -->
     <string name="title_settings">Settings</string>

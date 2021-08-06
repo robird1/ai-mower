@@ -5,5 +5,8 @@ package com.ulsee.mower.ui.login
  */
 data class LoginResult(
         val success: LoggedInUserView? = null,
-        val error: Int? = null
+        val error: String? = null
+)
+data class ActionResult(
+        val error: String? = null
 )

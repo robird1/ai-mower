@@ -34,6 +34,8 @@ import com.ulsee.mower.BuildConfig
 import com.ulsee.mower.R
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
+import com.ulsee.mower.data.AccountDataSource
+import com.ulsee.mower.data.AccountRepository
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_CONNECT_FAILED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_DEVICE_NOT_FOUND
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_CONNECTED
@@ -301,6 +303,15 @@ class RobotListFragment: Fragment() {
         }
     }
 
+    private fun initBindFailedObserver() {
+        viewModel.bindFailedLog.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { e ->
+                progressBar.isVisible = false
+                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun initGattStatusObserver() {
 //        progressBar.isVisible = false
         viewModel.gattStatusCode.observe(viewLifecycleOwner) {
@@ -429,7 +440,9 @@ class RobotListFragment: Fragment() {
 
     private fun initViewModel() {
         bleRepository = BluetoothLeRepository(bluetoothService)
-        viewModel = ViewModelProvider(this, RobotListFactory(bleRepository, DatabaseRepository())).get(RobotListFragmentViewModel::class.java)
+        val prefs = requireContext().getSharedPreferences("account", Context.MODE_PRIVATE)
+        val accountRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/"), prefs)
+        viewModel = ViewModelProvider(this, RobotListFactory(bleRepository, DatabaseRepository(), accountRepository)).get(RobotListFragmentViewModel::class.java)
     }
 
 }

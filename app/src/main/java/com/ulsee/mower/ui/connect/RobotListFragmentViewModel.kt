@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.*
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_CONNECT_FAILED
@@ -24,7 +25,7 @@ import kotlinx.coroutines.launch
 private val TAG = RobotListFragmentViewModel::class.java.simpleName
 
 
-class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepository, private val dbRepository: DatabaseRepository) : ViewModel() {
+class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepository, private val dbRepository: DatabaseRepository, private val accountRepository: AccountRepository) : ViewModel() {
 
     private var _isDeviceFound : MutableLiveData<Event<Boolean>> = MutableLiveData()
     val isDeviceFound : LiveData<Event<Boolean>>
@@ -55,6 +56,10 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
 
     private var deviceSerialNumber: String? = null
 
+    private var _bindFailedLog : MutableLiveData<Event<Exception>> = MutableLiveData()
+    val bindFailedLog : LiveData<Event<Exception>>
+        get() = _bindFailedLog
+    val isLoading : MutableLiveData<Boolean> = MutableLiveData<Boolean>()
 
     val gattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -121,9 +126,20 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
     }
 
     fun saveDevice(serialNumber: String) {
+
+        isLoading.value = true
         viewModelScope.launch {
-            val md5 = MD5.convertMD5(serialNumber)
-            dbRepository.saveDevice(serialNumber, md5)
+            // save to api
+            val result = accountRepository.bind(serialNumber)
+            if (result is Result.Success) {
+                //  save to db
+                val md5 = MD5.convertMD5(serialNumber)
+                dbRepository.saveDevice(serialNumber, md5)
+                getDeviceList()
+            } else {
+                _bindFailedLog.value = Event((result as Result.Error).exception)
+            }
+            isLoading.value = false
         }
     }
 
@@ -151,11 +167,11 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
 }
 
 
-class RobotListFactory(private val bleRepository: BluetoothLeRepository, private val dbRepository: DatabaseRepository) : ViewModelProvider.Factory {
+class RobotListFactory(private val bleRepository: BluetoothLeRepository, private val dbRepository: DatabaseRepository, private val accountRepository: AccountRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(RobotListFragmentViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return RobotListFragmentViewModel(bleRepository, dbRepository) as T
+            return RobotListFragmentViewModel(bleRepository, dbRepository, accountRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
