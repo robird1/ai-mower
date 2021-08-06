@@ -1,5 +1,7 @@
 package com.ulsee.mower.ble
 
+import java.util.ArrayList
+
 private val TAG = BluetoothLeRepository::class.java.simpleName
 
 class BluetoothLeRepository(private var bleService: BluetoothLeService?) {
@@ -88,6 +90,22 @@ class BluetoothLeRepository(private var bleService: BluetoothLeService?) {
 
     fun cancelGetMowingData() {
         bleService?.cancelGetMowingData()
+    }
+
+    fun configSettings(instructionType: Int, value: Byte) {
+        bleService?.configSettings(instructionType, value)
+    }
+
+    fun lookupSettings() {
+        bleService?.lookupSettings()
+    }
+
+    fun configSchedule(utcOffset: Short, calendarList: ArrayList<Int>) {
+        bleService?.configSchedule(utcOffset, calendarList)
+    }
+
+    fun lookupSchedule() {
+        bleService?.lookupSchedule()
     }
 
 }

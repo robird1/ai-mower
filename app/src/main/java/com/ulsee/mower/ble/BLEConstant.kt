@@ -9,7 +9,7 @@ class BLECommandTable {
         const val STATUS = 80
         const val MAP_DATA = 0X60
         const val RECORD_BOUNDARY = 0X70
-        const val SETTINGS = 0X80
+        const val SETTINGS = -128       // 0x80.toByte() -> -128
         const val DELETE_MAP = -112     // 0x90.toByte() -> -112
         const val MOWING_DATA = -80     // 0xB0.toByte() -> -80
     }
@@ -236,5 +236,7 @@ class BLEBroadcastAction {
         const val ACTION_REQUEST_DELETE_MAP = "action_request_delete_map"
         const val ACTION_RESPONSE_DELETE_MAP = "action_response_delete_map"
         const val ACTION_MOWING_DATA = "action_mowing_data"
+        const val ACTION_SETTINGS = "action_settings"
+        const val ACTION_SCHEDULING = "action_scheduling"
     }
 }

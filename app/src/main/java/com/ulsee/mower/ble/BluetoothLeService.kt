@@ -286,6 +286,26 @@ class BluetoothLeService : Service() {
         enqueueCommand(payload)
     }
 
+    fun configSettings(instructionType: Int, value: Byte) {
+        val payload = CommandSettings(this).getConfigPayload(instructionType, value)
+        enqueueCommand(payload)
+    }
+
+    fun lookupSettings() {
+        val payload = CommandSettings(this).getLookupPayload()
+        enqueueCommand(payload)
+    }
+
+    fun configSchedule(utcOffset: Short, calendarList: ArrayList<Int>) {
+        val payload = CommandSchedule(this).getConfigPayload(utcOffset, calendarList)
+        enqueueCommand(payload)
+    }
+
+    fun lookupSchedule() {
+        val payload = CommandSchedule(this).getLookupPayload()
+        enqueueCommand(payload)
+    }
+
     fun getMapGlobalParameters() {
         getMapDataTask?.let {
             handler.removeCallbacks(it)
