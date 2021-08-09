@@ -29,12 +29,18 @@
     <string name="title_settings_mower">Mower Settings</string>
     <string name="title_settings_workonrainydays">Work on rainy days</string>
     <string name="title_settings_updatemowersoftware">Update mower software</string>
+    <string name="title_settings_workingmode">Working Mode</string>
+    <string name="title_settings_learning">Learning</string>
+    <string name="title_settings_working">Wokring</string>
+    <string name="title_settings_learnandwork">Learn then Work</string>
     <string name="title_settings_gradual">Gradual</string>
     <string name="title_settings_explosive">Explosive</string>
     <string name="title_settings_bladeheight">Blade height</string>
     <string name="title_settings_setupmap">Setup map</string>
+    <string name="title_settings_clearmap">Clear map</string>
     <string name="title_settings_button_update">Update</string>
     <string name="title_settings_button_latest">Latest</string>
+    <string name="title_settings_button_edit">Edit</string>
     <string name="title_settings_button_clear">Clear</string>
     <string name="title_settings_version_prefix">Version: </string>
 

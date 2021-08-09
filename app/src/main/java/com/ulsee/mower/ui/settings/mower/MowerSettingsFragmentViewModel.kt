@@ -1,30 +1,103 @@
 package com.ulsee.mower.ui.settings.mower
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ulsee.mower.ble.BluetoothLeRepository
-import com.ulsee.mower.data.model.Device
-import kotlinx.coroutines.delay
+import com.ulsee.mower.data.BLEBroadcastAction
+import com.ulsee.mower.utils.Event
 import kotlinx.coroutines.launch
 
 class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepository) : ViewModel() {
 
+    private val TAG = "MowerSettingsFragmentViewModel"
     private var mIsLoading : MutableLiveData<Boolean> = MutableLiveData()
     val isLoading : LiveData<Boolean>
         get() = mIsLoading
-    private var mSettings = MutableLiveData<List<Device>>()
-    val settings : LiveData<List<Device>>
+    private var mSettings = MutableLiveData<MowerSettings>()
+    val settings : LiveData<MowerSettings>
         get() = mSettings
 
+    private var _fetchSettingsFailedLog = MutableLiveData<Event<String>>()
+    val fetchSettingsFailedLog : LiveData<Event<String>>
+        get() = _fetchSettingsFailedLog
 
     fun getSettings() {
         mIsLoading.value = true
         viewModelScope.launch {
-            // todo: fetch settings
-            delay(500)
-            mIsLoading.value = false
+            bleRepository.lookupSettings()
         }
     }
+
+    fun updateWorkingOnRainlyDay(isWorkingOnRainlyDay: Boolean) {
+        mIsLoading.value = true
+        viewModelScope.launch {
+            val value : Byte = if(isWorkingOnRainlyDay) 0x01 else 0x00
+            Log.i(TAG, "updateWorkingOnRainlyDay $value")
+            bleRepository.configSettings(-125/*0x83*/, value)
+        }
+    }
+
+    fun updateWorkingMode(workingMode: MowerWorkingMode) {
+        mIsLoading.value = true
+        viewModelScope.launch {
+            val value : Byte = when(workingMode) {
+                MowerWorkingMode.learning -> 0x00
+                MowerWorkingMode.working -> 0x01
+                MowerWorkingMode.learnAndWork -> 0x02
+                MowerWorkingMode.gradual -> 0x03
+                MowerWorkingMode.explosive -> 0x04
+                else -> 0x00
+            }
+            Log.i(TAG, "updateWorkingMode $value")
+            bleRepository.configSettings(-126/*82*/, value)
+        }
+    }
+
+    val gattUpdateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            Log.i(TAG, "gattUpdateReceiver.onReceive ${intent.action}")
+            when (intent.action){
+                BLEBroadcastAction.ACTION_SETTINGS -> {
+                    try {
+                        mIsLoading.value = false
+                        val result = intent.getIntExtra("result", -1) // 1 for ok, 0 for error
+                        val operation_mode = intent.getIntExtra("operation_mode", -1)
+                        val operationString = if (operation_mode == 0) "read" else "write"
+                        val working_mode = intent.getIntExtra("working_mode", -1)
+                        val rain_mode = intent.getIntExtra("rain_mode", -1)
+                        val knife_height = intent.getIntExtra("knife_height", -1)
+
+                        Log.i(
+                            TAG,
+                            "gattUpdateReceiver.onReceive [$operation_mode.$operationString] ${intent.action}, result=$result, operation_mode=$operation_mode, working_mode=$working_mode, rain_mode=$rain_mode, knife_height=$knife_height"
+                        )
+
+                        if (result != 1) {
+                            _fetchSettingsFailedLog.value =
+                                Event("[$operation_mode.$operationString]($result)Failed to fetch data")
+                            return
+                        }
+
+                        val settings = MowerSettings(
+                            MowerWorkingMode(working_mode),
+                            rain_mode,
+                            knife_height
+                        )
+                        mSettings.value = settings
+                    } catch (e: Exception) {
+                        Log.e(TAG, "gattUpdateReceiver.onReceive exception: ${e.message}")
+                        e.printStackTrace()
+                        _fetchSettingsFailedLog.value = Event("Failed to fetch data: ${e.message}")
+                    }
+                }
+            }
+        }
+    }
+
 }

@@ -389,13 +389,13 @@ class StatusFragment: Fragment() {
 
     private fun initSettingButton() {
         binding.settingButton.setOnClickListener {
-            // TODO
+            findNavController().navigate(R.id.mowerSettingsFragment)
         }
     }
 
     private fun initScheduleButton() {
         binding.scheduleButton.setOnClickListener {
-            // TODO
+            findNavController().navigate(R.id.scheduleListFragment)
         }
     }
 
