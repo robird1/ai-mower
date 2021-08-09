@@ -42,6 +42,7 @@ class StatusFragment: Fragment() {
     lateinit var bluetoothService: BluetoothLeService
     private var isReceiverRegistered = false
     private var workingErrorCode = -1
+    private val workingErrorCodeList = ArrayList<Int>()
     private val emergencyStopIdxList = ArrayList<Int>()
     private val interruptionIdxList = ArrayList<Int>()
     private var signalQuality = -1
@@ -103,6 +104,7 @@ class StatusFragment: Fragment() {
         super.onActivityCreated(savedInstanceState)
 //        initPowerObserver()
         initStatusObserver()
+        initStartStopObserver()
         initMapDataObserver()
         initGlobalParameterObserver()
         initMowingDataObserver()
@@ -223,6 +225,18 @@ class StatusFragment: Fragment() {
         }
     }
 
+    private fun initStartStopObserver() {
+        viewModel.startStopResult.observe(viewLifecycleOwner) {
+            val isSuccess = it.first
+            val command = it.second
+            if (isSuccess) {
+                if (command == "0") {    // 開始作業
+                    workingErrorCodeList.clear()
+                }
+            }
+        }
+    }
+
     private fun initStatusObserver() {
         viewModel.statusIntent.observe(viewLifecycleOwner) { intent ->
             val x = intent.getIntExtra("x", 0)
@@ -244,6 +258,7 @@ class StatusFragment: Fragment() {
             checkSatelliteSignal()
             binding.statusView.notifyRobotCoordinate(x, y, angle)
             checkWorkingErrorCode(errorCode)
+//            workingErrorCode = errorCode
             checkRobotStatus(robotStatus)
             checkInterruptionCode(interruptionCode)
             checkWorkingMode(workingMode)
@@ -328,9 +343,12 @@ class StatusFragment: Fragment() {
     private fun checkInterruptionCode(code: String) {
         code.forEachIndexed { idx, value ->
             if (value == '1' && !interruptionIdxList.contains(idx)) {
-                val message = Interruption.map[idx] ?: "unknown error"
-                showInterruptionDialog(message, idx)
-                interruptionIdxList.add(idx)
+//                val message = Interruption.map[idx] ?: "unknown error"
+                val message = Interruption.map[idx]
+                if (message != null) {
+                    showInterruptionDialog(message, idx)
+                    interruptionIdxList.add(idx)
+                }
             }
         }
     }
@@ -346,11 +364,19 @@ class StatusFragment: Fragment() {
     }
 
     private fun checkWorkingErrorCode(code: Int) {
-        if (code > 0 && code != workingErrorCode) {
+        Log.d("TAG", "[Enter] checkWorkingErrorCode() code: $code")
+        if (code > 0 && !workingErrorCodeList.contains(code)) {
             val message = WorkingErrorCode.map[code] ?: "errorCode: $code"
+            Log.d("TAG", "[Enter] checkWorkingErrorCode() message: $message")
+
             showWorkingErrorDialog(message)
-            workingErrorCode = code
+            workingErrorCodeList.add(code)
         }
+//        if (code > 0 && code != workingErrorCode) {
+//            val message = WorkingErrorCode.map[code] ?: "errorCode: $code"
+//            showWorkingErrorDialog(message)
+//            workingErrorCode = code
+//        }
     }
 
     private fun initSetupButtonListener() {
@@ -377,11 +403,7 @@ class StatusFragment: Fragment() {
                 Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-//            when (state) {
-//                MowingState.Stop -> {
-                    viewModel.startStop(START_MOWING)
-//                }
-//            }
+            viewModel.startStop(START_MOWING)
         }
     }
 
@@ -429,9 +451,9 @@ class StatusFragment: Fragment() {
             .setMessage(message)
             .setCancelable(false)
             .setPositiveButton("ok") { it, _ ->
-                viewModel.startStop(RESUME_FROM_INTERRUPT)
+//                viewModel.startStop(RESUME_FROM_INTERRUPT)
                 it.dismiss()
-                workingErrorCode = -1
+//                workingErrorCode = -1
             }
             .create()
         dialog.show()
