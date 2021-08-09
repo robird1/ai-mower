@@ -10,10 +10,6 @@ import android.util.Log
 import com.ulsee.mower.ble.BluetoothLeService
 import io.realm.Realm
 import io.realm.RealmConfiguration
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 private val TAG = App::class.java.simpleName
 
@@ -51,7 +47,6 @@ class App: Application() {
         ) {
             Log.d(TAG, "[Enter] onServiceConnected")
             bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
-//            clientCallback?.onServiceConnected(bluetoothService!!)
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
@@ -59,7 +54,7 @@ class App: Application() {
         }
     }
 
-    fun bindService() {
+    private fun bindService() {
         Log.d(TAG, "[Enter] bindService()")
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
         bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
