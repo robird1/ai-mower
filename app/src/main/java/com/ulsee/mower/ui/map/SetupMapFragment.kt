@@ -33,7 +33,6 @@ private val TAG = SetupMapFragment::class.java.simpleName
 class SetupMapFragment: Fragment() {
     lateinit var binding: ActivitySetupMapBinding
     lateinit var viewModel: SetupMapFragmentViewModel
-//    lateinit var statusViewModel: StatusFragmentViewModel
     lateinit var bluetoothService: BluetoothLeService
     lateinit var state: SetupMapState
     var isTestOrSaveAppeared = false
@@ -173,19 +172,9 @@ class SetupMapFragment: Fragment() {
 //            BluetoothLeRepository(bluetoothService))).get(StatusFragmentViewModel::class.java)
     }
 
-//    private fun initRequestMapFinishedObserver() {
-//        statusViewModel.requestMapFinished.observe(viewLifecycleOwner) { isFinished ->
-//            Log.d(TAG, "[Enter] requestMapFinished.observe()")
-//            if (isFinished) {
-//                binding.mapView.initData()
-//                binding.mapView.postInvalidate()
-//            }
-//        }
-//    }
-
     private fun initGlobalParameterObserver() {
-//        if (!viewModel.requestMapFinished.hasObservers()) {
-            viewModel.requestMapFinished.observe(viewLifecycleOwner) { isFinished ->
+        viewModel.requestMapFinished.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { isFinished ->
                 binding.progressView.isVisible = false
                 Log.d(TAG, "[Enter] requestMapFinished.observe")
                 Log.d("123", "[Enter] requestMapFinished.observe")
@@ -193,69 +182,72 @@ class SetupMapFragment: Fragment() {
                     binding.mapView.initData()
                 }
             }
-//        }
-
+        }
     }
 
     private fun initStatusObserver() {
-        viewModel.statusIntent.observe(viewLifecycleOwner) { intent ->
-            val x = intent.getIntExtra("x", 0)
-            val y = intent.getIntExtra("y", 0)
-            val angle = intent.getFloatExtra("angle", 0F)
-            val robotStatus = intent.getStringExtra("robot_status") ?: ""
-            val interruptionCode = intent.getStringExtra("interruption_code") ?: ""
-            val testingBoundaryState = intent.getIntExtra("testing_boundary", -1)
-            signalQuality = intent.getIntExtra("signal_quality", -1)
+        viewModel.statusIntent.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { intent ->
+                val x = intent.getIntExtra("x", 0)
+                val y = intent.getIntExtra("y", 0)
+                val angle = intent.getFloatExtra("angle", 0F)
+                val robotStatus = intent.getStringExtra("robot_status") ?: ""
+                val interruptionCode = intent.getStringExtra("interruption_code") ?: ""
+                val testingBoundaryState = intent.getIntExtra("testing_boundary", -1)
+                signalQuality = intent.getIntExtra("signal_quality", -1)
 
-            checkRobotStatus(robotStatus)
-            checkInterruptionCode(interruptionCode)
+                checkRobotStatus(robotStatus)
+                checkInterruptionCode(interruptionCode)
 
-            when (testingBoundaryState) {
-                Status.TestingBoundaryState.WAITING -> {          // 等待指令(饶边或保存)
-                    if (!isTestOrSaveAppeared) {
-                        showSaveOrTestBoundary()
-                        isTestOrSaveAppeared = true
+                when (testingBoundaryState) {
+                    Status.TestingBoundaryState.WAITING -> {          // 等待指令(饶边或保存)
+                        if (!isTestOrSaveAppeared) {
+                            showSaveOrTestBoundary()
+                            isTestOrSaveAppeared = true
+                        }
                     }
-                }
-                Status.TestingBoundaryState.TEST_FAILED -> {      // 绕边失败
-                    isTestOrSaveAppeared = false
+                    Status.TestingBoundaryState.TEST_FAILED -> {      // 绕边失败
+                        isTestOrSaveAppeared = false
 
 //                    showTestBoundaryFailed()
-                }
-                Status.TestingBoundaryState.TEST_SUCCESS -> {     // 绕边成功
-                    isTestOrSaveAppeared = false
-                    if (!isSaveOrDiscardAppeared) {
-                        showSaveOrDiscardBoundary()
-                        isSaveOrDiscardAppeared = true
                     }
-                }
-                Status.TestingBoundaryState.TEST_CANCELLED -> {   // 取消绕边
+                    Status.TestingBoundaryState.TEST_SUCCESS -> {     // 绕边成功
+                        isTestOrSaveAppeared = false
+                        if (!isSaveOrDiscardAppeared) {
+                            showSaveOrDiscardBoundary()
+                            isSaveOrDiscardAppeared = true
+                        }
+                    }
+                    Status.TestingBoundaryState.TEST_CANCELLED -> {   // 取消绕边
+
+                    }
 
                 }
+
+                binding.mapView.notifyRobotCoordinate(x, y, angle, state)
 
             }
-
-            binding.mapView.notifyRobotCoordinate(x, y, angle, state)
-
         }
     }
 
     private fun initStartStopObserver() {
-        viewModel.startStopIntent.observe(viewLifecycleOwner) { intent ->
-            val result = intent.getIntExtra("result", -1)
-            val command = intent.getIntExtra("command", -1)
+        viewModel.startStopIntent.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { intent ->
+                val result = intent.getIntExtra("result", -1)
+                val command = intent.getIntExtra("command", -1)
 
-            when (result) {
-                RESPONSE_SUCCESS -> {
+                when (result) {
+                    RESPONSE_SUCCESS -> {
 //                    showSaveOrDiscardBoundary()
-                    showDialog("success")
-                }
-                RESPONSE_FAILED -> {
-                    showDialog("failed")
-                }
-                else -> {
-                    val info = StartStop.ErrorCode.map[result]
-                    showDialog(info ?: "unknown error code")
+                        showDialog("success")
+                    }
+                    RESPONSE_FAILED -> {
+                        showDialog("failed")
+                    }
+                    else -> {
+                        val info = StartStop.ErrorCode.map[result]
+                        showDialog(info ?: "unknown error code")
+                    }
                 }
             }
         }
@@ -263,7 +255,7 @@ class SetupMapFragment: Fragment() {
 
     private fun initBorderRecordObserver() {
             Log.d(TAG, "[Enter] initBorderRecordObserver")
-            viewModel.borderRecordIntent.observe(viewLifecycleOwner) { it ->
+            viewModel.borderRecordIntent.observe(viewLifecycleOwner) {
                 it.getContentIfNotHandled()?.let { intent ->
                     val result = intent.getIntExtra("result", -1)
                     val command = intent.getIntExtra("command", -1)
@@ -296,9 +288,11 @@ class SetupMapFragment: Fragment() {
 
     private fun initDeleteMapObserver() {
         viewModel.deleteMapFinished.observe(viewLifecycleOwner) {
-            if (it) {
-                binding.mapView.resetData()
-                viewModel.getMapGlobalParameters()
+            it.getContentIfNotHandled()?.let { isSuccess ->
+                if (isSuccess) {
+                    binding.mapView.resetData()
+                    viewModel.getMapGlobalParameters()
+                }
             }
         }
     }
@@ -351,9 +345,14 @@ class SetupMapFragment: Fragment() {
     private fun checkInterruptionCode(code: String) {
         code.forEachIndexed { idx, value ->
             if (value == '1' && !interruptionIdxList.contains(idx)) {
-                val message = Status.Interruption.map[idx] ?: "unknown error"
-                showInterruptionDialog(message, idx)
-                interruptionIdxList.add(idx)
+//                val message = Status.Interruption.map[idx] ?: "unknown error"
+                val message = Status.Interruption.map[idx]
+                if (message != null) {
+                    showInterruptionDialog(message, idx)
+                    interruptionIdxList.add(idx)
+                }
+//                showInterruptionDialog(message, idx)
+//                interruptionIdxList.add(idx)
             }
         }
     }

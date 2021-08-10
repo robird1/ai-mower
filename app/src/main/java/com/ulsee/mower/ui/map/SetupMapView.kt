@@ -29,8 +29,6 @@ class SetupMapView@JvmOverloads constructor(
     private var chargingStationCoordinate : PointF? = null
 
     // working start point
-    private lateinit var workingStartPointBitmap: Bitmap
-    private var workingStartPointPixelOffset = PointF(0f, 0f)
     private var workingStartPointPosition : PointF? = null
 
     // working border point
@@ -107,7 +105,6 @@ class SetupMapView@JvmOverloads constructor(
 
     init {
         initChargingStationBitmap()
-        initWorkingStartPointBitmap()
         initGrassPointBitmap()
         initObstacleBitmap()
         initRobotBitmap()
@@ -181,7 +178,6 @@ class SetupMapView@JvmOverloads constructor(
             drawObstacle()
             drawGrassRoute()
             drawChargingRoute()
-//            drawWorkingStartPoint()
             drawChargingStation()
             drawRobotPosition()
             drawTrashCan()
@@ -428,39 +424,26 @@ class SetupMapView@JvmOverloads constructor(
 
             trashCanList[key] = pointList[0]
 
-            val position = getPixelPosition(pointList[pointList.size-1])
+            drawChargingStation(pointList)
+        }
+
+        drawPath(confirmedPathCharging, paintConfirmedCharging)
+    }
+
+    private fun Canvas.drawChargingStation(pointList: ArrayList<PointF>) {
+        if (chargingStationCoordinate == null) {
+            val position = getPixelPosition(pointList[pointList.size - 1])
             drawBitmap(
                 chargingStationBitmap,
                 position.x - chargingStationPixelOffset.x,
                 position.y - chargingStationPixelOffset.y,
                 Paint()
             )
-        }
-
-        drawPath(confirmedPathCharging, paintConfirmedCharging)
-    }
-
-    private fun Canvas.drawRobotPosition() {
-        val point = getPixelPosition(PointF(robotCoordinateX.toFloat(), robotCoordinateY.toFloat()))
-        drawBitmap(
-            robotRotatedBitmap,
-            robotPixelPosition.x - robotPixelOffset.x,
-            robotPixelPosition.y - robotPixelOffset.y,
-            Paint()
-        )
-    }
-
-    private fun Canvas.drawWorkingStartPoint() {
-        workingStartPointPosition?.let { location ->
-            drawBitmap(
-                workingStartPointBitmap,
-                location.x - workingStartPointPixelOffset.x,
-                location.y - workingStartPointPixelOffset.y,
-                Paint()
-            )
+            chargingStationCoordinate = pointList[pointList.size - 1]
         }
     }
 
+    // TODO check if this function is necessary
     private fun Canvas.drawChargingStation() {
         chargingStationCoordinate?.let {
             val position = getPixelPosition(it)
@@ -471,6 +454,15 @@ class SetupMapView@JvmOverloads constructor(
                 Paint()
             )
         }
+    }
+
+    private fun Canvas.drawRobotPosition() {
+        drawBitmap(
+            robotRotatedBitmap,
+            robotPixelPosition.x - robotPixelOffset.x,
+            robotPixelPosition.y - robotPixelOffset.y,
+            Paint()
+        )
     }
 
     private fun Canvas.drawTrashCan() {
@@ -529,7 +521,7 @@ class SetupMapView@JvmOverloads constructor(
 
     private fun getCenterOfGrass(): PointF {
         val grassCenterList = ArrayList<PointF>()
-        confirmedGrass.forEach { (key, pointList) ->
+        confirmedGrass.forEach { (_, pointList) ->
             if (pointList.size > 0) {
                 confirmedPathGrass.reset()
                 confirmedPathGrass.moveTo(pointList[0].x * xScale, -pointList[0].y * yScale)
@@ -542,7 +534,7 @@ class SetupMapView@JvmOverloads constructor(
         }
         confirmedPathGrass.reset()
 
-        var temp = PointF()
+        val temp = PointF()
         for (i in grassCenterList) {
             temp.x += i.x
             temp.y += i.y
@@ -558,11 +550,10 @@ class SetupMapView@JvmOverloads constructor(
         val bounds = RectF()
         path.computeBounds(bounds, false) // fills rect with bounds
 
-        val center = PointF(
+        return PointF(
             (bounds.left + bounds.right) / 2,
             (bounds.top + bounds.bottom) / 2
         )
-        return center
     }
 
     fun setPoint() {
@@ -583,7 +574,7 @@ class SetupMapView@JvmOverloads constructor(
 
     fun finishObstacleBorder() {
         val startPoint = getPixelPosition(workingElement[0])
-        startPoint?.let {
+        startPoint.let {
             workingPathElement.setLastPoint(it.x, it.y)
             paintWorkingObstacle.style = Paint.Style.FILL_AND_STROKE
             paintWorkingObstacle.alpha = 150
@@ -602,12 +593,7 @@ class SetupMapView@JvmOverloads constructor(
         postInvalidate()
     }
 
-    fun switchOffPointMode() {
-
-    }
-
-    // TODO remove type parameter
-    fun resetCurrentWork(type: WorkType) {
+    fun resetCurrentWork() {
         initGrassPaint()
         initObstaclePaint()
         workingElement.clear()
@@ -776,12 +762,6 @@ class SetupMapView@JvmOverloads constructor(
         chargingStationBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.ic_chargingstation_s)
         chargingStationPixelOffset.x = chargingStationBitmap.width / 2f
         chargingStationPixelOffset.y = chargingStationBitmap.height / 2f
-    }
-
-    private fun initWorkingStartPointBitmap() {
-        workingStartPointBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.ic_mowing_point_s)
-        workingStartPointPixelOffset.x = workingStartPointBitmap.width / 2f
-        workingStartPointPixelOffset.y = workingStartPointBitmap.height / 2f
     }
 
     private fun initGrassPointBitmap() {

@@ -14,7 +14,6 @@ import com.ulsee.mower.ble.CommandMowingData
 import com.ulsee.mower.data.BLEBroadcastAction
 import com.ulsee.mower.data.StartStop
 import com.ulsee.mower.utils.Event
-import com.ulsee.mower.utils.Utils
 import kotlinx.coroutines.launch
 import java.lang.reflect.Type
 
@@ -22,20 +21,20 @@ import java.lang.reflect.Type
 private val TAG = StatusFragmentViewModel::class.java.simpleName
 
 open class StatusFragmentViewModel(private val bleRepository: BluetoothLeRepository): ViewModel() {
-    private var _hasMapData = MutableLiveData<Boolean>()
-    val hasMapData : LiveData<Boolean>
+    private var _hasMapData = MutableLiveData<Event<Boolean>>()
+    val hasMapData : LiveData<Event<Boolean>>
         get() = _hasMapData
-    private var _requestMapFinished = MutableLiveData<Boolean>()
-    val requestMapFinished : LiveData<Boolean>
+    private var _requestMapFinished = MutableLiveData<Event<Boolean>>()
+    val requestMapFinished : LiveData<Event<Boolean>>
         get() = _requestMapFinished
-    private var _startStopResult = MutableLiveData<Pair<Boolean,String>>()
-    val startStopResult : LiveData<Pair<Boolean,String>>
+    private var _startStopResult = MutableLiveData<Event<Pair<Boolean,String>>>()
+    val startStopResult : LiveData<Event<Pair<Boolean,String>>>
         get() = _startStopResult
-    private var _statusIntent = MutableLiveData<Intent>()
-    val statusIntent : LiveData<Intent>
+    private var _statusIntent = MutableLiveData<Event<Intent>>()
+    val statusIntent : LiveData<Event<Intent>>
         get() = _statusIntent
-    private var _gattConnected = MutableLiveData<Boolean>()
-    val gattConnected : LiveData<Boolean>
+    private var _gattConnected = MutableLiveData<Event<Boolean>>()
+    val gattConnected : LiveData<Event<Boolean>>
         get() = _gattConnected
 
     private var isMowingStatus = false
@@ -51,36 +50,42 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
     private var lastItemKey = ""
 
     private var mowingList = ArrayList<Byte> ()
-    private var _mowingDataList = MutableLiveData<ArrayList<PointF>>()
-    val mowingDataList : LiveData<ArrayList<PointF>>
+    private var _mowingDataList = MutableLiveData<Event<ArrayList<PointF>>>()
+    val mowingDataList : LiveData<Event<ArrayList<PointF>>>
         get() = _mowingDataList
 
+    val workingErrorCodeList = ArrayList<Int>()
+    val emergencyStopIdxList = ArrayList<Int>()
+    val interruptionIdxList = ArrayList<Int>()
 
+//    init {
+//        workingErrorCodeList.value = ArrayList()
+//    }
 
     val gattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
 
             when (intent.action) {
                 BLEBroadcastAction.ACTION_STATUS -> {
-                    _statusIntent.value = intent
+                    _statusIntent.value = Event(intent)
                     isMowingStatus = intent.getBooleanExtra("mowing_status", false)
 
                 }
                 BLEBroadcastAction.ACTION_GATT_CONNECTED -> {
-                    _gattConnected.value = true
+                    _gattConnected.value = Event(true)
                 }
                 BLEBroadcastAction.ACTION_GATT_NOT_SUCCESS -> {
-                    _gattConnected.value = false
+                    _gattConnected.value = Event(false)
                 }
                 BLEBroadcastAction.ACTION_START_STOP -> {
                     val result = intent.getIntExtra("result", -1)
                     if (result == 0x01) {
                         val command = intent.getIntExtra("command", -1)
-                        _startStopResult.value = Pair(true, command.toString())
+                        _startStopResult.value = Event(Pair(true, command.toString()))
 
                     } else {
                         val errorMessage = StartStop.ErrorCode.map[result] ?: ""
-                        _startStopResult.value = Pair(false, errorMessage)
+                        _startStopResult.value = Event(Pair(false, errorMessage))
                     }
                 }
                 BLEBroadcastAction.ACTION_GLOBAL_PARAMETER -> {
@@ -95,10 +100,10 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
 
                     globalList.apply {
                         if (size == 0) {
-                            _hasMapData.value = false
+                            _hasMapData.value = Event(false)
 
                         } else {
-                            _hasMapData.value = true
+                            _hasMapData.value = Event(true)
 
                             lastItemKey = getLastItemKey()
 
@@ -140,7 +145,7 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
                     if (packetNumber == packetCount - 1) {           // 資料已要完
                         val list = CommandMowingData.convertBytesToCoordinate(mowingList)
                         if (list.isNotEmpty()) {
-                            _mowingDataList.value = list
+                            _mowingDataList.value = Event(list)
                         }
                         mowingList.clear()
                     }

@@ -41,10 +41,6 @@ class StatusFragment: Fragment() {
     lateinit var viewModel: StatusFragmentViewModel
     lateinit var bluetoothService: BluetoothLeService
     private var isReceiverRegistered = false
-    private var workingErrorCode = -1
-    private val workingErrorCodeList = ArrayList<Int>()
-    private val emergencyStopIdxList = ArrayList<Int>()
-    private val interruptionIdxList = ArrayList<Int>()
     private var signalQuality = -1
     private var isMowingStatus = false
     private var workingMode = MANUAL_MODE
@@ -102,7 +98,6 @@ class StatusFragment: Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-//        initPowerObserver()
         initStatusObserver()
         initStartStopObserver()
         initMapDataObserver()
@@ -126,7 +121,7 @@ class StatusFragment: Fragment() {
     }
 
     private fun initViewModel() {
-        viewModel = ViewModelProvider(this, StatusFragmentFactory(
+        viewModel = ViewModelProvider(requireActivity(), StatusFragmentFactory(
             BluetoothLeRepository(bluetoothService))).get(StatusFragmentViewModel::class.java)
     }
 
@@ -177,91 +172,104 @@ class StatusFragment: Fragment() {
     }
 
     private fun initMapDataObserver() {
-        viewModel.hasMapData.observe(viewLifecycleOwner) { result->
-            if (result) {
-                binding.constraintLayoutNoMap.isVisible = false
-                binding.constraintLayoutCustomView.isVisible = true
+        viewModel.hasMapData.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { result ->
+                if (result) {
+                    binding.constraintLayoutNoMap.isVisible = false
+                    binding.constraintLayoutCustomView.isVisible = true
 
-            } else {
-                binding.progressView.isVisible = false
+                } else {
+                    binding.progressView.isVisible = false
 
-                binding.constraintLayoutNoMap.isVisible = true
-                binding.constraintLayoutCustomView.isVisible = false
+                    binding.constraintLayoutNoMap.isVisible = true
+                    binding.constraintLayoutCustomView.isVisible = false
+                }
             }
         }
     }
 
     private fun initGlobalParameterObserver() {
-        viewModel.requestMapFinished.observe(viewLifecycleOwner) { isFinished ->
-            binding.progressView.isVisible = false
-            if (isFinished) {
-                binding.statusView.initData()
+        viewModel.requestMapFinished.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { isFinished ->
+                binding.progressView.isVisible = false
+                if (isFinished) {
+                    binding.statusView.initData()
+                }
             }
         }
     }
 
     private fun initMowingDataObserver() {
         viewModel.mowingDataList.observe(viewLifecycleOwner) {
-//            Log.d("666", "[Enter] updateMowingArea() size: ${it.size} isMowingStatus: $isMowingStatus")
+            it.getContentIfNotHandled()?.let { list ->
+//                Log.d("666", "[Enter] updateMowingArea() size: ${it.size} isMowingStatus: $isMowingStatus")
 
-            // 刀盤啟動中或作業暫停中
-            if (isMowingStatus || workingMode == SUSPEND_WORKING_MODE) {
-                binding.statusView.updateMowingArea(it)
+                // 刀盤啟動中或作業暫停中
+                if (isMowingStatus || workingMode == SUSPEND_WORKING_MODE) {
+                    binding.statusView.updateMowingArea(list)
+                }
             }
         }
     }
 
     private fun initGattConnectedStatus() {
-        viewModel.gattConnected.observe(viewLifecycleOwner) { isConnected ->
-            if (isConnected) {
-                binding.connectedView.isVisible = true
-                binding.disconnectedView.isVisible = false
-                binding.connectStausText.text = "Connected"
-            } else {
-                binding.connectedView.isVisible = false
-                binding.disconnectedView.isVisible = true
-                binding.connectStausText.text = "Disconnected"
+        viewModel.gattConnected.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { isConnected ->
+                if (isConnected) {
+                    binding.connectedView.isVisible = true
+                    binding.disconnectedView.isVisible = false
+                    binding.connectStausText.text = "Connected"
+                } else {
+                    binding.connectedView.isVisible = false
+                    binding.disconnectedView.isVisible = true
+                    binding.connectStausText.text = "Disconnected"
+                }
             }
         }
     }
 
     private fun initStartStopObserver() {
         viewModel.startStopResult.observe(viewLifecycleOwner) {
-            val isSuccess = it.first
-            val command = it.second
-            if (isSuccess) {
-                if (command == "0") {    // 開始作業
-                    workingErrorCodeList.clear()
+            it.getContentIfNotHandled()?.let { pair ->
+                val isSuccess = pair.first
+                val command = pair.second
+                if (isSuccess) {
+                    if (command == "0") {    // 開始作業
+                        Log.d("222", "workingErrorCodeList.clear()")
+                        viewModel.workingErrorCodeList.clear()
+                    }
                 }
             }
         }
     }
 
     private fun initStatusObserver() {
-        viewModel.statusIntent.observe(viewLifecycleOwner) { intent ->
-            val x = intent.getIntExtra("x", 0)
-            val y = intent.getIntExtra("y", 0)
-            val angle = intent.getFloatExtra("angle", 0F)
-            val power = intent.getIntExtra("power", -1)
-            workingMode = intent.getIntExtra("working_mode", -1)
-            val errorCode = intent.getIntExtra("working_error_code", -1)
-            val robotStatus = intent.getStringExtra("robot_status") ?: ""
-            val isCharging = intent.getBooleanExtra("charging_status", false)
-            isMowingStatus = intent.getBooleanExtra("mowing_status", false)
-            val interruptionCode = intent.getStringExtra("interruption_code") ?: ""
-            signalQuality = intent.getIntExtra("signal_quality", -1)
+        viewModel.statusIntent.observe(viewLifecycleOwner) {
+            Log.d("222", "workingErrorCodeList.size: ${viewModel.workingErrorCodeList.size}")
+            it.getContentIfNotHandled()?.let { intent ->
+                val x = intent.getIntExtra("x", 0)
+                val y = intent.getIntExtra("y", 0)
+                val angle = intent.getFloatExtra("angle", 0F)
+                val power = intent.getIntExtra("power", -1)
+                workingMode = intent.getIntExtra("working_mode", -1)
+                val errorCode = intent.getIntExtra("working_error_code", -1)
+                val robotStatus = intent.getStringExtra("robot_status") ?: ""
+                val isCharging = intent.getBooleanExtra("charging_status", false)
+                isMowingStatus = intent.getBooleanExtra("mowing_status", false)
+                val interruptionCode = intent.getStringExtra("interruption_code") ?: ""
+                signalQuality = intent.getIntExtra("signal_quality", -1)
 
-            setWorkingAreaText(intent)
-            setWorkingTime(intent)
-            setPowerPercentage(power)
-            setChargingText(isCharging)
-            checkSatelliteSignal()
-            binding.statusView.notifyRobotCoordinate(x, y, angle)
-            checkWorkingErrorCode(errorCode)
-//            workingErrorCode = errorCode
-            checkRobotStatus(robotStatus)
-            checkInterruptionCode(interruptionCode)
-            checkWorkingMode(workingMode)
+                setWorkingAreaText(intent)
+                setWorkingTime(intent)
+                setPowerPercentage(power)
+                setChargingText(isCharging)
+                checkSatelliteSignal()
+                binding.statusView.notifyRobotCoordinate(x, y, angle)
+                checkWorkingErrorCode(errorCode)
+                checkRobotStatus(robotStatus)
+                checkInterruptionCode(interruptionCode)
+                checkWorkingMode(workingMode)
+            }
         }
     }
 
@@ -342,12 +350,12 @@ class StatusFragment: Fragment() {
 
     private fun checkInterruptionCode(code: String) {
         code.forEachIndexed { idx, value ->
-            if (value == '1' && !interruptionIdxList.contains(idx)) {
+            if (value == '1' && !viewModel.interruptionIdxList.contains(idx)) {
 //                val message = Interruption.map[idx] ?: "unknown error"
                 val message = Interruption.map[idx]
                 if (message != null) {
                     showInterruptionDialog(message, idx)
-                    interruptionIdxList.add(idx)
+                    viewModel.interruptionIdxList.add(idx)
                 }
             }
         }
@@ -355,28 +363,20 @@ class StatusFragment: Fragment() {
 
     private fun checkRobotStatus(code: String) {
         code.forEachIndexed { idx, value ->
-            if (value == '1' && !emergencyStopIdxList.contains(idx)) {
+            if (value == '1' && !viewModel.emergencyStopIdxList.contains(idx)) {
                 val message = RobotStatus.map[idx] ?: "unknown error"
                 showEmergencyStopDialog(message, idx)
-                emergencyStopIdxList.add(idx)
+                viewModel.emergencyStopIdxList.add(idx)
             }
         }
     }
 
     private fun checkWorkingErrorCode(code: Int) {
-        Log.d("TAG", "[Enter] checkWorkingErrorCode() code: $code")
-        if (code > 0 && !workingErrorCodeList.contains(code)) {
+        if (code > 0 && !viewModel.workingErrorCodeList.contains(code)) {
             val message = WorkingErrorCode.map[code] ?: "errorCode: $code"
-            Log.d("TAG", "[Enter] checkWorkingErrorCode() message: $message")
-
             showWorkingErrorDialog(message)
-            workingErrorCodeList.add(code)
+            viewModel.workingErrorCodeList.add(code)
         }
-//        if (code > 0 && code != workingErrorCode) {
-//            val message = WorkingErrorCode.map[code] ?: "errorCode: $code"
-//            showWorkingErrorDialog(message)
-//            workingErrorCode = code
-//        }
     }
 
     private fun initSetupButtonListener() {
@@ -451,9 +451,7 @@ class StatusFragment: Fragment() {
             .setMessage(message)
             .setCancelable(false)
             .setPositiveButton("ok") { it, _ ->
-//                viewModel.startStop(RESUME_FROM_INTERRUPT)
                 it.dismiss()
-//                workingErrorCode = -1
             }
             .create()
         dialog.show()
@@ -465,7 +463,7 @@ class StatusFragment: Fragment() {
             .setCancelable(false)
             .setPositiveButton("Reset") { it, _ ->
                 viewModel.startStop(RESUME_EMERGENCY_STOP)
-                emergencyStopIdxList.remove(bitIndex)
+                viewModel.emergencyStopIdxList.remove(bitIndex)
                 it.dismiss()
             }
             .create()
@@ -478,7 +476,7 @@ class StatusFragment: Fragment() {
             .setCancelable(false)
             .setPositiveButton("Reset") { it, _ ->
                 viewModel.startStop(RESUME_FROM_INTERRUPT)
-                interruptionIdxList.remove(bitIndex)
+                viewModel.interruptionIdxList.remove(bitIndex)
                 it.dismiss()
             }
             .create()

@@ -7,7 +7,7 @@ class ActionCancelRecord(val subject: Int, val result: Int, fragment: SetupMapFr
     override fun execute() {
         when (subject) {
             RecordBoundary.Subject.GRASS -> {
-                binding.mapView.resetCurrentWork(SetupMapView.WorkType.GRASS)
+                binding.mapView.resetCurrentWork()
 //                        fragment.state = StateControlPanel(fragment)
 //                        fragment.state.createView()
                 fragment.state.onNextState()
@@ -16,7 +16,7 @@ class ActionCancelRecord(val subject: Int, val result: Int, fragment: SetupMapFr
 
             }
             RecordBoundary.Subject.OBSTACLE -> {
-                binding.mapView.resetCurrentWork(SetupMapView.WorkType.OBSTACLE)
+                binding.mapView.resetCurrentWork()
 //                        fragment.state = StateControlPanel(fragment)
 //                        fragment.state.createView()
                 fragment.state.onNextState()
@@ -25,7 +25,7 @@ class ActionCancelRecord(val subject: Int, val result: Int, fragment: SetupMapFr
 
             }
             RecordBoundary.Subject.CHARGING -> {
-                binding.mapView.resetCurrentWork(SetupMapView.WorkType.CHARGING_ROUTE)
+                binding.mapView.resetCurrentWork()
 //                        fragment.state = StateControlPanel(fragment)
 //                        fragment.state.createView()
                 fragment.state.onNextState()
@@ -34,7 +34,7 @@ class ActionCancelRecord(val subject: Int, val result: Int, fragment: SetupMapFr
 
             }
             RecordBoundary.Subject.GRASS_PATH -> {
-                binding.mapView.resetCurrentWork(SetupMapView.WorkType.GRASS_ROUTE)
+                binding.mapView.resetCurrentWork()
 //                        fragment.state = StateControlPanel(fragment)
 //                        fragment.state.createView()
                 fragment.state.onNextState()

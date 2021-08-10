@@ -5,10 +5,11 @@ import android.graphics.PointF
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.ulsee.mower.data.MapData
+import com.ulsee.mower.utils.Event
 import com.ulsee.mower.utils.Utils
 
 //abstract class RequestMapAction(val intent: Intent, val viewModel: StatusFragmentViewModel) {
-abstract class RequestMapAction(val intent: Intent, val lastItemKey: String, val requestMapFinished: MutableLiveData<Boolean>) {
+abstract class RequestMapAction(val intent: Intent, val lastItemKey: String, val requestMapFinished: MutableLiveData<Event<Boolean>>) {
     open fun execute() {
         val grassNumber = intent.getByteExtra("grassNumber", -1)
         val packetCount = intent.getByteExtra("packetCount", -1)
@@ -49,7 +50,7 @@ abstract class RequestMapAction(val intent: Intent, val lastItemKey: String, val
             val mapData = onMapData()
             mapData[keyIndex] = list
             if (lastItemKey == keyIndex) {
-                requestMapFinished.value = true
+                requestMapFinished.value = Event(true)
             }
         }
     }
@@ -65,7 +66,7 @@ abstract class RequestMapAction(val intent: Intent, val lastItemKey: String, val
 }
 
 
-class ActionGrassBoarder(intent: Intent, val data: HashMap<String, ByteArray>, lastItemKey: String, requestMapFinished: MutableLiveData<Boolean>): RequestMapAction(intent, lastItemKey, requestMapFinished) {
+class ActionGrassBoarder(intent: Intent, val data: HashMap<String, ByteArray>, lastItemKey: String, requestMapFinished: MutableLiveData<Event<Boolean>>): RequestMapAction(intent, lastItemKey, requestMapFinished) {
 
     override fun onKeyIndex(): String {
         val grassNumber = intent.getByteExtra("grassNumber", -1)
@@ -80,7 +81,7 @@ class ActionGrassBoarder(intent: Intent, val data: HashMap<String, ByteArray>, l
 }
 
 
-class ActionObstacleBoarder(intent: Intent, val data: HashMap<String, ByteArray>, lastItemKey: String, requestMapFinished: MutableLiveData<Boolean>): RequestMapAction(intent, lastItemKey, requestMapFinished) {
+class ActionObstacleBoarder(intent: Intent, val data: HashMap<String, ByteArray>, lastItemKey: String, requestMapFinished: MutableLiveData<Event<Boolean>>): RequestMapAction(intent, lastItemKey, requestMapFinished) {
 
     override fun onKeyIndex(): String {
         val grassNumber = intent.getByteExtra("grassNumber", -1)
@@ -96,7 +97,7 @@ class ActionObstacleBoarder(intent: Intent, val data: HashMap<String, ByteArray>
 }
 
 
-class ActionGrassPath(intent: Intent, val data: HashMap<String, ByteArray>, lastItemKey: String, requestMapFinished: MutableLiveData<Boolean>): RequestMapAction(intent, lastItemKey, requestMapFinished) {
+class ActionGrassPath(intent: Intent, val data: HashMap<String, ByteArray>, lastItemKey: String, requestMapFinished: MutableLiveData<Event<Boolean>>): RequestMapAction(intent, lastItemKey, requestMapFinished) {
 
     override fun onKeyIndex(): String {
         val grassNumber = intent.getByteExtra("grassNumber", -1)
@@ -113,7 +114,7 @@ class ActionGrassPath(intent: Intent, val data: HashMap<String, ByteArray>, last
 }
 
 
-class ActionChargingPath(intent: Intent, val data: HashMap<String, ByteArray>, lastItemKey: String, requestMapFinished: MutableLiveData<Boolean>): RequestMapAction(intent, lastItemKey, requestMapFinished) {
+class ActionChargingPath(intent: Intent, val data: HashMap<String, ByteArray>, lastItemKey: String, requestMapFinished: MutableLiveData<Event<Boolean>>): RequestMapAction(intent, lastItemKey, requestMapFinished) {
 
     override fun onKeyIndex(): String {
         val grassNumber = intent.getByteExtra("grassNumber", -1)

@@ -17,22 +17,22 @@ import java.lang.reflect.Type
 private val TAG = SetupMapFragmentViewModel::class.java.simpleName
 
 class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository): ViewModel() {
-    private var _statusIntent = MutableLiveData<Intent>()
-    val statusIntent : LiveData<Intent>
+    private var _statusIntent = MutableLiveData<Event<Intent>>()
+    val statusIntent : LiveData<Event<Intent>>
         get() = _statusIntent
-    private var _startStopIntent = MutableLiveData<Intent>()
-    val startStopIntent : LiveData<Intent>
+    private var _startStopIntent = MutableLiveData<Event<Intent>>()
+    val startStopIntent : LiveData<Event<Intent>>
         get() = _startStopIntent
     private var _borderRecordIntent = MutableLiveData<Event<Intent>>()
     val borderRecordIntent : LiveData<Event<Intent>>
         get() = _borderRecordIntent
 
-    private var _requestMapFinished = MutableLiveData<Boolean>()
-    val requestMapFinished : LiveData<Boolean>
+    private var _requestMapFinished = MutableLiveData<Event<Boolean>>()
+    val requestMapFinished : LiveData<Event<Boolean>>
         get() = _requestMapFinished
 
-    private var _deleteMapFinished = MutableLiveData<Boolean>()
-    val deleteMapFinished : LiveData<Boolean>
+    private var _deleteMapFinished = MutableLiveData<Event<Boolean>>()
+    val deleteMapFinished : LiveData<Event<Boolean>>
         get() = _deleteMapFinished
 
     var grassDataMap = HashMap<String, ByteArray>()
@@ -49,11 +49,11 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
 //            Log.d(TAG, "[Enter] onReceive() intent.action: ${intent.action}")
             when (intent.action) {
                 BLEBroadcastAction.ACTION_STATUS -> {
-                    _statusIntent.value = intent
+                    _statusIntent.value = Event(intent)
 
                 }
                 BLEBroadcastAction.ACTION_START_STOP -> {
-                    _startStopIntent.value = intent
+                    _startStopIntent.value = Event(intent)
 
                 }
                 BLEBroadcastAction.ACTION_BORDER_RECORD -> {
@@ -152,7 +152,7 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
                     }
 
                     if (result == 1) {
-                        _deleteMapFinished.value = true
+                        _deleteMapFinished.value = Event(true)
                     }
 
                     Log.d("789", "result: $resultString")

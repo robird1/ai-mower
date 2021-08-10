@@ -73,8 +73,33 @@ class RobotListFragment: Fragment() {
 
         registerBLEReceiver()
         registerGuideFinishReceiver()
+    }
 
-//        (activity as MainActivity).registerServiceCallback(this)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        Log.d(TAG, "[Enter] onCreateView")
+
+        binding = FragmentRobotListBinding.inflate(inflater, container, false)
+
+//        initViewModel()
+
+        viewModel.startBLEScan(this)
+        viewModel.getDeviceList()
+
+        addOnBackPressedCallback()
+
+        initProgressBar()
+        initRecyclerView()
+        configAddDeviceBtn()
+
+//        registerBLEReceiver()
+//        registerGuideFinishReceiver()
+
+        Log.d(TAG, "isLocationPermissionGranted: $isLocationPermissionGranted")
+//        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
+//            promptEnableBluetooth()
+//        }
+
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -86,6 +111,13 @@ class RobotListFragment: Fragment() {
         super.onActivityCreated(savedInstanceState)
         Log.d(TAG, "[Enter] onActivityCreated")
         initGuideFinishObserver()
+        initDeviceListObserver()
+        initDeviceNotFoundObserver()
+        initConnectFailedObserver()
+        initGattStatusObserver()
+        initGattNotSuccessObserver()
+        initVerificationObserver()
+        initInputSnObserver()
     }
 
     override fun onStart() {
@@ -120,52 +152,6 @@ class RobotListFragment: Fragment() {
     override fun onDetach() {
         Log.d(TAG, "[Enter] onDetach")
         super.onDetach()
-    }
-
-//    override fun onServiceConnected(service: BluetoothLeService) {
-//        bluetoothService = service
-//
-//        bleRepository.setBleService(bluetoothService!!)
-//
-//        viewModel.startBLEScan(this@RobotListFragment)
-//
-//        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
-//            promptEnableBluetooth()
-//        }
-//    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.d(TAG, "[Enter] onCreateView")
-
-        binding = FragmentRobotListBinding.inflate(inflater, container, false)
-
-//        initViewModel()
-
-        viewModel.startBLEScan(this)
-        viewModel.getDeviceList()
-
-        addOnBackPressedCallback()
-
-        initProgressBar()
-        initRecyclerView()
-        initDeviceListObserver()
-        initDeviceNotFoundObserver()
-        initConnectFailedObserver()
-        initGattStatusObserver()
-        initGattNotSuccessObserver()
-        initVerificationObserver()
-        initInputSnObserver()
-        configAddDeviceBtn()
-
-//        registerBLEReceiver()
-//        registerGuideFinishReceiver()
-
-        Log.d(TAG, "isLocationPermissionGranted: $isLocationPermissionGranted")
-//        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
-//            promptEnableBluetooth()
-//        }
-
-        return binding.root
     }
 
     private fun addOnBackPressedCallback() {

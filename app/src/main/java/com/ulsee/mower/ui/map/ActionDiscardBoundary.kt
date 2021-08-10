@@ -8,7 +8,7 @@ class ActionDiscardBoundary(val subject: Int, val result: Int, fragment: SetupMa
         when (subject) {
             RecordBoundary.Subject.GRASS -> {
                 Toast.makeText(context, "discard successfully", Toast.LENGTH_SHORT).show()
-                binding.mapView.resetCurrentWork(SetupMapView.WorkType.GRASS)
+                binding.mapView.resetCurrentWork()
 //                fragment.state.onNextState()
 
                 fragment.isSaveOrDiscardAppeared = false
