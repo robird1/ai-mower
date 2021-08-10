@@ -33,6 +33,7 @@ import com.ulsee.mower.data.Status.WorkingMode.Companion.SUSPEND_WORKING_MODE
 import com.ulsee.mower.data.Status.WorkingMode.Companion.TESTING_BOUNDARY_MODE
 import com.ulsee.mower.data.Status.WorkingMode.Companion.WORKING_MODE
 import com.ulsee.mower.databinding.ActivityStatusBinding
+import com.ulsee.mower.ui.login.LoginActivity
 
 private val TAG = StatusFragment::class.java.simpleName
 
@@ -54,12 +55,23 @@ class StatusFragment: Fragment() {
         Log.d(TAG, "[Enter] onCreate")
 
         super.onCreate(savedInstanceState)
-        bluetoothService = (requireActivity().application as App).bluetoothService!!
+//        bluetoothService = (requireActivity().application as App).bluetoothService!!
+        checkService()
 
         initViewModel()
 
 //        registerBLEReceiver()
+    }
 
+    private fun checkService() {
+        (requireActivity().application as App).bluetoothService?.let {
+            bluetoothService = it
+
+        } ?: run {
+            val intent = Intent(requireContext(), LoginActivity::class.java)
+            startActivity(intent)
+            requireActivity().finish()
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {

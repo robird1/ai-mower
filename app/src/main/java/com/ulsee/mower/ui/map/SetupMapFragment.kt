@@ -25,6 +25,7 @@ import com.ulsee.mower.ble.RESPONSE_FAILED
 import com.ulsee.mower.ble.RESPONSE_SUCCESS
 import com.ulsee.mower.data.*
 import com.ulsee.mower.databinding.ActivitySetupMapBinding
+import com.ulsee.mower.ui.login.LoginActivity
 import java.util.*
 import kotlin.math.abs
 
@@ -47,13 +48,24 @@ class SetupMapFragment: Fragment() {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "[Enter] onCreate()")
 
-//        bluetoothService = (activity as MainActivity).bluetoothService!!
-        bluetoothService = (requireActivity().application as App).bluetoothService!!
+//        bluetoothService = (requireActivity().application as App).bluetoothService!!
+        checkService()
 
         initViewModel()
 
         registerBLEReceiver()
 
+    }
+
+    private fun checkService() {
+        (requireActivity().application as App).bluetoothService?.let {
+            bluetoothService = it
+
+        } ?: run {
+            val intent = Intent(requireContext(), LoginActivity::class.java)
+            startActivity(intent)
+            requireActivity().finish()
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

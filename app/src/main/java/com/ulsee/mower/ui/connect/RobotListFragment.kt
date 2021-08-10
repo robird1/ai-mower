@@ -42,6 +42,7 @@ import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_FAI
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_SUCCESS
 import com.ulsee.mower.data.DatabaseRepository
 import com.ulsee.mower.databinding.FragmentRobotListBinding
+import com.ulsee.mower.ui.login.LoginActivity
 
 private const val ENABLE_BLUETOOTH_REQUEST_CODE = 1
 private const val LOCATION_PERMISSION_REQUEST_CODE = 2
@@ -67,10 +68,9 @@ class RobotListFragment: Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "[Enter] onCreate")
         super.onCreate(savedInstanceState)
-        bluetoothService = (requireActivity().application as App).bluetoothService!!
-
+//        bluetoothService = (requireActivity().application as App).bluetoothService!!
+        checkService()
         initViewModel()
-
         registerBLEReceiver()
         registerGuideFinishReceiver()
     }
@@ -100,6 +100,17 @@ class RobotListFragment: Fragment() {
 //        }
 
         return binding.root
+    }
+
+    private fun checkService() {
+        (requireActivity().application as App).bluetoothService?.let {
+            bluetoothService = it
+
+        } ?: run {
+            val intent = Intent(requireContext(), LoginActivity::class.java)
+            startActivity(intent)
+            requireActivity().finish()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
