@@ -11,6 +11,7 @@ import android.os.*
 import android.util.Log
 import android.widget.Toast
 import com.ulsee.mower.ble.CommandChargingPath.Companion.CHARGING_PATH
+import com.ulsee.mower.ble.CommandDeleteAll.Companion.DELETE_ALL
 import com.ulsee.mower.ble.CommandDeleteChargingPath.Companion.DELETE_CHARGING_PATH
 import com.ulsee.mower.ble.CommandDeleteGrass.Companion.DELETE_GRASS
 import com.ulsee.mower.ble.CommandDeleteGrassPath.Companion.DELETE_GRASS_PATH
@@ -355,6 +356,11 @@ class BluetoothLeService : Service() {
 
     fun deleteGrassPath(grassNumber: Byte, targetGrassNumber: Byte, pathNumber: Byte) {
         val payload = CommandDeleteGrassPath(this).getSendPayload(grassNumber, targetGrassNumber, pathNumber)
+        enqueueCommand(payload)
+    }
+
+    fun deleteAllMap() {
+        val payload = CommandDeleteAll(this).getSendPayload()
         enqueueCommand(payload)
     }
 
@@ -978,6 +984,7 @@ class BluetoothLeService : Service() {
                     DELETE_OBSTACLE -> CommandDeleteObstacle(this@BluetoothLeService)
                     DELETE_CHARGING_PATH -> CommandDeleteChargingPath(this@BluetoothLeService)
                     DELETE_GRASS_PATH -> CommandDeleteGrassPath(this@BluetoothLeService)
+                    DELETE_ALL -> CommandDeleteAll(this@BluetoothLeService)
                     else -> CommandNull(this@BluetoothLeService)
                 }
             }

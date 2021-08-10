@@ -84,6 +84,10 @@ class BluetoothLeRepository(private var bleService: BluetoothLeService?) {
         bleService?.deleteGrassPath(grassNumber, targetGrassNumber, pathNumber)
     }
 
+    fun deleteAllMap() {
+        bleService?.deleteAllMap()
+    }
+
     fun getMowingData(packetNumber: Int) {
         bleService?.getMowingData(packetNumber)
     }
