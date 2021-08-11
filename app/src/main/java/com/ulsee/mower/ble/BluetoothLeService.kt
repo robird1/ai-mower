@@ -396,18 +396,12 @@ class BluetoothLeService : Service() {
     }
 
     private fun enqueuePreemptiveCommand(payload: ByteArray) {
-        Log.d(TAG, "[Enter] enqueuePreemptiveCommand()")
         val commandList = operationQueue.toMutableList()
-
         updateQueueCommandSN(commandList)
-
         addPreemptiveCommandToFirst(commandList, payload)
-
         operationQueue.clear()
         operationQueue.addAll(commandList)
-
         signalEndOfOperation()
-
     }
 
     private fun addPreemptiveCommandToFirst(commandList: MutableList<BleOperationType>, payload: ByteArray) {
@@ -444,7 +438,6 @@ class BluetoothLeService : Service() {
                     // do nothing
                 }
             }
-
         }
     }
 
@@ -455,7 +448,6 @@ class BluetoothLeService : Service() {
         }
         return XOR
     }
-
 
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
@@ -560,7 +552,7 @@ class BluetoothLeService : Service() {
                 val instructionType = value[3].toInt()
 //                if (instructionType != BLECommandTable.STATUS) {
                     Log.d(TAG, "instructionType: $instructionType")
-                    Log.d(TAG, "instructionType2: ${value[3]}")
+//                    Log.d(TAG, "instructionType2: ${value[3]}")
                     Log.d(TAG, "Characteristic changed | value: ${value.toHexString()}")
 //                }
 
@@ -578,12 +570,9 @@ class BluetoothLeService : Service() {
 
                         if (isAllPacketsObtained(instructionType)) {          // TODO 升级指令帧
                             signalEndOfOperation()
-
                         } else {
                             Log.d(TAG, "All packets are not obtained. Please wait..............................................")
-
                             configNewPayload(serialNumber, command, instructionType)
-
                             enqueuePreemptiveCommand(commandPayload)
                         }
 
@@ -592,7 +581,6 @@ class BluetoothLeService : Service() {
                         Log.d(TAG, "[Enter] serialNumber != commandSerialNumber ......................................................")
                         Log.d("666", "serialNumber: $serialNumber writeCharacteristicSN: $writeCharacteristicSN")
                     }
-
                 }
             }
         }
@@ -612,9 +600,7 @@ class BluetoothLeService : Service() {
                     val tempArray = byteArrayOf(value[10]) + value[11]
                     val packetNumber = Utils.convert(tempArray).toShort()
                     val byteArray = Utils.intToBytes((packetNumber + 1).toShort())
-
 //                    Log.d("666", "packetNumber: $packetNumber byteArray: ${byteArray.toHexString()}")
-
                     val packetSendIdx = 5
                     commandPayload[packetSendIdx] = byteArray[0]
                     commandPayload[packetSendIdx + 1] = byteArray[1]
@@ -766,12 +752,10 @@ class BluetoothLeService : Service() {
 //            Log.d("123", "[Enter] writeCharacteristic() instruction: $type")
 //        }
         val serialNumber = payload[1]
-//        if (serialNumber.toInt() != 0) {         // do not consider the verification, move robot and status command
         val instructionType = payload[3].toInt()
         if ((instructionType != BLECommandTable.STATUS) &&
             (instructionType != BLECommandTable.MOVE) &&
             (instructionType != BLECommandTable.VERIFICATION)) {
-
             writeCharacteristicSN = serialNumber
         }
         val showLog = (instructionType != BLECommandTable.STATUS) && (instructionType != BLECommandTable.MOVE)
@@ -1052,27 +1036,27 @@ class BluetoothLeService : Service() {
     fun BluetoothGattCharacteristic.isNotifiable(): Boolean =
             containsProperty(BluetoothGattCharacteristic.PROPERTY_NOTIFY)
 
-    private fun showQueue() {
-        val commandList = operationQueue.toMutableList()
-        if (commandList.size > 0) {
-            Log.d("999", "===================================================")
-        }
-        commandList.forEach {
-            when (it) {
-                is BleOperationType.CHARACTERISTIC_WRITE -> {
-
-                    Log.d("999", "payload sn: ${it.payload[1]}")
-                }
-                else -> {
-                    // do nothing
-                }
-            }
-        }
-        if (commandList.size > 0) {
-            Log.d("999", "===================================================")
-        }
-
-    }
+//    private fun showQueue() {
+//        val commandList = operationQueue.toMutableList()
+//        if (commandList.size > 0) {
+//            Log.d("999", "===================================================")
+//        }
+//        commandList.forEach {
+//            when (it) {
+//                is BleOperationType.CHARACTERISTIC_WRITE -> {
+//
+//                    Log.d("999", "payload sn: ${it.payload[1]}")
+//                }
+//                else -> {
+//                    // do nothing
+//                }
+//            }
+//        }
+//        if (commandList.size > 0) {
+//            Log.d("999", "===================================================")
+//        }
+//
+//    }
 //        private fun getCheckSum2(byteArray: ByteArray): Int {
 //            var xorChecksum: Int = 0
 //            for (element in byteArray) {

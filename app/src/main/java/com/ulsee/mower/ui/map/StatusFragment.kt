@@ -53,14 +53,9 @@ class StatusFragment: Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "[Enter] onCreate")
-
         super.onCreate(savedInstanceState)
-//        bluetoothService = (requireActivity().application as App).bluetoothService!!
         checkService()
-
         initViewModel()
-
-//        registerBLEReceiver()
     }
 
     private fun checkService() {
@@ -83,7 +78,6 @@ class StatusFragment: Fragment() {
 //        GestureViewBinder.setFullGroup(true)
 
         addOnBackPressedCallback()
-
         initTestButtonListener()
         initSetupButtonListener()
         initParkingButtonListener()
@@ -91,13 +85,9 @@ class StatusFragment: Fragment() {
         initPauseButtonListener()
         initScheduleButton()
         initSettingButton()
-
         registerBLEReceiver()
-
         viewModel.getStatusPeriodically()
-
-        binding.progressView.isVisible = true
-        viewModel.getMapGlobalParameters()
+        getMapData()
 
         return binding.root
     }
@@ -127,14 +117,14 @@ class StatusFragment: Fragment() {
         super.onDestroyView()
     }
 
-    override fun onDestroy() {
-//        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
-        super.onDestroy()
-    }
-
     private fun initViewModel() {
         viewModel = ViewModelProvider(requireActivity(), StatusFragmentFactory(
             BluetoothLeRepository(bluetoothService))).get(StatusFragmentViewModel::class.java)
+    }
+
+    private fun getMapData() {
+        binding.progressView.isVisible = true
+        viewModel.getMapGlobalParameters()
     }
 
     private fun addOnBackPressedCallback() {
@@ -247,7 +237,6 @@ class StatusFragment: Fragment() {
                 val command = pair.second
                 if (isSuccess) {
                     if (command == "0") {    // 開始作業
-                        Log.d("222", "workingErrorCodeList.clear()")
                         viewModel.workingErrorCodeList.clear()
                     }
                 }
@@ -257,7 +246,6 @@ class StatusFragment: Fragment() {
 
     private fun initStatusObserver() {
         viewModel.statusIntent.observe(viewLifecycleOwner) {
-            Log.d("222", "workingErrorCodeList.size: ${viewModel.workingErrorCodeList.size}")
             it.getContentIfNotHandled()?.let { intent ->
                 val x = intent.getIntExtra("x", 0)
                 val y = intent.getIntExtra("y", 0)

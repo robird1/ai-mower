@@ -58,9 +58,6 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
     val emergencyStopIdxList = ArrayList<Int>()
     val interruptionIdxList = ArrayList<Int>()
 
-//    init {
-//        workingErrorCodeList.value = ArrayList()
-//    }
 
     val gattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {

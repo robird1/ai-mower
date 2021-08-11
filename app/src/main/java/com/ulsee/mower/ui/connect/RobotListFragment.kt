@@ -26,6 +26,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.ulsee.mower.App
@@ -58,7 +59,8 @@ class RobotListFragment: Fragment() {
     val isLocationPermissionGranted
         get() = requireActivity().hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     private var inputSerialNumber: String? = null
-
+    private var isReceiverRegistered = false
+    private val args: RobotListFragmentArgs by navArgs()
 
     override fun onAttach(context: Context) {
         Log.d(TAG, "[Enter] onAttach")
@@ -68,31 +70,24 @@ class RobotListFragment: Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "[Enter] onCreate")
         super.onCreate(savedInstanceState)
-//        bluetoothService = (requireActivity().application as App).bluetoothService!!
         checkService()
         initViewModel()
-        registerBLEReceiver()
-        registerGuideFinishReceiver()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(TAG, "[Enter] onCreateView")
-
         binding = FragmentRobotListBinding.inflate(inflater, container, false)
-
-//        initViewModel()
-
         viewModel.startBLEScan(this)
         viewModel.getDeviceList()
-
         addOnBackPressedCallback()
-
         initProgressBar()
         initRecyclerView()
         configAddDeviceBtn()
+        registerBLEReceiver()
 
-//        registerBLEReceiver()
-//        registerGuideFinishReceiver()
+        if (args.isGuideFinished) {
+            showAddDeviceDialog()
+        }
 
         Log.d(TAG, "isLocationPermissionGranted: $isLocationPermissionGranted")
 //        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
@@ -121,7 +116,6 @@ class RobotListFragment: Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Log.d(TAG, "[Enter] onActivityCreated")
-        initGuideFinishObserver()
         initDeviceListObserver()
         initDeviceNotFoundObserver()
         initConnectFailedObserver()
@@ -148,15 +142,15 @@ class RobotListFragment: Fragment() {
 
     override fun onDestroyView() {
         Log.d(TAG, "[Enter] onDestroyView")
-//        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
-//        requireActivity().unregisterReceiver(viewModel.guideFinishReceiver)
+        if (isReceiverRegistered) {
+            requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
+            isReceiverRegistered = false
+        }
         super.onDestroyView()
     }
 
     override fun onDestroy() {
         Log.d(TAG, "[Enter] onDestroy")
-        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
-        requireActivity().unregisterReceiver(viewModel.guideFinishReceiver)
         super.onDestroy()
     }
 
@@ -184,21 +178,18 @@ class RobotListFragment: Fragment() {
 
 
     private fun registerBLEReceiver() {
-        val filter = IntentFilter()
-        filter.addAction(ACTION_CONNECT_FAILED)
-        filter.addAction(ACTION_DEVICE_NOT_FOUND)
-        filter.addAction(ACTION_GATT_CONNECTED)
-        filter.addAction(ACTION_GATT_DISCONNECTED)
-        filter.addAction(ACTION_GATT_NOT_SUCCESS)
-        filter.addAction(ACTION_VERIFICATION_SUCCESS)
-        filter.addAction(ACTION_VERIFICATION_FAILED)
-        requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
-    }
-
-    private fun registerGuideFinishReceiver() {
-        val filter = IntentFilter()
-        filter.addAction("FINISH_ADD_INSTRUCTION")
-        requireActivity().registerReceiver(viewModel.guideFinishReceiver, filter)
+        if (!isReceiverRegistered) {
+            val filter = IntentFilter()
+            filter.addAction(ACTION_CONNECT_FAILED)
+            filter.addAction(ACTION_DEVICE_NOT_FOUND)
+            filter.addAction(ACTION_GATT_CONNECTED)
+            filter.addAction(ACTION_GATT_DISCONNECTED)
+            filter.addAction(ACTION_GATT_NOT_SUCCESS)
+            filter.addAction(ACTION_VERIFICATION_SUCCESS)
+            filter.addAction(ACTION_VERIFICATION_FAILED)
+            requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
+            isReceiverRegistered = true
+        }
     }
 
     override fun onResume() {
@@ -251,13 +242,7 @@ class RobotListFragment: Fragment() {
 
     private fun configAddDeviceBtn() {
         binding.button.setOnClickListener {
-//            val appPreference = AppPreference(PreferenceManager.getDefaultSharedPreferences(activity))
-//            val isFirstAddDevice = appPreference.getFirstAddDevice()
-//            if (isFirstAddDevice) {
-                findNavController().navigate(R.id.addRobotInstructionFragment)
-//            } else {
-//                showAddDeviceDialog()
-//            }
+            findNavController().navigate(R.id.addRobotInstructionFragment)
         }
     }
 
@@ -317,8 +302,8 @@ class RobotListFragment: Fragment() {
         viewModel.gattStatusCode.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { statusCode ->
                 when(statusCode) {
-                    0 -> Toast.makeText(context, "BluetoothGatt.GATT_SUCCESS", Toast.LENGTH_SHORT).show()
-                    else -> Toast.makeText(context, "status != BluetoothGatt.GATT_SUCCESS", Toast.LENGTH_SHORT).show()
+                    0 -> Toast.makeText(context, "connect successfully", Toast.LENGTH_SHORT).show()
+                    else -> Toast.makeText(context, "connect failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -340,7 +325,7 @@ class RobotListFragment: Fragment() {
                     Toast.makeText(context, "verification success", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.statusFragment)
                 } else {
-                    Toast.makeText(context, "verification failed", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(context, "verification failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -361,16 +346,6 @@ class RobotListFragment: Fragment() {
                         }
                         .setCancelable(false)
                         .show()
-                }
-            }
-        }
-    }
-
-    private fun initGuideFinishObserver() {
-        viewModel.isGuideFinish.observe(viewLifecycleOwner) {
-            it.getContentIfNotHandled()?.let { result ->
-                if (result) {
-                    showAddDeviceDialog()
                 }
             }
         }

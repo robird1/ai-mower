@@ -93,7 +93,7 @@ class CommandStatus(service: BluetoothLeService): AbstractCommand(service) {
             }
             code += temp
         }
-        Log.d("888", "[Enter] getInterruptionCode() $code")
+//        Log.d("888", "[Enter] getInterruptionCode() $code")
         return code
 
     }
@@ -157,7 +157,7 @@ class CommandStatus(service: BluetoothLeService): AbstractCommand(service) {
             }
             status += temp
         }
-        Log.d("888", "[Enter] getRobotStatus() $status")
+//        Log.d("888", "[Enter] getRobotStatus() $status")
         return status
     }
 

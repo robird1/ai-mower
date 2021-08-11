@@ -46,15 +46,8 @@ class SetupMapFragment: Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "[Enter] onCreate()")
-
-//        bluetoothService = (requireActivity().application as App).bluetoothService!!
         checkService()
-
         initViewModel()
-
-        registerBLEReceiver()
-
     }
 
     private fun checkService() {
@@ -69,8 +62,6 @@ class SetupMapFragment: Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.d(TAG, "[Enter] onCreateView()")
-
         binding = ActivitySetupMapBinding.inflate(inflater, container, false)
 
         activity?.requestedOrientation = SCREEN_ORIENTATION_LANDSCAPE
@@ -92,6 +83,8 @@ class SetupMapFragment: Fragment() {
 
         addOnBackPressedCallback()
 
+        registerBLEReceiver()
+
         return binding.root
     }
 
@@ -105,20 +98,11 @@ class SetupMapFragment: Fragment() {
     }
 
     override fun onDestroyView() {
-        Log.d(TAG, "[Enter] onDestroyView()")
-        super.onDestroyView()
-    }
-
-    override fun onDestroy() {
-        Log.d(TAG, "[Enter] onDestroy()")
-//        viewModel.gattUpdateReceiver?.let {
-//        if (isReceiverRegistered) {
-            Log.d(TAG, "[Enter] unregisterReceiver")
+        if (isReceiverRegistered) {
             requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
-//            isReceiverRegistered = false
-//        }
-//        }
-        super.onDestroy()
+            isReceiverRegistered = false
+        }
+        super.onDestroyView()
     }
 
     private fun addOnBackPressedCallback() {
@@ -154,13 +138,11 @@ class SetupMapFragment: Fragment() {
     }
 
     private fun registerBLEReceiver() {
-//        if (!isReceiverRegistered) {
-            Log.d(TAG, "[Enter] registerBLEReceiver")
+        if (!isReceiverRegistered) {
             val filter = IntentFilter()
             filter.addAction(BLEBroadcastAction.ACTION_STATUS)
             filter.addAction(BLEBroadcastAction.ACTION_BORDER_RECORD)
             filter.addAction(BLEBroadcastAction.ACTION_START_STOP)
-
             filter.addAction(BLEBroadcastAction.ACTION_GLOBAL_PARAMETER)
             filter.addAction(BLEBroadcastAction.ACTION_GRASS_BOARDER)
             filter.addAction(BLEBroadcastAction.ACTION_OBSTACLE_BOARDER)
@@ -168,11 +150,9 @@ class SetupMapFragment: Fragment() {
             filter.addAction(BLEBroadcastAction.ACTION_CHARGING_PATH)
             filter.addAction(BLEBroadcastAction.ACTION_REQUEST_DELETE_MAP)
             filter.addAction(BLEBroadcastAction.ACTION_RESPONSE_DELETE_MAP)
-
             requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
-
             isReceiverRegistered = true
-//        }
+        }
     }
 
     private fun initViewModel() {
@@ -189,7 +169,6 @@ class SetupMapFragment: Fragment() {
             it.getContentIfNotHandled()?.let { isFinished ->
                 binding.progressView.isVisible = false
                 Log.d(TAG, "[Enter] requestMapFinished.observe")
-                Log.d("123", "[Enter] requestMapFinished.observe")
                 if (isFinished) {
                     binding.mapView.initData()
                 }
@@ -363,8 +342,6 @@ class SetupMapFragment: Fragment() {
                     showInterruptionDialog(message, idx)
                     interruptionIdxList.add(idx)
                 }
-//                showInterruptionDialog(message, idx)
-//                interruptionIdxList.add(idx)
             }
         }
     }

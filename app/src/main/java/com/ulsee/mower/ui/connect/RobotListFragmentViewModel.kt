@@ -1,13 +1,11 @@
 package com.ulsee.mower.ui.connect
 
-import android.bluetooth.le.ScanResult
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.*
 import com.ulsee.mower.ble.BluetoothLeRepository
-import com.ulsee.mower.data.*
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_CONNECT_FAILED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_DEVICE_NOT_FOUND
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_CONNECTED
@@ -15,6 +13,7 @@ import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_DISCONNECTE
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_NOT_SUCCESS
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_FAILED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_SUCCESS
+import com.ulsee.mower.data.DatabaseRepository
 import com.ulsee.mower.data.model.Device
 import com.ulsee.mower.utils.Event
 import com.ulsee.mower.utils.MD5
@@ -27,8 +26,6 @@ private val TAG = RobotListFragmentViewModel::class.java.simpleName
 
 class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepository, private val dbRepository: DatabaseRepository) : ViewModel() {
 
-//    val filter = ScanFilter.Builder().setManufacturerData(741, null).build()
-    private var scanResults: ArrayList<ScanResult> = ArrayList()
     private var _isDeviceFound : MutableLiveData<Event<Boolean>> = MutableLiveData()
     val isDeviceFound : LiveData<Event<Boolean>>
         get() = _isDeviceFound
@@ -57,10 +54,6 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
         get() = _deviceList
 
     private var deviceSerialNumber: String? = null
-
-    private var _isGuideFinish = MutableLiveData<Event<Boolean>>()
-    val isGuideFinish : LiveData<Event<Boolean>>
-        get() = _isGuideFinish
 
 
     val gattUpdateReceiver = object : BroadcastReceiver() {
@@ -94,14 +87,6 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
                 ACTION_VERIFICATION_FAILED -> {
                     _isVerificationSuccess.value = Event(false)
                 }
-            }
-        }
-    }
-
-    val guideFinishReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == "FINISH_ADD_INSTRUCTION") {
-                _isGuideFinish.value = Event(true)
             }
         }
     }

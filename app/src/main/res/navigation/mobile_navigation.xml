@@ -14,11 +14,25 @@
         <action
             android:id="@+id/action_robotListFragment_to_statusFragment"
             app:destination="@id/statusFragment" />
+        <argument
+            android:name="isGuideFinished"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
     <fragment
         android:id="@+id/addRobotInstructionFragment"
         android:name="com.ulsee.mower.ui.connect.AddRobotInstructionFragment"
-        android:label="AddRobotInstructionFragment" />
+        android:label="AddRobotInstructionFragment">
+        <action
+            android:id="@+id/action_back_to_robot_list"
+            app:destination="@id/robotListFragment"
+            app:popUpTo="@id/robotListFragment"
+            app:popUpToInclusive="true" >
+            <argument
+                android:name="isGuideFinished"
+                android:defaultValue="false" />
+        </action>
+    </fragment>
     <fragment
         android:id="@+id/statusFragment"
         android:name="com.ulsee.mower.ui.map.StatusFragment"
@@ -48,4 +62,7 @@
             android:id="@+id/action_instruction0Fragment_to_setupMapFragment2"
             app:destination="@id/setupMapFragment" />
     </fragment>
+    <argument
+        android:name="isGuideFinished"
+        android:defaultValue="false" />
 </navigation>

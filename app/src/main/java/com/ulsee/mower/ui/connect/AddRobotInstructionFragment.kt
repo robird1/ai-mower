@@ -1,6 +1,5 @@
 package com.ulsee.mower.ui.connect
 
-import android.content.Intent
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.view.LayoutInflater
@@ -43,20 +42,17 @@ class AddRobotInstructionFragment: Fragment() {
     private fun getFragmentList() = arrayListOf(InstructionPage1(), InstructionPage2())
 
     private fun initNextBtnListener() {
-        binding.nextBtn.setOnClickListener { v ->
+        binding.nextBtn.setOnClickListener {
             val next = viewPager.currentItem + 1
             if (next < NUM_PAGES) {
                 // move to next screen
                 viewPager.currentItem = next
             } else {
-//                val intent = Intent(activity, ConnectDeviceActivity::class.java)
-//                intent.putExtra("mode", "fake_list")
-//                startActivity(intent)
                 val appPreference = AppPreference(PreferenceManager.getDefaultSharedPreferences(activity))
                 appPreference.setFirstAddDevice()
 
-                requireContext().sendBroadcast(Intent("FINISH_ADD_INSTRUCTION"))
-                findNavController().popBackStack()
+                val action = AddRobotInstructionFragmentDirections.actionBackToRobotList(true)
+                findNavController().navigate(action)
             }
         }
     }
@@ -70,7 +66,9 @@ class AddRobotInstructionFragment: Fragment() {
                     if (viewPager.currentItem == 0) {
                         // If the user is currently looking at the first step, allow the system to handle the
                         // Back button. This calls finish() on this activity and pops the back stack.
-                        findNavController().popBackStack()
+//                        findNavController().popBackStack()
+                        val action = AddRobotInstructionFragmentDirections.actionBackToRobotList(false)
+                        findNavController().navigate(action)
                     } else {
                         // Otherwise, select the previous step.
                         viewPager.currentItem = viewPager.currentItem - 1
