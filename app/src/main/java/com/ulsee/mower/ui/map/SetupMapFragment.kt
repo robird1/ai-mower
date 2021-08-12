@@ -141,6 +141,8 @@ class SetupMapFragment: Fragment() {
         if (!isReceiverRegistered) {
             val filter = IntentFilter()
             filter.addAction(BLEBroadcastAction.ACTION_STATUS)
+            filter.addAction(BLEBroadcastAction.ACTION_VERIFICATION_SUCCESS)
+            filter.addAction(BLEBroadcastAction.ACTION_VERIFICATION_FAILED)
             filter.addAction(BLEBroadcastAction.ACTION_BORDER_RECORD)
             filter.addAction(BLEBroadcastAction.ACTION_START_STOP)
             filter.addAction(BLEBroadcastAction.ACTION_GLOBAL_PARAMETER)

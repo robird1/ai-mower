@@ -66,13 +66,18 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
                 BLEBroadcastAction.ACTION_STATUS -> {
                     _statusIntent.value = Event(intent)
                     isMowingStatus = intent.getBooleanExtra("mowing_status", false)
-
                 }
                 BLEBroadcastAction.ACTION_GATT_CONNECTED -> {
                     _gattConnected.value = Event(true)
                 }
                 BLEBroadcastAction.ACTION_GATT_NOT_SUCCESS -> {
                     _gattConnected.value = Event(false)
+                }
+                BLEBroadcastAction.ACTION_VERIFICATION_SUCCESS -> {
+                    getStatusPeriodically()
+                }
+                BLEBroadcastAction.ACTION_VERIFICATION_FAILED -> {
+                    doVerification()
                 }
                 BLEBroadcastAction.ACTION_START_STOP -> {
                     val result = intent.getIntExtra("result", -1)
@@ -248,6 +253,10 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
 
     fun cancelGetMowingData() {
         bleRepository.cancelGetMowingData()
+    }
+
+    private fun doVerification() {
+        bleRepository.doVerification()
     }
 
     fun ByteArray.toHexString(): String =

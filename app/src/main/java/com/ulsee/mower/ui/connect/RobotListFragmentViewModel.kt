@@ -79,9 +79,7 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
                     _gattNotSuccess.value = Event(message!!)
                 }
                 ACTION_VERIFICATION_SUCCESS -> {
-
                     saveDeviceIfNotExisting()
-
                     _isVerificationSuccess.value = Event(true)
                 }
                 ACTION_VERIFICATION_FAILED -> {

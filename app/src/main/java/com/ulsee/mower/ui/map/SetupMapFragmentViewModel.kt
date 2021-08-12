@@ -50,17 +50,20 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
             when (intent.action) {
                 BLEBroadcastAction.ACTION_STATUS -> {
                     _statusIntent.value = Event(intent)
-
+                }
+                BLEBroadcastAction.ACTION_VERIFICATION_SUCCESS -> {
+                    getStatusPeriodically()
+                }
+                BLEBroadcastAction.ACTION_VERIFICATION_FAILED -> {
+                    doVerification()
                 }
                 BLEBroadcastAction.ACTION_START_STOP -> {
                     _startStopIntent.value = Event(intent)
-
                 }
                 BLEBroadcastAction.ACTION_BORDER_RECORD -> {
                     Log.d(TAG, "[ACTION_BORDER_RECORD]")
                     Log.d("123", "_borderRecordIntent.value = Event(intent)")
                     _borderRecordIntent.value = Event(intent)
-
                 }
                 BLEBroadcastAction.ACTION_GLOBAL_PARAMETER -> {
                     Log.d(TAG, "[ACTION_GLOBAL_PARAMETER]")
@@ -272,6 +275,9 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
         bleRepository.deleteGrassPath(grassNumber, targetGrassNumber, pathNumber)
     }
 
+    private fun doVerification() {
+        bleRepository.doVerification()
+    }
 
 }
 

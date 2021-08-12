@@ -74,7 +74,6 @@ class BluetoothLeService : Service() {
     // 記錄最近一次送出的command, 若5秒後仍未收到response，則重送。
     private var commandPayload = ByteArray(0)
 
-    private var verificationTask: Runnable? = null
     private var commandTimeoutTask: Runnable? = null
     private var getStatusTask: Runnable? = null
     private var getMapDataTask: Runnable? = null
@@ -84,8 +83,6 @@ class BluetoothLeService : Service() {
     private lateinit var moveHandler: Handler
     private lateinit var statusHandler: StatusHandler
     private lateinit var mowingDataHandler: Handler
-
-    private var isReconnect = false
 
     // Handler that receives messages from the thread
     private inner class StatusHandler(looper: Looper) : Handler(looper) {
@@ -200,7 +197,6 @@ class BluetoothLeService : Service() {
                     Log.d(TAG, "[Enter] i.device.connectGatt()")
                     i.device.connectGatt(this, false, gattCallback)
                 })
-
                 return
             }
         }
@@ -209,38 +205,30 @@ class BluetoothLeService : Service() {
 
     fun disconnectDevice() {
         Log.d(TAG, "[Enter] disconnectDevice()")
-        enqueueOperation(BleOperationType.DISCONNECT {
-            if (bluetoothGatt != null) {
-                bluetoothGatt!!.close()
-                bluetoothGatt = null
-            }
-            pendingOperation = null
-            operationQueue.clear()
-            AbstractCommand.resetSerialNumber()
-            cancelStatusTask()
-            cancelGetMowingData()
-        })
-
-    }
-
-    private fun reconnectDevice() {
-        Log.d("666", "[Enter] reconnectDevice")
-//        if (isReconnect) {
-//            return
-//        }
+//        enqueueOperation(BleOperationType.DISCONNECT {
+//            bluetoothGatt?.close()
+//            bluetoothGatt = null
+//            pendingOperation = null
+//            operationQueue.clear()
+//            commandTimeoutTask?.let { handler.removeCallbacks(it) }
+//            AbstractCommand.resetSerialNumber()
+//            cancelStatusTask()
+//            cancelGetMowingData()
+//        })
         bluetoothGatt?.close()
         bluetoothGatt = null
         pendingOperation = null
         operationQueue.clear()
         commandTimeoutTask?.let { handler.removeCallbacks(it) }
-
-//        Log.d("666", "commandSerialNumber: $commandSerialNumber")
-//        AbstractCommand.serialNumber = commandSerialNumber.toInt()
-        AbstractCommand.serialNumber = characteristicChangedSN.toInt() + 1
-
+        AbstractCommand.resetSerialNumber()
         cancelStatusTask()
         cancelGetMowingData()
-        isReconnect = true
+    }
+
+    private fun reconnectDevice() {
+        Log.d("666", "[Enter] reconnectDevice")
+        disconnectDevice()
+
         handler.post {
             Toast.makeText(this@BluetoothLeService, "reconnect device...", Toast.LENGTH_SHORT).show()
         }
@@ -370,12 +358,12 @@ class BluetoothLeService : Service() {
      */
     fun getMowingData(packetNumber: Int) {
         if (getMowingDataTask == null) {
-            Log.d("777", "getMowingDataTask == null")
+//            Log.d("777", "getMowingDataTask == null")
             getMowingDataTask = Runnable {
                 val payload = CommandMowingData(this).getSendPayload(packetNumber)
                 enqueueCommand(payload)
                 mowingDataHandler.postDelayed(getMowingDataTask!!, 5000)
-                Log.d("777", "mowingDataHandler.postDelayed(getMowingDataTask!!, 5000)")
+//                Log.d("777", "mowingDataHandler.postDelayed(getMowingDataTask!!, 5000)")
             }
             mowingDataHandler.post(getMowingDataTask!!)
         }
@@ -383,10 +371,15 @@ class BluetoothLeService : Service() {
 
     fun cancelGetMowingData() {
         getMowingDataTask?.let {
-            Log.d("777", "[Enter] mowingDataHandler.removeCallbacks()")
+//            Log.d("777", "[Enter] mowingDataHandler.removeCallbacks()")
             mowingDataHandler.removeCallbacks(it)
         }
         getMowingDataTask = null
+    }
+
+    fun doVerification() {
+        val payload = CommandVerification(this@BluetoothLeService, robotSerialNumber!!).getSendPayload()
+        enqueueCommand(payload)
     }
 
     private fun enqueueCommand(payload: ByteArray) {
@@ -487,6 +480,7 @@ class BluetoothLeService : Service() {
 
                 }
             } else {           // 距離割草機過遠，斷線會進入此block
+                Log.d("888", "broadcastUpdate(ACTION_GATT_NOT_SUCCESS) reconnectDevice...")
                 broadcastUpdate(ACTION_GATT_NOT_SUCCESS, "Error $status encountered for $deviceAddress! Disconnecting...")
                 reconnectDevice()
             }
@@ -506,7 +500,7 @@ class BluetoothLeService : Service() {
                     enableNotifications()
                 })
 
-                getStatusPeriodically()
+//                getStatusPeriodically()
             }
         }
 
@@ -550,11 +544,11 @@ class BluetoothLeService : Service() {
 
             with(characteristic) {
                 val instructionType = value[3].toInt()
-//                if (instructionType != BLECommandTable.STATUS) {
+                if (instructionType != BLECommandTable.STATUS) {
                     Log.d(TAG, "instructionType: $instructionType")
 //                    Log.d(TAG, "instructionType2: ${value[3]}")
                     Log.d(TAG, "Characteristic changed | value: ${value.toHexString()}")
-//                }
+                }
 
                 val command = getCommandInstance(instructionType)
                 command.receive(value)
@@ -577,9 +571,9 @@ class BluetoothLeService : Service() {
                         }
 
                     } else {
-                        // TODO
                         Log.d(TAG, "[Enter] serialNumber != commandSerialNumber ......................................................")
                         Log.d("666", "serialNumber: $serialNumber writeCharacteristicSN: $writeCharacteristicSN")
+                        reconnectDevice()
                     }
                 }
             }
@@ -639,16 +633,8 @@ class BluetoothLeService : Service() {
                 when (status) {
                     BluetoothGatt.GATT_SUCCESS -> {
                         Log.i(TAG, "Wrote to descriptor ${this?.uuid} | value: ${this?.value?.toHexString()}")
-                        startVerificationTimer()
 
-                        if (!isReconnect) {
-                            val payload = CommandVerification(this@BluetoothLeService, robotSerialNumber!!).getSendPayload()
-                            enqueueOperation(BleOperationType.CHARACTERISTIC_WRITE(payload) {
-                                writeCharacteristic(payload)
-                            })
-                        }
-                        isReconnect = false
-
+                        doVerification()
                     }
                     BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH -> {
                         broadcastUpdate(ACTION_CONNECT_FAILED, "Write exceeded connection ATT MTU!")
@@ -684,7 +670,6 @@ class BluetoothLeService : Service() {
             true
         }
     }
-
 
     private fun BluetoothGattCharacteristic.isAllPacketsObtained(instructionType: Int): Boolean {
         var isAllPacketObtained = true
@@ -727,14 +712,15 @@ class BluetoothLeService : Service() {
     }
 
     fun writeCharacteristic(payload: ByteArray, isWriteWithoutResponse: Boolean = false) {
+//        Log.d("TAG", "[Enter] writeCharacteristic() payload: ${payload.toHexString()}")
         if (bluetoothGatt?.getService(SERVICE_UUID) == null) {
-            Log.d("666", "[Enter] bluetoothGatt?.getService(SERVICE_UUID) == null")
+            Log.d("TAG", "[Enter] bluetoothGatt?.getService(SERVICE_UUID) == null")
             reconnectDevice()
             return
         }
 
         if (payload.size < 4) {
-            Log.d("666", "[Enter] payload.size < 4")
+            Log.d("TAG", "[Enter] payload.size < 4")
             return
         }
 //        if (payload[3].toInt() == 0x70) {
@@ -767,7 +753,7 @@ class BluetoothLeService : Service() {
 
         if (bluetoothGatt == null) {
             Toast.makeText(this, "disconnected state", Toast.LENGTH_SHORT).show()
-            Log.d("666", "bluetoothGatt == null")
+            Log.d("888", "bluetoothGatt == null")
             return
         }
         val characteristic = bluetoothGatt?.getService(SERVICE_UUID)
@@ -792,7 +778,6 @@ class BluetoothLeService : Service() {
             }
 
             characteristic.value = payload
-//            startVerificationTimer()
             gatt.writeCharacteristic(characteristic)
         } ?: error("Not connected to a BLE device!")
 
@@ -811,7 +796,7 @@ class BluetoothLeService : Service() {
 
     @Synchronized
     private fun enqueueOperation(operation: BleOperationType) {
-//        Log.d(TAG, "[Enter] enqueueOperation $operation")
+//        Log.d("888", "[Enter] enqueueOperation $operation")
         operationQueue.add(operation)
         if (pendingOperation == null) {
             doNextOperation()
@@ -859,24 +844,19 @@ class BluetoothLeService : Service() {
         }
     }
 
-    private fun startVerificationTimer() {
-//        Log.d(TAG, "[Enter] startVerificationTimer")
-        verificationTask = Runnable {
-            broadcastUpdate(ACTION_VERIFICATION_FAILED)
-            signalEndOfOperation()
-        }
-        handler.postDelayed(verificationTask!!, 5000)
-    }
-
     private fun startCommandTimeoutTimer() {
         commandTimeoutTask = Runnable {
-            Log.d("666", "[Enter] resend command due to timeout")
-            // command送出3秒後，逾時未回應則重送
+            Log.d("888", "[Enter] resend command due to timeout. payload: ${commandPayload.toHexString()}")
+            // command送出5秒後，逾時未回應則重送
             writeCharacteristic(commandPayload)
+
             handler.post {
                 Toast.makeText(this, "resend command due to timeout", Toast.LENGTH_SHORT).show()
             }
-//            signalEndOfOperation()
+
+            commandTimeoutTask?.let {
+                handler.postDelayed(it, 5000)
+            }
         }
         handler.postDelayed(commandTimeoutTask!!, 5000)
     }
@@ -909,7 +889,6 @@ class BluetoothLeService : Service() {
     private fun BluetoothGattCharacteristic.getCommandInstance(instructionType: Int): AbstractCommand {
         return when (instructionType) {
             BLECommandTable.VERIFICATION -> {
-                handler.removeCallbacks(verificationTask!!)
                 CommandVerification(this@BluetoothLeService, robotSerialNumber!!)
             }
             BLECommandTable.SCHEDULE -> {
@@ -1039,7 +1018,7 @@ class BluetoothLeService : Service() {
 //    private fun showQueue() {
 //        val commandList = operationQueue.toMutableList()
 //        if (commandList.size > 0) {
-//            Log.d("999", "===================================================")
+//            Log.d("888", "===================================================")
 //        }
 //        commandList.forEach {
 //            when (it) {

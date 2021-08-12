@@ -1,16 +1,8 @@
 package com.ulsee.mower.ble
 
-import java.util.ArrayList
-
-private val TAG = BluetoothLeRepository::class.java.simpleName
+import java.util.*
 
 class BluetoothLeRepository(private var bleService: BluetoothLeService?) {
-//class BluetoothLeRepository {
-//    private var bleService: BluetoothLeService? = null
-
-    fun setBleService(service: BluetoothLeService) {
-        bleService = service
-    }
 
     fun startBLEScan() {
         bleService?.startScan()
@@ -111,5 +103,10 @@ class BluetoothLeRepository(private var bleService: BluetoothLeService?) {
     fun lookupSchedule() {
         bleService?.lookupSchedule()
     }
+
+    fun doVerification() {
+        bleService?.doVerification()
+    }
+
 
 }

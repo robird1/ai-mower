@@ -59,10 +59,26 @@
         android:name="com.ulsee.mower.ui.map.Instruction0Fragment"
         android:label="Instruction0Fragment" >
         <action
-            android:id="@+id/action_instruction0Fragment_to_setupMapFragment2"
-            app:destination="@id/setupMapFragment" />
+            android:id="@+id/action_instruction0Fragment_to_instruction1Fragment"
+            app:destination="@id/instruction1Fragment" />
     </fragment>
     <argument
         android:name="isGuideFinished"
         android:defaultValue="false" />
+    <fragment
+        android:id="@+id/instruction1Fragment"
+        android:name="com.ulsee.mower.ui.map.Instruction1Fragment"
+        android:label="Instruction1Fragment" >
+        <action
+            android:id="@+id/action_instruction1Fragment_to_instruction2Fragment"
+            app:destination="@id/instruction2Fragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/instruction2Fragment"
+        android:name="com.ulsee.mower.ui.map.Instruction2Fragment"
+        android:label="Instruction2Fragment" >
+        <action
+            android:id="@+id/action_instruction2Fragment_to_setupMapFragment"
+            app:destination="@id/setupMapFragment" />
+    </fragment>
 </navigation>

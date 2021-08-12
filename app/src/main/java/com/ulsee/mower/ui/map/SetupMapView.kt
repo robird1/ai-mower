@@ -743,7 +743,7 @@ class SetupMapView@JvmOverloads constructor(
 //            0F // phase : offset into the intervals array
 //        )
         paintWorkingCharging.isAntiAlias = true
-        paintWorkingCharging.color = Color.parseColor("#00D91D")
+        paintWorkingCharging.color = Color.parseColor("#D90000")
     }
 
     // TODO use only one paint for charging route?
@@ -752,7 +752,7 @@ class SetupMapView@JvmOverloads constructor(
         paintConfirmedCharging.style = Paint.Style.STROKE
         paintConfirmedCharging.strokeWidth = dp2px(6)
         paintConfirmedCharging.isAntiAlias = true
-        paintConfirmedCharging.color = Color.parseColor("#00D91D")
+        paintConfirmedCharging.color = Color.parseColor("#D90000")
 //        paintConfirmedCharging.alpha = 150
     }
 

@@ -37,7 +37,7 @@ class MainActivity: AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
 //            binding.toolbar.collapseActionView()
             when (destination.id) {
-                R.id.setupMapFragment -> {
+                R.id.instruction1Fragment, R.id.instruction2Fragment, R.id.setupMapFragment -> {
                     if (supportActionBar != null) {
                         supportActionBar?.hide();
                     }

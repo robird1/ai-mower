@@ -1,18 +1,22 @@
 package com.ulsee.mower.ble
 
+import android.content.Intent
 import com.ulsee.mower.data.BLEBroadcastAction
 
 class CommandVerification(service: BluetoothLeService, private val serialNumberInput: String): AbstractCommand(service) {
     override fun getSendPayload(): ByteArray {
         val checksumArray = getCheckSumArray()
-//        Log.d(TAG, "checksumArray: ${checksumArray.toHexString()}")
         val checkSum = getCheckSum(checksumArray)
         return checksumArray + checkSum.toByte() + 0xFF.toByte()
     }
 
     override fun receive(value: ByteArray) {
-        service.broadcastUpdate(BLEBroadcastAction.ACTION_VERIFICATION_SUCCESS, value.toHexString())
-//        handler.removeCallbacks(verificationTask!!)
+        val result = value[4].toInt()
+        if (result == 0x01) {     // 授权连接
+            sendBroadcast(Intent(BLEBroadcastAction.ACTION_VERIFICATION_SUCCESS))
+        } else {       // 非法连接
+            sendBroadcast(Intent(BLEBroadcastAction.ACTION_VERIFICATION_FAILED))
+        }
     }
 
     private fun getCheckSumArray(): ByteArray {
@@ -22,9 +26,9 @@ class CommandVerification(service: BluetoothLeService, private val serialNumberI
     }
 
     private fun snToAscii(): ByteArray {
-        val array = ByteArray(serialNumberInput!!.length)
-        val snCharArray = serialNumberInput!!.toCharArray()
-        for (i in serialNumberInput!!.indices) {
+        val array = ByteArray(serialNumberInput.length)
+        val snCharArray = serialNumberInput.toCharArray()
+        for (i in serialNumberInput.indices) {
             val ascii = snCharArray[i].toInt().toByte()
             array[i] = ascii
 //            Log.d(TAG, "ascii: $ascii")

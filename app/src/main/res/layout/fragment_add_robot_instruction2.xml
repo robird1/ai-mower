@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:fontFamily="@font/raleway_semibold"
-        android:text="Start your Ladybug"
+        android:text="Start your Mower"
         android:textColor="#212121"
         android:textSize="16sp"
         android:textStyle="bold"

@@ -40,7 +40,7 @@ private val TAG = StatusFragment::class.java.simpleName
 class StatusFragment: Fragment() {
     private lateinit var binding: ActivityStatusBinding
     lateinit var viewModel: StatusFragmentViewModel
-    lateinit var bluetoothService: BluetoothLeService
+    private lateinit var bluetoothService: BluetoothLeService
     private var isReceiverRegistered = false
     private var signalQuality = -1
     private var isMowingStatus = false
@@ -74,7 +74,7 @@ class StatusFragment: Fragment() {
 
         binding = ActivityStatusBinding.inflate(inflater, container, false)
 
-        GestureViewBinder.bind(requireContext(), binding.rootLayout, binding.statusView);
+        GestureViewBinder.bind(requireContext(), binding.rootLayout, binding.statusView)
 //        GestureViewBinder.setFullGroup(true)
 
         addOnBackPressedCallback()
@@ -167,8 +167,9 @@ class StatusFragment: Fragment() {
             filter.addAction(BLEBroadcastAction.ACTION_MOWING_DATA)
             filter.addAction(BLEBroadcastAction.ACTION_GATT_CONNECTED)
             filter.addAction(BLEBroadcastAction.ACTION_GATT_NOT_SUCCESS)
+            filter.addAction(BLEBroadcastAction.ACTION_VERIFICATION_SUCCESS)
+            filter.addAction(BLEBroadcastAction.ACTION_VERIFICATION_FAILED)
             requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
-
             isReceiverRegistered = true
         }
     }
@@ -262,7 +263,8 @@ class StatusFragment: Fragment() {
                 setWorkingAreaText(intent)
                 setWorkingTime(intent)
                 setPowerPercentage(power)
-                setChargingText(isCharging)
+//                setChargingText(isCharging)
+                setBatteryView(isCharging)
                 checkSatelliteSignal()
                 binding.statusView.notifyRobotCoordinate(x, y, angle)
                 checkWorkingErrorCode(errorCode)
@@ -293,11 +295,13 @@ class StatusFragment: Fragment() {
         when (signalQuality) {
             1 -> {
                 binding.signalStatus.text = "Available"
-                binding.signalView.isVisible = true
+                binding.signalViewGood.isVisible = true
+                binding.signalViewBad.isVisible = false
             }
             0 -> {
                 binding.signalStatus.text = "Unavailable"
-                binding.signalView.isVisible = false
+                binding.signalViewGood.isVisible = false
+                binding.signalViewBad.isVisible = true
             }
         }
     }
@@ -305,7 +309,7 @@ class StatusFragment: Fragment() {
     private fun checkWorkingMode(workingMode: Int) {
         when (workingMode) {
             WORKING_MODE, LEARNING_MODE -> {
-                Log.d("777", "[Enter] WORKING_MODE, LEARNING_MODE")
+//                Log.d("777", "[Enter] WORKING_MODE, LEARNING_MODE")
                 binding.startMowingBtn.isVisible = false
                 binding.startText.isVisible = false
                 binding.pauseButton.isVisible = true
@@ -317,8 +321,7 @@ class StatusFragment: Fragment() {
 
             }
             SUSPEND_WORKING_MODE -> {
-                Log.d("777", "[Enter] SUSPEND_WORKING_MODE")
-
+//                Log.d("777", "[Enter] SUSPEND_WORKING_MODE")
                 binding.startMowingBtn.isVisible = false
                 binding.startText.isVisible = false
                 binding.pauseButton.isVisible = true
@@ -331,8 +334,7 @@ class StatusFragment: Fragment() {
 
             }
             MANUAL_MODE -> {
-                Log.d("777", "[Enter] MANUAL_MODE")
-
+//                Log.d("777", "[Enter] MANUAL_MODE")
                 binding.startMowingBtn.isVisible = true
                 binding.startText.isVisible = true
                 binding.pauseButton.isVisible = false
@@ -342,7 +344,7 @@ class StatusFragment: Fragment() {
                 viewModel.cancelGetMowingData()
             }
             TESTING_BOUNDARY_MODE -> {
-                Log.d("777", "[Enter] TESTING_BOUNDARY_MODE")
+//                Log.d("777", "[Enter] TESTING_BOUNDARY_MODE")
 
             }
         }
@@ -483,8 +485,18 @@ class StatusFragment: Fragment() {
         dialog.show()
     }
 
-    private fun setChargingText(isCharging: Boolean) {
-        binding.chargingTxt.isVisible = isCharging
+//    private fun setChargingText(isCharging: Boolean) {
+//        binding.chargingTxt.isVisible = isCharging
+//    }
+
+    private fun setBatteryView(isCharging: Boolean) {
+        if (!isCharging) {
+            binding.batteryView.isVisible = true
+            binding.batteryViewCharging.isVisible = false
+        } else {
+            binding.batteryView.isVisible = false
+            binding.batteryViewCharging.isVisible = true
+        }
     }
 
 }

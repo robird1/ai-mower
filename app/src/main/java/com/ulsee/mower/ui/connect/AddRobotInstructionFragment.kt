@@ -66,9 +66,7 @@ class AddRobotInstructionFragment: Fragment() {
                     if (viewPager.currentItem == 0) {
                         // If the user is currently looking at the first step, allow the system to handle the
                         // Back button. This calls finish() on this activity and pops the back stack.
-//                        findNavController().popBackStack()
-                        val action = AddRobotInstructionFragmentDirections.actionBackToRobotList(false)
-                        findNavController().navigate(action)
+                        findNavController().popBackStack()
                     } else {
                         // Otherwise, select the previous step.
                         viewPager.currentItem = viewPager.currentItem - 1

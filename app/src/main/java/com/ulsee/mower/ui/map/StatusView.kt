@@ -356,7 +356,7 @@ class StatusView@JvmOverloads constructor(
         paintConfirmedCharging.style = Paint.Style.STROKE
         paintConfirmedCharging.strokeWidth = dp2px(6)
         paintConfirmedCharging.isAntiAlias = true
-        paintConfirmedCharging.color = Color.parseColor("#00D91D")
+        paintConfirmedCharging.color = Color.parseColor("#D90000")
 //        paintConfirmedCharging.alpha = 150
     }
 

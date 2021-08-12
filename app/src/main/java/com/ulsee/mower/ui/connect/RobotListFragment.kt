@@ -60,7 +60,7 @@ class RobotListFragment: Fragment() {
         get() = requireActivity().hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     private var inputSerialNumber: String? = null
     private var isReceiverRegistered = false
-    private val args: RobotListFragmentArgs by navArgs()
+//    private val args: RobotListFragmentArgs by navArgs()
 
     override fun onAttach(context: Context) {
         Log.d(TAG, "[Enter] onAttach")
@@ -74,7 +74,7 @@ class RobotListFragment: Fragment() {
         initViewModel()
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         Log.d(TAG, "[Enter] onCreateView")
         binding = FragmentRobotListBinding.inflate(inflater, container, false)
         viewModel.startBLEScan(this)
@@ -85,6 +85,7 @@ class RobotListFragment: Fragment() {
         configAddDeviceBtn()
         registerBLEReceiver()
 
+        val args = RobotListFragmentArgs.fromBundle(requireArguments())
         if (args.isGuideFinished) {
             showAddDeviceDialog()
         }
@@ -146,6 +147,9 @@ class RobotListFragment: Fragment() {
             requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
             isReceiverRegistered = false
         }
+
+        requireArguments().clear()
+
         super.onDestroyView()
     }
 
@@ -320,12 +324,15 @@ class RobotListFragment: Fragment() {
     private fun initVerificationObserver() {
         viewModel.isVerificationSuccess.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { isSuccess ->
+                progressBar.isVisible = false
                 if (isSuccess) {
-                    progressBar.isVisible = false
+//                    progressBar.isVisible = false
                     Toast.makeText(context, "verification success", Toast.LENGTH_SHORT).show()
+                    Log.d("888", "[Enter] verification success")
                     findNavController().navigate(R.id.statusFragment)
                 } else {
-//                    Toast.makeText(context, "verification failed", Toast.LENGTH_SHORT).show()
+                    Log.d("888", "[Enter] verification failed")
+                    Toast.makeText(context, "verification failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }
