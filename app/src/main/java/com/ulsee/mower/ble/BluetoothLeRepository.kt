@@ -96,8 +96,8 @@ class BluetoothLeRepository(private var bleService: BluetoothLeService?) {
         bleService?.lookupSettings()
     }
 
-    fun configSchedule(utcOffset: Short, calendarList: ArrayList<Int>) {
-        bleService?.configSchedule(utcOffset, calendarList)
+    fun configSchedule(utcOffset: Short, calendarList: ArrayList<Int>, mowerCount: Int) {
+        bleService?.configSchedule(utcOffset, calendarList, mowerCount)
     }
 
     fun lookupSchedule() {

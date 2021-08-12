@@ -1,10 +1,12 @@
 package com.ulsee.mower.ui.schedule
 
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -13,6 +15,7 @@ import com.ulsee.mower.App
 import com.ulsee.mower.R
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
+import com.ulsee.mower.data.BLEBroadcastAction
 import com.ulsee.mower.databinding.FragmentScheduleListBinding
 
 private val TAG = ScheduleListFragment::class.java.simpleName
@@ -29,6 +32,15 @@ class ScheduleListFragment : Fragment() {
         bluetoothService = (requireActivity().application as App).bluetoothService!!
     }
 
+    override fun onStart() {
+        super.onStart()
+        registerBLEReceiver()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterBLEReceiver()
+    }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(TAG, "[Enter] onCreateView")
 
@@ -40,6 +52,7 @@ class ScheduleListFragment : Fragment() {
         initLoadingStatusObserver()
         initSubViewEntry()
 //        initExpandableList()
+        initFetchFailedObserver()
         initWeekdays()
         bindClick()
         viewModel.getSchedule()
@@ -53,15 +66,59 @@ class ScheduleListFragment : Fragment() {
 
     private fun initScheduleObserver() {
         viewModel.schedules.observe(viewLifecycleOwner) {
-            // todo: update ui
-            binding.layoutDetail1.textView.text = "09:41 AM (Lawn 1)"
-            binding.layoutDetail1.layout.visibility = View.VISIBLE
-            binding.layoutDetail2.textView.text = ""
-            binding.layoutDetail3.textView.text = ""
-            binding.layoutDetail4.textView.text = ""
-            binding.layoutDetail5.textView.text = ""
-            binding.layoutDetail6.textView.text = ""
-            binding.layoutDetail7.textView.text = ""
+
+            val weekDayDetailTextViews = arrayOf(
+                binding.layoutDetail1.textView,
+                binding.layoutDetail2.textView,
+                binding.layoutDetail3.textView,
+                binding.layoutDetail4.textView,
+                binding.layoutDetail5.textView,
+                binding.layoutDetail6.textView,
+                binding.layoutDetail7.textView
+            )
+            val weekDayDetailLayouts = arrayOf(
+                binding.layoutDetail1.layout,
+                binding.layoutDetail2.layout,
+                binding.layoutDetail3.layout,
+                binding.layoutDetail4.layout,
+                binding.layoutDetail5.layout,
+                binding.layoutDetail6.layout,
+                binding.layoutDetail7.layout
+            )
+            val checkboxes = arrayOf(
+                binding.layoutWeekday1.checkbox,
+                binding.layoutWeekday2.checkbox,
+                binding.layoutWeekday3.checkbox,
+                binding.layoutWeekday4.checkbox,
+                binding.layoutWeekday5.checkbox,
+                binding.layoutWeekday6.checkbox,
+                binding.layoutWeekday7.checkbox
+            )
+
+            val calendar = it
+            for(i in 0 until calendar.schedules.size) {
+                val schedules = calendar.schedules[i]
+
+                if (schedules.size > 0) {
+                    checkboxes[i].isChecked = true
+                    weekDayDetailLayouts[i].visibility = View.VISIBLE
+                    weekDayDetailTextViews[i].text = ""
+                    for(j in 0 until schedules.size) {
+                        val schedule = schedules[j]
+                        if (j > 0) weekDayDetailTextViews[i].append("\n")
+                        var beginHour = schedule.beginAt / 2
+                        if(beginHour > 12) beginHour = beginHour % 12
+                        val beginMinute = if(schedule.beginAt %2 == 0) 0 else 30
+                        val ampm = if(schedule.beginAt >= 24) "pm" else "am"
+                        val dd : (Int)->String = {o -> if(o>=10)""+o else "0"+o}
+                        weekDayDetailTextViews[i].append("${dd(beginHour)}:${dd(beginMinute)} $ampm")
+                    }
+                } else {
+                    checkboxes[i].isChecked = false
+                    weekDayDetailLayouts[i].visibility = View.GONE
+                    weekDayDetailTextViews[i].text = ""
+                }
+            }
         }
     }
 
@@ -85,14 +142,21 @@ class ScheduleListFragment : Fragment() {
     }
 
     fun bindClick() {
-        // todo: 1. checkbox, 2. 帶參數
-        (binding.layoutWeekday1.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment) }
-        (binding.layoutWeekday2.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment) }
-        (binding.layoutWeekday3.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment) }
-        (binding.layoutWeekday4.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment) }
-        (binding.layoutWeekday5.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment) }
-        (binding.layoutWeekday6.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment) }
-        (binding.layoutWeekday7.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment) }
+        (binding.layoutWeekday1.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 1); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday2.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 2); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday3.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 3); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday4.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 4); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday5.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 5); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday6.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 6); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday7.container).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 7); putSerializable("calendar", viewModel.schedules.value) }) }
+
+        (binding.layoutWeekday1.checkbox).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 1); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday2.checkbox).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 2); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday3.checkbox).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 3); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday4.checkbox).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 4); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday5.checkbox).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 5); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday6.checkbox).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 6); putSerializable("calendar", viewModel.schedules.value) }) }
+        (binding.layoutWeekday7.checkbox).setOnClickListener { findNavController().navigate(R.id.scheduleEditorFragment, Bundle().apply { putInt("week", 7); putSerializable("calendar", viewModel.schedules.value) }) }
     }
 
 //    private fun initExpandableList() {
@@ -126,5 +190,26 @@ class ScheduleListFragment : Fragment() {
 
     private fun initSubViewEntry() {
         binding.buttonCalendar.setOnClickListener { findNavController().navigate(R.id.scheduleCalendarFragment) }
+    }
+    private fun initFetchFailedObserver() {
+        viewModel.fetchScheduleFailedLog.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // =================================================
+    // ================== BLE ====================
+    // =================================================
+
+    private fun registerBLEReceiver() {
+        val filter = IntentFilter()
+        filter.addAction(BLEBroadcastAction.ACTION_SCHEDULING)
+        requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
+    }
+
+    private fun unregisterBLEReceiver() {
+        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
     }
 }

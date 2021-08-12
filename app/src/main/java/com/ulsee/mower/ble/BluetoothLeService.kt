@@ -286,8 +286,9 @@ class BluetoothLeService : Service() {
         enqueueCommand(payload)
     }
 
-    fun configSchedule(utcOffset: Short, calendarList: ArrayList<Int>) {
-        val payload = CommandSchedule(this).getConfigPayload(utcOffset, calendarList)
+    fun configSchedule(utcOffset: Short, calendarList: ArrayList<Int>, mowerCount: Int) {
+        val payload = CommandSchedule(this).getConfigPayload(utcOffset, calendarList, mowerCount)
+        Log.i(TAG, "configSchedule ${payload.toHexString()}")
         enqueueCommand(payload)
     }
 

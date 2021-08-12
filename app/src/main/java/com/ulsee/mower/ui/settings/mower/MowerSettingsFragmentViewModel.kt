@@ -27,6 +27,14 @@ class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepos
     val fetchSettingsFailedLog : LiveData<Event<String>>
         get() = _fetchSettingsFailedLog
 
+    private var _deleteMapFailedLog = MutableLiveData<Event<String>>()
+    val deleteMapFailedLog : LiveData<Event<String>>
+        get() = _deleteMapFailedLog
+
+    private var _deleteMapOkLog = MutableLiveData<Event<String>>()
+    val deleteMapOkLog : LiveData<Event<String>>
+        get() = _deleteMapOkLog
+
     fun getSettings() {
         mIsLoading.value = true
         viewModelScope.launch {
@@ -40,6 +48,13 @@ class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepos
             val value : Byte = if(isWorkingOnRainlyDay) 0x01 else 0x00
             Log.i(TAG, "updateWorkingOnRainlyDay $value")
             bleRepository.configSettings(-125/*0x83*/, value)
+        }
+    }
+
+    fun clearMap() {
+        mIsLoading.value = true
+        viewModelScope.launch {
+            bleRepository.deleteAllMap()
         }
     }
 
@@ -68,25 +83,27 @@ class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepos
                         mIsLoading.value = false
                         val result = intent.getIntExtra("result", -1) // 1 for ok, 0 for error
                         val operation_mode = intent.getIntExtra("operation_mode", -1)
-                        val operationString = if (operation_mode == 0) "read" else "write"
+                        val operationString = if (operation_mode == 1) "fetch" else "write"
                         val working_mode = intent.getIntExtra("working_mode", -1)
                         val rain_mode = intent.getIntExtra("rain_mode", -1)
+                        val mower_count = intent.getIntExtra("mower_count", -1)
                         val knife_height = intent.getIntExtra("knife_height", -1)
 
                         Log.i(
                             TAG,
-                            "gattUpdateReceiver.onReceive [$operation_mode.$operationString] ${intent.action}, result=$result, operation_mode=$operation_mode, working_mode=$working_mode, rain_mode=$rain_mode, knife_height=$knife_height"
+                            "gattUpdateReceiver.onReceive [$operation_mode.$operationString] ${intent.action}, result=$result, operation_mode=$operation_mode, working_mode=$working_mode, rain_mode=$rain_mode, mower_count=$mower_count, knife_height=$knife_height"
                         )
 
                         if (result != 1) {
                             _fetchSettingsFailedLog.value =
-                                Event("[$operation_mode.$operationString]($result)Failed to fetch data")
-                            return
+                                Event("[$operation_mode]($result)Failed to $operationString data")
+//                            return
                         }
 
                         val settings = MowerSettings(
                             MowerWorkingMode(working_mode),
                             rain_mode,
+                            mower_count,
                             knife_height
                         )
                         mSettings.value = settings
@@ -94,6 +111,24 @@ class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepos
                         Log.e(TAG, "gattUpdateReceiver.onReceive exception: ${e.message}")
                         e.printStackTrace()
                         _fetchSettingsFailedLog.value = Event("Failed to fetch data: ${e.message}")
+                    }
+                }
+                BLEBroadcastAction.ACTION_RESPONSE_DELETE_MAP -> {
+                    mIsLoading.value = false
+                    val result = intent.getIntExtra("result", -1) // 1 for ok, 0 for error
+                    val command = intent.getIntExtra("command", -1)
+
+                    Log.i(
+                        TAG,
+                        "gattUpdateReceiver.onReceive [$command] ${intent.action}, result=$result, command=$command"
+                    )
+
+                    if (result != 1) {
+                        _fetchSettingsFailedLog.value =
+                            Event("[$command]Failed to clear map")
+//                            return
+                    } else {
+                        _deleteMapOkLog.value = Event("Clear Map Succeed!")
                     }
                 }
             }

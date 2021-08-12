@@ -1,12 +1,14 @@
 package com.ulsee.mower.ui.schedule
 
 import android.content.Context
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -14,6 +16,7 @@ import com.ulsee.mower.App
 import com.ulsee.mower.R
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
+import com.ulsee.mower.data.BLEBroadcastAction
 import com.ulsee.mower.databinding.FragmentScheduleCalendarBinding
 
 
@@ -31,6 +34,16 @@ class ScheduleCalendarFragment : Fragment() {
         bluetoothService = (requireActivity().application as App).bluetoothService!!
     }
 
+    override fun onStart() {
+        super.onStart()
+        registerBLEReceiver()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterBLEReceiver()
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(TAG, "[Enter] onCreateView")
 
@@ -40,6 +53,7 @@ class ScheduleCalendarFragment : Fragment() {
 
         initScheduleObserver()
         initLoadingStatusObserver()
+        initFetchFailedObserver()
         viewModel.getSchedule()
         return binding.root
     }
@@ -51,15 +65,18 @@ class ScheduleCalendarFragment : Fragment() {
 
     private fun initScheduleObserver() {
         viewModel.schedules.observe(viewLifecycleOwner) {
-            displaySchedules()
+            displaySchedules(it)
         }
     }
 
-    private fun displaySchedules() {
-        displaySchedule(1, 10, 5)
-        displaySchedule(3, 34, 5)
-        displaySchedule(4, 10, 5)
-        displaySchedule(5, 34, 5)
+    private fun displaySchedules(calendar: Calendar) {
+        for(i in 0 until calendar.schedules.size) {
+            val week = i+1
+            val schedules = calendar.schedules[i]
+            for(schedule in schedules) {
+                displaySchedule(week, schedule.beginAt, schedule.duration)
+            }
+        }
     }
 
     private fun displaySchedule(week: Int, beginHalfHour: Int, durationHalfHours: Int) {
@@ -87,6 +104,26 @@ class ScheduleCalendarFragment : Fragment() {
         viewModel.isLoading.observe(viewLifecycleOwner) {
             binding.progressView.isVisible = it
         }
+    }
+    private fun initFetchFailedObserver() {
+        viewModel.fetchScheduleFailedLog.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // =================================================
+    // ================== BLE ====================
+    // =================================================
+    private fun registerBLEReceiver() {
+        val filter = IntentFilter()
+        filter.addAction(BLEBroadcastAction.ACTION_SCHEDULING)
+        requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
+    }
+
+    private fun unregisterBLEReceiver() {
+        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
     }
 
 }

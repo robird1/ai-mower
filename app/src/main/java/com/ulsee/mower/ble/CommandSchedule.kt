@@ -18,8 +18,9 @@ class CommandSchedule(service: BluetoothLeService): AbstractCommand(service) {
         sendBroadcast(intent)
     }
 
-    fun getConfigPayload(utcOffset: Short, calendarList: ArrayList<Int>): ByteArray {
-        var checksumArray = byteArrayOf(0xFA.toByte()) + getSerialNumber().toByte() + 0x4F + 0xF0.toByte() + 0xF1.toByte() + 0x01 + 0xF2.toByte() + 0x01 + 0xF3.toByte() + getUtcByteArray(utcOffset) + 0xF4.toByte() + getCalendarByteArray(calendarList)
+    fun getConfigPayload(utcOffset: Short, calendarList: ArrayList<Int>, mowerCount: Int): ByteArray {
+        val mowerWorkDayRawData = Array<Byte>(mowerCount) { i -> 0x00 }
+        var checksumArray = byteArrayOf(0xFA.toByte()) + getSerialNumber().toByte() + (81+mowerCount).toByte() + 0xF0.toByte() + 0xF1.toByte() + 0x01 + 0xF2.toByte() + 0x01 + 0xF3.toByte() + getUtcByteArray(utcOffset) + 0xF4.toByte() + getCalendarByteArray(calendarList)+0xF5.toByte()+mowerCount.toByte() + mowerWorkDayRawData.toByteArray()
         return checksumArray + getCheckSum(checksumArray).toByte() + 0xFF.toByte()
     }
 
@@ -35,7 +36,7 @@ class CommandSchedule(service: BluetoothLeService): AbstractCommand(service) {
     }
 
     private fun getResponseUTC(value: ByteArray): Short {
-        val idx = getIndex(value, 0xF4)
+        val idx = getIndex(value, -12/*0xF4*/)
         val byteArray = byteArrayOf(value[idx + 1]) + value[idx + 2]
         return Utils.convert(byteArray).toShort()
     }
@@ -43,7 +44,7 @@ class CommandSchedule(service: BluetoothLeService): AbstractCommand(service) {
     /**
      * 讀取或配置
      */
-    private fun getOperationMode(value: ByteArray) = value[getIndex(value, 0xF2) + 1].toInt()
+    private fun getOperationMode(value: ByteArray) = value[getIndex(value, -14/*0xF2*/) + 1].toInt()
 
     private fun getUtcByteArray(utcOffset: Short): ByteArray {
         return Utils.intToBytes(utcOffset)

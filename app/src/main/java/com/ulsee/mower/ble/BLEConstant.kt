@@ -4,7 +4,7 @@ class BLECommandTable {
     companion object {
         const val VERIFICATION = 16
         const val MOVE = 0x20
-        const val SCHEDULE = 0x30
+        const val SCHEDULE = -16//0xF0//0x30
         const val START_STOP = 0X40
         const val STATUS = 80
         const val MAP_DATA = 0X60

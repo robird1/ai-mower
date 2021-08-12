@@ -1,5 +1,6 @@
 package com.ulsee.mower.ui.settings.mower
 
+import android.app.AlertDialog
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
@@ -37,6 +38,16 @@ class MowerSettingsFragment : Fragment() {
         bluetoothService = (requireActivity().application as App).bluetoothService!!
     }
 
+    override fun onStart() {
+        super.onStart()
+        registerBLEReceiver()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterBLEReceiver()
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(TAG, "[Enter] onCreateView")
 
@@ -47,23 +58,19 @@ class MowerSettingsFragment : Fragment() {
         initSettingsObserver()
         initLoadingStatusObserver()
         initSubViewEntry()
-        registerBLEReceiver()
         initFetchFailedObserver()
+        initClearMapFailedObserver()
+        initClearMapOKObserver()
         viewModel.getSettings()
         initModeClick()
         initWorkOnRainDayClick()
+        initClearMapClick()
         return binding.root
     }
 
     fun initViewModel() {
         bleRepository = BluetoothLeRepository(bluetoothService)
         viewModel = ViewModelProvider(this, MowerSettingsFragmentViewModelFactory(bleRepository)).get(MowerSettingsFragmentViewModel::class.java)
-    }
-
-    private fun registerBLEReceiver() {
-        val filter = IntentFilter()
-        filter.addAction(BLEBroadcastAction.ACTION_SETTINGS)
-        requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
     }
 
     private fun initSettingsObserver() {
@@ -89,10 +96,27 @@ class MowerSettingsFragment : Fragment() {
 //        binding.layoutGradual.setOnClickListener { findNavController().navigate(R.id.settingsGradualFragment) }
 //        binding.layoutExplosive.setOnClickListener { findNavController().navigate(R.id.settingsExplosiveFragment) }
         binding.layoutBladeheight.setOnClickListener { findNavController().navigate(R.id.settingsBladeHeightFragment) }
+        binding.buttonEditmap.setOnClickListener { findNavController().navigate(R.id.setupMapFragment) }
     }
 
     private fun initFetchFailedObserver() {
         viewModel.fetchSettingsFailedLog.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun initClearMapFailedObserver() {
+        viewModel.deleteMapFailedLog.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun initClearMapOKObserver() {
+        viewModel.deleteMapOkLog.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { msg ->
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             }
@@ -137,5 +161,38 @@ class MowerSettingsFragment : Fragment() {
         binding.switchWorkonrainydays.setOnCheckedChangeListener { buttonView, isChecked ->
             viewModel.updateWorkingOnRainlyDay(isChecked)
         }
+    }
+
+    private fun initClearMapClick() {
+        binding.buttonClearmap.setOnClickListener { buttonView ->
+
+            val dialog = AlertDialog.Builder(context)
+                .setMessage("Sure to clear all map?")
+                .setCancelable(true)
+                .setPositiveButton("Delete") { it, _ ->
+                    viewModel.clearMap()
+                    it.dismiss()
+                }
+                .setNegativeButton("Cancel") { it, _ ->
+                    it.dismiss()
+                }
+                .create()
+            dialog.show()
+        }
+    }
+
+    // =================================================
+    // ================== BLE ====================
+    // =================================================
+
+    private fun registerBLEReceiver() {
+        val filter = IntentFilter()
+        filter.addAction(BLEBroadcastAction.ACTION_SETTINGS)
+        filter.addAction(BLEBroadcastAction.ACTION_RESPONSE_DELETE_MAP)
+        requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
+    }
+
+    private fun unregisterBLEReceiver() {
+        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
     }
 }

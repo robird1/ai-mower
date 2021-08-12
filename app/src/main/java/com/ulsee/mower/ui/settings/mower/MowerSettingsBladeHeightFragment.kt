@@ -35,13 +35,22 @@ class MowerSettingsBladeHeightFragment: Fragment() {
         bluetoothService = (requireActivity().application as App).bluetoothService!!
     }
 
+    override fun onStart() {
+        super.onStart()
+        registerBLEReceiver()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterBLEReceiver()
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(TAG, "[Enter] onCreateView")
 
         binding = FragmentSettingsMowerBladeheightBinding.inflate(inflater, container, false)
 
         initViewModel()
-        registerBLEReceiver()
 
         initSettingsObserver()
         initLoadingStatusObserver()
@@ -96,13 +105,6 @@ class MowerSettingsBladeHeightFragment: Fragment() {
         viewModel = ViewModelProvider(this, MowerSettingsBladeHeightFragmentViewModelFactory(bleRepository)).get(MowerSettingsBladeHeightFragmentViewModel::class.java)
     }
 
-
-    private fun registerBLEReceiver() {
-        val filter = IntentFilter()
-        filter.addAction(BLEBroadcastAction.ACTION_SETTINGS)
-        requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
-    }
-
     private fun initSettingsObserver() {
         viewModel.settings.observe(viewLifecycleOwner) {
             binding.seekbar.progress = it.knifeHeight
@@ -151,6 +153,20 @@ class MowerSettingsBladeHeightFragment: Fragment() {
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    // =================================================
+    // ================== BLE ====================
+    // =================================================
+
+    private fun registerBLEReceiver() {
+        val filter = IntentFilter()
+        filter.addAction(BLEBroadcastAction.ACTION_SETTINGS)
+        requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
+    }
+
+    private fun unregisterBLEReceiver() {
+        requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
     }
 }
 

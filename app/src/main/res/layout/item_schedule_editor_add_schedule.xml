@@ -15,10 +15,12 @@
         android:orientation="horizontal"
         android:gravity="center">
         <ImageView
+            android:id="@+id/imageView_add"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_map_add"/>
         <TextView
+            android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#fff"

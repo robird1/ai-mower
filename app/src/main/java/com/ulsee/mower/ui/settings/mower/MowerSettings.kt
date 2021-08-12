@@ -15,6 +15,7 @@ public enum class MowerWorkingMode(val mode: Int) {
 data class MowerSettings(
     var workingMode: MowerWorkingMode,
     var rainMode: Int,
+    var mowerCount: Int,
     val knifeHeight: Int
 ) {
     var isWorkingOnRainlyDay: Boolean

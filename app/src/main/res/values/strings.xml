@@ -11,6 +11,7 @@
     <string name="login_failed">"Login failed"</string>
     <string name="button_confirm">Confirm</string>
     <string name="button_cancel">Cancel</string>
+    <string name="button_save">Save</string>
 
     <string name="add_robot_instruction1">The power button is beneath the machine. Lift the machine in gentle to locate the power button.  Be careful about the blade nearby. Press the power button and hear the "Beep" sound indicating the machine is ready.</string>
     <string name="add_robot_instruction2">Please wait for the initialization of mower. The process will be completed within one minute. After hearing 4 "Beep" sounds, your mower is ready for pairing.</string>

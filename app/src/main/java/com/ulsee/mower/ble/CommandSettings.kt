@@ -14,6 +14,7 @@ class CommandSettings(service: BluetoothLeService): AbstractCommand(service) {
         intent.putExtra("operation_mode", value[getIndex(value, -126)+1].toInt())
         intent.putExtra("working_mode", value[getIndex(value, -125)+1].toInt())
         intent.putExtra("rain_mode", value[getIndex(value, -124)+1].toInt())
+        intent.putExtra("mower_count", value[getIndex(value, -122)+1].toInt())
         intent.putExtra("knife_height", getKnifeHeight(value))
         sendBroadcast(intent)
     }
