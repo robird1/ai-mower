@@ -15,6 +15,7 @@ import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_NOT_SUCCESS
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_FAILED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_SUCCESS
 import com.ulsee.mower.data.DatabaseRepository
+import com.ulsee.mower.data.AccountRepository
 import com.ulsee.mower.data.model.Device
 import com.ulsee.mower.utils.Event
 import com.ulsee.mower.utils.MD5
@@ -131,13 +132,13 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
         viewModelScope.launch {
             // save to api
             val result = accountRepository.bind(serialNumber)
-            if (result is Result.Success) {
+            if (result is com.ulsee.mower.data.Result.Success) {
                 //  save to db
                 val md5 = MD5.convertMD5(serialNumber)
                 dbRepository.saveDevice(serialNumber, md5)
                 getDeviceList()
             } else {
-                _bindFailedLog.value = Event((result as Result.Error).exception)
+                _bindFailedLog.value = Event((result as com.ulsee.mower.data.Result.Error).exception)
             }
             isLoading.value = false
         }

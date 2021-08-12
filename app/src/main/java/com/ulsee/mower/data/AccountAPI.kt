@@ -8,26 +8,26 @@ import retrofit2.http.*
 
 interface AccountAPI {
 
-    @POST("/api/account/regist")
+    @POST("account/regist")
     fun register(@Body payload: RegisterRequest): Deferred<RegisterResponse>
 
-    @POST("/api/account/login")
+    @POST("account/login")
     fun login(@Body payload: LoginRequest): Deferred<Response<LoginResponse>>
 
-    @GET("/api/account/whoami")
+    @GET("account/whoami")
     fun getMe(@Header("Cookie") cookie: String): Deferred<LoginResponse> // response most likely login
 
-    @GET("/api/account/getpass")
+    @GET("account/getpass")
     fun requestResetPassword(@Query("email") email: String): Deferred<APIBaseResponse>
 
-    @GET("/api/account/initpass")
+    @GET("account/initpass")
     fun resetPassword(@Query("username") username: String, @Query("secret") secret: String, @Query("password") password: String): Deferred<APIBaseResponse>
 
     // TNM78-FJKXR-P26YV-GP8MB-JK8XG
-    @GET("/api/account/bind")
+    @GET("account/bind")
     fun bind(@Header("Cookie") cookie: String, @Query("sn") sn: String): Deferred<APIBaseResponse>
 
-    @GET("/api/account/unbind")
+    @GET("account/unbind")
     fun unbind(@Header("Cookie") cookie: String, @Query("sn") sn: String): Deferred<APIBaseResponse>
 
 }
