@@ -78,7 +78,6 @@ class StatusFragment: Fragment() {
 //        GestureViewBinder.setFullGroup(true)
 
         addOnBackPressedCallback()
-        initTestButtonListener()
         initSetupButtonListener()
         initParkingButtonListener()
         initStartButtonListener()
@@ -90,12 +89,6 @@ class StatusFragment: Fragment() {
         getMapData()
 
         return binding.root
-    }
-
-    private fun initTestButtonListener() {
-        binding.testButton.setOnClickListener {
-            findNavController().navigate(R.id.setupMapFragment)
-        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
