@@ -285,6 +285,9 @@ class SetupMapFragment: Fragment() {
                 if (isSuccess) {
                     binding.mapView.resetData()
                     viewModel.getMapGlobalParameters()
+                } else {
+                    binding.progressView.isVisible = false
+                    Toast.makeText(requireContext(), "delete failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }
