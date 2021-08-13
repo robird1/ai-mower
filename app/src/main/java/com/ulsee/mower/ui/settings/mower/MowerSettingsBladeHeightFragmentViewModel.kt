@@ -29,6 +29,10 @@ class MowerSettingsBladeHeightFragmentViewModel(private val bleRepository: Bluet
     val fetchSettingsFailedLog : LiveData<Event<String>>
         get() = _fetchSettingsFailedLog
 
+    private var _writeSettingsSucceedLog = MutableLiveData<Event<String>>()
+    val writeSettingsSucceedLog : LiveData<Event<String>>
+        get() = _writeSettingsSucceedLog
+
 
     fun getSettings() {
         mIsLoading.value = true
@@ -69,6 +73,9 @@ class MowerSettingsBladeHeightFragmentViewModel(private val bleRepository: Bluet
                         if (result != 1) {
                             _fetchSettingsFailedLog.value = Event("[$operation_mode]($result)Failed to $operationString data")
 //                            return
+                        }
+                        if (result == 1 && operation_mode != 1) {
+                            _writeSettingsSucceedLog.value = Event("update succeed")
                         }
                         val settings = MowerSettings(
                             MowerWorkingMode(working_mode),

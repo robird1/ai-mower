@@ -122,6 +122,8 @@ class RobotListFragment: Fragment() {
         initDeviceListObserver()
         initDeviceNotFoundObserver()
         initConnectFailedObserver()
+        initBindFailedObserver()
+        initRecyclerView()
         initGattStatusObserver()
         initGattNotSuccessObserver()
         initVerificationObserver()
@@ -305,6 +307,14 @@ class RobotListFragment: Fragment() {
 
     private fun initBindFailedObserver() {
         viewModel.bindFailedLog.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { e ->
+                progressBar.isVisible = false
+                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    private fun initReloadCloudDeivceFailedObserver() {
+        viewModel.reloadCloudDeviceFailedLog.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { e ->
                 progressBar.isVisible = false
                 Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()

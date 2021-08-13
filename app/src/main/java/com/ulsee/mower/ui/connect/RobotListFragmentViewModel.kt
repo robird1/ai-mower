@@ -60,6 +60,10 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
     private var _bindFailedLog : MutableLiveData<Event<Exception>> = MutableLiveData()
     val bindFailedLog : LiveData<Event<Exception>>
         get() = _bindFailedLog
+    private var _reloadCloudDeviceFailedLog : MutableLiveData<Event<Exception>> = MutableLiveData()
+    val reloadCloudDeviceFailedLog : LiveData<Event<Exception>>
+        get() = _reloadCloudDeviceFailedLog
+
     val isLoading : MutableLiveData<Boolean> = MutableLiveData<Boolean>()
 
     val gattUpdateReceiver = object : BroadcastReceiver() {
@@ -126,6 +130,28 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
         bleRepository.disconnectDevice()
     }
 
+    fun reloadCloudDevice() {
+        isLoading.value = true
+        viewModelScope.launch {
+            // save to api
+            val result = accountRepository.getMe()
+            if (result is com.ulsee.mower.data.Result.Success) {
+                val devices = result.data.history
+                for(device in devices) {
+                    if (deviceList.value?.firstOrNull { it.getSerialNumber() == device.sn } == null) {
+                        val md5 = MD5.convertMD5(device.sn)
+                        dbRepository.saveDevice(device.sn, md5)
+                    }
+                }
+                getDeviceList()
+            } else {
+                _reloadCloudDeviceFailedLog.value = Event((result as com.ulsee.mower.data.Result.Error).exception)
+            }
+            isLoading.value = false
+        }
+    }
+
+    // 1. write cloud device 2. add device, 3. reload device
     fun saveDevice(serialNumber: String) {
 
         isLoading.value = true
@@ -161,7 +187,12 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
 
     fun getDeviceList() {
         viewModelScope.launch {
-            _deviceList.value = dbRepository.getDevices()
+            if (_deviceList.value == null) {
+                _deviceList.value = dbRepository.getDevices()
+                reloadCloudDevice()
+            } else {
+                _deviceList.value = dbRepository.getDevices()
+            }
         }
     }
 

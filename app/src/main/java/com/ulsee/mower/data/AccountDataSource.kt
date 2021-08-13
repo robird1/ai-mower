@@ -41,6 +41,10 @@ class AccountDataSource(val baseURLString: String) {
         try {
             val response = api.login(LoginRequest(username, password)).await()
             if (response.body() == null) {
+                response.errorBody()?.let{
+                    val errorResponse = Gson().fromJson(it.string(),APIBaseResponse::class.java)
+                    return Result.Error(Exception("Error [${errorResponse.errorcode}]: ${errorResponse.message}"))
+                }
                 return Result.Error(Exception("Error logging in, failed to parse response"))
             }
             val loginResponse: LoginResponse = response.body()!!

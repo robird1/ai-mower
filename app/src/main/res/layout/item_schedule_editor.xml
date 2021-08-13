@@ -16,139 +16,162 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:paddingStart="16dp"
         android:paddingEnd="16dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
 
-            <RelativeLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+
+            <ImageButton
+                android:id="@+id/button_more"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:src="@drawable/ic_baseline_more_horiz_24_white"
+                android:background="@android:color/transparent"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                />
+
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginBottom="20dp">
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/textView_title"
-                    android:layout_width="wrap_content"
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Schedule1"
-                    android:textColor="#fff"
-                    android:textSize="16sp"
-                    android:layout_centerVertical="true"></TextView>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:orientation="horizontal"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true">
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="20dp">
 
                     <TextView
-                        android:id="@+id/textView_beginAt"
+                        android:id="@+id/textView_title"
                         android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/shape_bg_schedule_time"
-                        android:paddingStart="8dp"
-                        android:paddingTop="4dp"
-                        android:paddingEnd="8dp"
-                        android:paddingBottom="4dp"
-                        android:text="09:41"
+                        android:layout_height="wrap_content"
+                        android:text="Schedule1"
                         android:textColor="#fff"
-                        android:textSize="22sp"></TextView>
+                        android:textSize="16sp"
+                        android:layout_centerVertical="true"></TextView>
 
                     <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
+                        android:layout_height="40dp"
                         android:orientation="horizontal"
-                        android:background="@drawable/shape_bg_schedule_time"
-                        android:layout_marginStart="6dp"
-                        android:padding="2dp">
-                        <Button
-                            android:id="@+id/button_am"
-                            android:layout_width="60dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true">
+
+                        <TextView
+                            android:id="@+id/textView_beginAt"
+                            android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:text="AM"
-                            android:textSize="13sp"
-                            android:background="@drawable/selector_bg_button_schedule"></Button>
-                        <Button
-                            android:id="@+id/button_pm"
-                            android:layout_width="60dp"
+                            android:background="@drawable/shape_bg_schedule_time"
+                            android:paddingStart="8dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="4dp"
+                            android:text="09:41"
+                            android:textColor="#fff"
+                            android:textSize="22sp"></TextView>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:text="PM"
-                            android:textSize="13sp"
-                            android:background="@drawable/selector_bg_button_schedule"></Button>
+                            android:orientation="horizontal"
+                            android:background="@drawable/shape_bg_schedule_time"
+                            android:layout_marginStart="6dp"
+                            android:padding="2dp">
+                            <Button
+                                android:id="@+id/button_am"
+                                android:layout_width="60dp"
+                                android:layout_height="match_parent"
+                                android:text="AM"
+                                android:textSize="13sp"
+                                android:background="@drawable/selector_bg_button_schedule"></Button>
+                            <Button
+                                android:id="@+id/button_pm"
+                                android:layout_width="60dp"
+                                android:layout_height="match_parent"
+                                android:text="PM"
+                                android:textSize="13sp"
+                                android:background="@drawable/selector_bg_button_schedule"></Button>
+                        </LinearLayout>
+
                     </LinearLayout>
 
-                </LinearLayout>
+                </RelativeLayout>
 
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/layout_duration"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginBottom="20dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Duration"
-                    android:textColor="#fff"
-                    android:textSize="16sp"
-                    android:layout_centerVertical="true"></TextView>
-
-                <TextView
-                    android:id="@+id/textView_duration"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:text="30 mins"
-                    android:textColor="#fff"
-                    android:textSize="16sp"></TextView>
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:id="@+id/linearLayout_lawns"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="24dp"
-                android:visibility="gone">
-
-                <!-- lawns... -->
                 <RelativeLayout
-                    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:id="@+id/layout_duration"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="20dp">
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Duration"
+                        android:textColor="#fff"
+                        android:textSize="16sp"
+                        android:layout_centerVertical="true"></TextView>
+
+                    <TextView
+                        android:id="@+id/textView_duration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="30 mins"
+                        android:textColor="#fff"
+                        android:textSize="16sp"></TextView>
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@+id/linearLayout_lawns"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="24dp"
+                    android:visibility="gone">
+
+                    <!-- lawns... -->
+                    <RelativeLayout
+                        xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <CheckBox
+                            android:layout_width="match_parent"
+                            android:layout_height="44dp"
+                            android:text="lawn1 r1"
+                            android:theme="@style/Checkbox"
+                            android:textColor="#fff"
+                            android:textSize="13sp"
+                            android:paddingStart="16dp"
+                            android:layout_marginStart="16dp"></CheckBox>
+
+                    </RelativeLayout>
                     <CheckBox
                         android:layout_width="match_parent"
                         android:layout_height="44dp"
-                        android:text="lawn1 r1"
+                        android:text="lawn1 c1"
                         android:theme="@style/Checkbox"
                         android:textColor="#fff"
                         android:textSize="13sp"
                         android:paddingStart="16dp"
                         android:layout_marginStart="16dp"></CheckBox>
 
-                </RelativeLayout>
-                <CheckBox
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:text="lawn1 c1"
-                    android:theme="@style/Checkbox"
-                    android:textColor="#fff"
-                    android:textSize="13sp"
-                    android:paddingStart="16dp"
-                    android:layout_marginStart="16dp"></CheckBox>
-
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
 
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -17,6 +17,7 @@
     <string name="add_robot_instruction2">Please wait for the initialization of mower. The process will be completed within one minute. After hearing 4 "Beep" sounds, your mower is ready for pairing.</string>
     <string name="setup_map_instruction">Driving the Ladybug to define the operating area. You can easily tap on the screen to start driving Ladybug with joystick.\nPlease drive Ladybug to the appropriate position and press the start button to draw the boundary.</string>
 
+    <string name="back_warning">The update has not been saved, confirm to return?</string>
     <!-- Strings related to login -->
     <string name="action_sign_up">Sign up</string>
     <string name="invalid_password_no_number">Password should contain number</string>
@@ -32,7 +33,7 @@
     <string name="title_settings_updatemowersoftware">Update mower software</string>
     <string name="title_settings_workingmode">Working Mode</string>
     <string name="title_settings_learning">Learning</string>
-    <string name="title_settings_working">Wokring</string>
+    <string name="title_settings_working">Working</string>
     <string name="title_settings_learnandwork">Learn then Work</string>
     <string name="title_settings_gradual">Gradual</string>
     <string name="title_settings_explosive">Explosive</string>
@@ -49,7 +50,7 @@
     <string name="text_settings_updatemowersoftware">TODO: \nDescription of “Update mower software”.\n...\n...\n... </string>
     <string name="text_settings_gradual">TODO: \nDescription of “Gradual mode”.\n...\n...\n... </string>
     <string name="text_settings_explosive">TODO: \nDescription of “Explosive”.\n...\n...\n... </string>
-    <string name="text_settings_bladeheight">Drag to set up the mowing height</string>
+    <string name="text_settings_bladeheight">Drag to set up the mowing height\nNeed to wait 30 seconds after each update to update</string>
 
     <!-- schedule -->
     <string name="title_schedule">Schedule</string>

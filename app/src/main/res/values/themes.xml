@@ -29,6 +29,12 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="Settings_item_subheader" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:background">#333</item>
+    </style>
+
     <style name="Settings_item_subtitle" parent="TextAppearance.AppCompat">
         <item name="android:textColor">#b7b7b7</item>
         <item name="android:textSize">12sp</item>

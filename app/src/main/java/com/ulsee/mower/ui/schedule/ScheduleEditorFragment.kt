@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.ulsee.mower.App
 import com.ulsee.mower.R
 import com.ulsee.mower.ble.BluetoothLeRepository
@@ -66,6 +67,7 @@ class ScheduleEditorFragment : Fragment() {
 
 //        initScheduleObserver()
         initFetchFailedObserver()
+        initWriteScheduleSuccessObserver()
         initFetchSettingsFailedObserver()
         initLoadingStatusObserver()
         initRecyclerView()
@@ -90,12 +92,21 @@ class ScheduleEditorFragment : Fragment() {
 //    }
 
     private fun initRecyclerView() {
-        datasAdapter = ScheduleEditorAdapter(childFragmentManager, { data -> }, {
-            val arr = ArrayList(datasAdapter.currentList)
-            arr.add(ScheduleEvent(0, 1))
-            datasAdapter.submitList(arr)
-            if (arr.size >= 5) datasAdapter.notifyDataSetChanged()
-        })
+        datasAdapter = ScheduleEditorAdapter(childFragmentManager,
+            { data ->
+
+            }, {
+                val arr = ArrayList(datasAdapter.currentList)
+                val idx = arr.indexOf(it)
+                arr.removeAt(idx)
+                datasAdapter.submitList(arr)
+            }, {
+                val arr = ArrayList(datasAdapter.currentList)
+                arr.add(ScheduleEvent(0, 1))
+                datasAdapter.submitList(arr)
+                if (arr.size >= 5) datasAdapter.notifyDataSetChanged()
+            }
+        )
         binding.recyclerView.adapter = datasAdapter
     }
 
@@ -119,6 +130,14 @@ class ScheduleEditorFragment : Fragment() {
         }
     }
 
+    private fun initWriteScheduleSuccessObserver() {
+        viewModel.writeScheduleSuccessLog.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
+            }
+        }
+    }
 
     private fun initOnSave() {
         binding.buttonSave.setOnClickListener {

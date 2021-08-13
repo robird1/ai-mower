@@ -36,6 +36,9 @@ class ScheduleEditorFragmentViewModel(private val bleRepository: BluetoothLeRepo
     val settings : LiveData<MowerSettings>
         get() = mSettings
 
+    private var _writeScheduleSuccessLog = MutableLiveData<Event<String>>()
+    val writeScheduleSuccessLog : LiveData<Event<String>>
+        get() = _writeScheduleSuccessLog
     private var _fetchSettingsFailedLog = MutableLiveData<Event<String>>()
     val fetchSettingsFailedLog : LiveData<Event<String>>
         get() = _fetchSettingsFailedLog
@@ -119,6 +122,9 @@ class ScheduleEditorFragmentViewModel(private val bleRepository: BluetoothLeRepo
                             utc.toInt(),
                             calendar
                         )
+                        if (result == 1 && operation_mode == 1) {
+                            _writeScheduleSuccessLog.value = Event("Update Succeed!")
+                        }
                         mSchedules.value = data
                     } catch(e: Exception) {
                         Log.e(TAG, "gattUpdateReceiver.onReceive exception: ${e.message}")

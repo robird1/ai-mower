@@ -1,6 +1,8 @@
 package com.ulsee.mower.ui.settings.mower
 
 import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
@@ -19,10 +21,13 @@ import com.ulsee.mower.App
 import com.ulsee.mower.R
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
+import com.ulsee.mower.data.AccountDataSource
+import com.ulsee.mower.data.AccountRepository
 import com.ulsee.mower.data.BLEBroadcastAction
 import com.ulsee.mower.data.Status
 import com.ulsee.mower.databinding.FragmentSettingsBinding
 import com.ulsee.mower.databinding.FragmentSettingsMowerBinding
+import com.ulsee.mower.ui.login.LoginActivity
 
 private val TAG = MowerSettingsFragment::class.java.simpleName
 
@@ -31,6 +36,7 @@ class MowerSettingsFragment : Fragment() {
     private lateinit var viewModel: MowerSettingsFragmentViewModel
     private lateinit var bluetoothService: BluetoothLeService
     private lateinit var bleRepository: BluetoothLeRepository
+    private var isListenerInitialized = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "[Enter] onCreate")
@@ -58,13 +64,13 @@ class MowerSettingsFragment : Fragment() {
         initSettingsObserver()
         initLoadingStatusObserver()
         initSubViewEntry()
+        initWriteSucceedObserver()
         initFetchFailedObserver()
         initClearMapFailedObserver()
         initClearMapOKObserver()
         viewModel.getSettings()
-        initModeClick()
-        initWorkOnRainDayClick()
         initClearMapClick()
+        initLogoutClick()
         return binding.root
     }
 
@@ -81,6 +87,11 @@ class MowerSettingsFragment : Fragment() {
             binding.radioButtonLearnandwork.isChecked = it.workingMode == MowerWorkingMode.learnAndWork
             binding.radioButtonGradual.isChecked = it.workingMode == MowerWorkingMode.gradual
             binding.radioButtonExplosive.isChecked = it.workingMode == MowerWorkingMode.explosive
+            if (!isListenerInitialized) {
+                isListenerInitialized = true
+                initModeClick()
+                initWorkOnRainDayClick()
+            }
         }
     }
 
@@ -107,6 +118,14 @@ class MowerSettingsFragment : Fragment() {
         }
     }
 
+    private fun initWriteSucceedObserver() {
+        viewModel.writeSettingsSucceedLog.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun initClearMapFailedObserver() {
         viewModel.deleteMapFailedLog.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { msg ->
@@ -119,6 +138,19 @@ class MowerSettingsFragment : Fragment() {
         viewModel.deleteMapOkLog.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { msg ->
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.statusFragment)
+            }
+        }
+    }
+
+    private fun initLogoutClick() {
+        binding.layoutLogout.setOnClickListener {
+            activity?.let {
+                val prefs = it.getSharedPreferences("account", Context.MODE_PRIVATE)
+                val loginRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/"), prefs)
+                loginRepository.logout()
+                it.startActivity(Intent(it, LoginActivity::class.java))
+                it.finish()
             }
         }
     }

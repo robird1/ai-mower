@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.data.BLEBroadcastAction
+import com.ulsee.mower.data.MapData
 import com.ulsee.mower.utils.Event
 import kotlinx.coroutines.launch
 
@@ -23,6 +24,9 @@ class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepos
     val settings : LiveData<MowerSettings>
         get() = mSettings
 
+    private var _writeSettingsSucceedLog = MutableLiveData<Event<String>>()
+    val writeSettingsSucceedLog : LiveData<Event<String>>
+        get() = _writeSettingsSucceedLog
     private var _fetchSettingsFailedLog = MutableLiveData<Event<String>>()
     val fetchSettingsFailedLog : LiveData<Event<String>>
         get() = _fetchSettingsFailedLog
@@ -99,6 +103,9 @@ class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepos
                                 Event("[$operation_mode]($result)Failed to $operationString data")
 //                            return
                         }
+                        if (result == 1 && operation_mode == 0) {
+                            _writeSettingsSucceedLog.value = Event("update succeed")
+                        }
 
                         val settings = MowerSettings(
                             MowerWorkingMode(working_mode),
@@ -128,6 +135,7 @@ class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepos
                             Event("[$command]Failed to clear map")
 //                            return
                     } else {
+                        MapData.clear()
                         _deleteMapOkLog.value = Event("Clear Map Succeed!")
                     }
                 }

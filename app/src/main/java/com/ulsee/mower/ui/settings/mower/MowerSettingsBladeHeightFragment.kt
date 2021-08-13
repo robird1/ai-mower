@@ -12,6 +12,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.ulsee.mower.App
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
@@ -54,7 +55,9 @@ class MowerSettingsBladeHeightFragment: Fragment() {
 
         initSettingsObserver()
         initLoadingStatusObserver()
+        initWriteSucceedObserver()
         initFetchFailedObserver()
+        initOnSave()
         viewModel.getSettings()
 
         // init ui
@@ -93,7 +96,7 @@ class MowerSettingsBladeHeightFragment: Fragment() {
                 }
                 binding.textViewValue.text = "${binding.seekbar.progress}mm"
                 valueViewLayoutParams.topMargin = (height - width) / 2 + (width * (70.0 - binding.seekbar.progress) / 70.0 * 0.93).toInt() // 乘上0.93偏差才不會太多，懶得計算了
-                delayUpdateSettings()
+//                delayUpdateSettings()
             }
         })
 
@@ -152,6 +155,21 @@ class MowerSettingsBladeHeightFragment: Fragment() {
             it.getContentIfNotHandled()?.let { msg ->
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun initWriteSucceedObserver() {
+        viewModel.writeSettingsSucceedLog.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
+            }
+        }
+    }
+
+    private fun initOnSave() {
+        binding.buttonSave.setOnClickListener {
+            viewModel.updateKnifeHeihgt(binding.seekbar.progress)
         }
     }
 

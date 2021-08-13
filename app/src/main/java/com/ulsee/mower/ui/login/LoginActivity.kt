@@ -83,7 +83,6 @@ class LoginActivity : AppCompatActivity() {
             }
         })
 
-
         val signUp = findViewById<View>(R.id.textView_subtitle_signup)
         val forgetPassword = findViewById<View>(R.id.textView_forgetPassword)
         signUp.setOnClickListener{

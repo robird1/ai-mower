@@ -37,7 +37,9 @@ class MainActivity: AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
 //            binding.toolbar.collapseActionView()
             when (destination.id) {
-                R.id.instruction1Fragment, R.id.instruction2Fragment, R.id.setupMapFragment -> {
+                R.id.instruction1Fragment, R.id.instruction2Fragment, R.id.setupMapFragment,
+                R.id.scheduleListFragment, R.id.scheduleEditorFragment, R.id.scheduleCalendarFragment,
+                R.id.settingsFragment, R.id.mowerSettingsFragment, R.id.settingsBladeHeightFragment -> {
                     if (supportActionBar != null) {
                         supportActionBar?.hide();
                     }

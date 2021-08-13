@@ -3,10 +3,12 @@ package com.ulsee.mower.ui.schedule
 import android.content.Context
 import android.content.DialogInterface
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -18,6 +20,7 @@ import com.wdullaer.materialdatetimepicker.time.TimePickerDialog
 class ScheduleEditorAdapter(
     private val fragmentManager: FragmentManager,
     private val onClick: (ScheduleEvent) -> Unit,
+    private val onDelete: (ScheduleEvent) -> Unit,
     private val onAdd: () -> Unit
 ) :
         ListAdapter<ScheduleEvent, RecyclerView.ViewHolder>(DeviceDiffCallback) {
@@ -25,7 +28,8 @@ class ScheduleEditorAdapter(
     class ScheduleEventViewHolder(
         itemView: View,
         val fragmentManager: FragmentManager,
-        val onClick: (ScheduleEvent) -> Unit
+        val onClick: (ScheduleEvent) -> Unit,
+        val onRemove: (ScheduleEvent) -> Unit
     ) :
             RecyclerView.ViewHolder(itemView) {
         private val titleTV: TextView = itemView.findViewById(R.id.textView_title)
@@ -35,9 +39,30 @@ class ScheduleEditorAdapter(
         private val amButton: Button = itemView.findViewById(R.id.button_am)
         private val pmButton: Button = itemView.findViewById(R.id.button_pm)
         private val lawnsLayout: LinearLayout = itemView.findViewById(R.id.linearLayout_lawns)
+        private val moreBtn: ImageButton = itemView.findViewById(R.id.button_more)
+        private lateinit var mPopup: PopupMenu
         private var currentScheduleEvent: ScheduleEvent? = null
 
         init {
+            mPopup = PopupMenu(itemView.context, moreBtn)
+            mPopup.menu.add("a").setTitle("Remove")
+
+            mPopup.setOnMenuItemClickListener { item: MenuItem? ->
+                when (item!!.title) {
+                    "Remove" -> {
+                        currentScheduleEvent?.let {
+                            onRemove(it)
+                        }
+                    }
+                }
+
+                true
+            }
+
+            moreBtn.setOnClickListener {
+                mPopup.show()
+            }
+
             itemView.setOnClickListener {
                 currentScheduleEvent?.let {
                     onClick(it)
@@ -224,7 +249,7 @@ class ScheduleEditorAdapter(
                 parent,
                 false
             )
-            return ScheduleEventViewHolder(view, fragmentManager, onClick)
+            return ScheduleEventViewHolder(view, fragmentManager, onClick, onDelete)
         } else {
             val view = LayoutInflater.from(parent.context).inflate(
                 R.layout.item_schedule_editor_add_schedule,

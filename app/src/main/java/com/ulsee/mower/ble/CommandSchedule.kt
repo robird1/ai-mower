@@ -19,7 +19,7 @@ class CommandSchedule(service: BluetoothLeService): AbstractCommand(service) {
     }
 
     fun getConfigPayload(utcOffset: Short, calendarList: ArrayList<Int>, mowerCount: Int): ByteArray {
-        val mowerWorkDayRawData = Array<Byte>(mowerCount) { i -> 0x00 }
+        val mowerWorkDayRawData = Array<Byte>(mowerCount) { i -> 0x7F }
         var checksumArray = byteArrayOf(0xFA.toByte()) + getSerialNumber().toByte() + (81+mowerCount).toByte() + 0xF0.toByte() + 0xF1.toByte() + 0x01 + 0xF2.toByte() + 0x01 + 0xF3.toByte() + getUtcByteArray(utcOffset) + 0xF4.toByte() + getCalendarByteArray(calendarList)+0xF5.toByte()+mowerCount.toByte() + mowerWorkDayRawData.toByteArray()
         return checksumArray + getCheckSum(checksumArray).toByte() + 0xFF.toByte()
     }
