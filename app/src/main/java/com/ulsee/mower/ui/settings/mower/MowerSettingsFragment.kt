@@ -56,6 +56,7 @@ class MowerSettingsFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(TAG, "[Enter] onCreateView")
+        isListenerInitialized = false
 
         binding = FragmentSettingsMowerBinding.inflate(inflater, container, false)
 
@@ -87,6 +88,7 @@ class MowerSettingsFragment : Fragment() {
             binding.radioButtonLearnandwork.isChecked = it.workingMode == MowerWorkingMode.learnAndWork
             binding.radioButtonGradual.isChecked = it.workingMode == MowerWorkingMode.gradual
             binding.radioButtonExplosive.isChecked = it.workingMode == MowerWorkingMode.explosive
+            Log.i(TAG, "initSettingsObserver, isListenerInitialized=$isListenerInitialized")
             if (!isListenerInitialized) {
                 isListenerInitialized = true
                 initModeClick()
@@ -149,6 +151,7 @@ class MowerSettingsFragment : Fragment() {
                 val prefs = it.getSharedPreferences("account", Context.MODE_PRIVATE)
                 val loginRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/"), prefs)
                 loginRepository.logout()
+                bleRepository.disconnectDevice()
                 it.startActivity(Intent(it, LoginActivity::class.java))
                 it.finish()
             }
@@ -159,6 +162,7 @@ class MowerSettingsFragment : Fragment() {
     // ================== working mode ====================
     // =================================================
     private fun initModeClick() {
+        Log.i(TAG, "initModeClick")
         val radioButtons = arrayOf(binding.radioButtonLearning,
             binding.radioButtonWorking,
             binding.radioButtonLearnandwork,
@@ -166,6 +170,7 @@ class MowerSettingsFragment : Fragment() {
             binding.radioButtonExplosive)
         val onChangedListener =
             CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
+                Log.i(TAG, "CompoundButton isChecked=$isChecked")
                 if (!isChecked) return@OnCheckedChangeListener
                 for (radioButton in radioButtons) {
                     if(radioButton.isChecked && radioButton != buttonView)radioButton.isChecked = false
@@ -190,7 +195,9 @@ class MowerSettingsFragment : Fragment() {
     // ================== rainly day ====================
     // =================================================
     private fun initWorkOnRainDayClick() {
+        Log.i(TAG, "initWorkOnRainDayClick")
         binding.switchWorkonrainydays.setOnCheckedChangeListener { buttonView, isChecked ->
+            Log.i(TAG, "switch isChecked=$isChecked")
             viewModel.updateWorkingOnRainlyDay(isChecked)
         }
     }

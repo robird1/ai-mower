@@ -164,15 +164,6 @@
             app:layout_constraintStart_toEndOf="@+id/scheduleButton"
             app:srcCompat="@drawable/ic_tab_settings" />
 
-        <Button
-            android:id="@+id/testButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Button"
-            app:layout_constraintBottom_toTopOf="@+id/view3"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
         <ImageView
             android:id="@+id/imageView8"
             android:layout_width="wrap_content"
