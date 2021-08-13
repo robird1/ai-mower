@@ -22,6 +22,18 @@ abstract class AbstractCommand(val service: BluetoothLeService) {
         fun resetSerialNumber() {
             serialNumber = 1
         }
+
+        fun getIndex(value: ByteArray, byteNumber: Int): Int {
+            var index = -1
+            val checksumIndex = value.size - 2
+            value.forEachIndexed { idx, byte ->
+                val isDesiredIndex = idx != INDEX_SN && idx != INDEX_LENGTH && idx != checksumIndex
+                if (byte.toInt() == byteNumber && isDesiredIndex) {
+                    return idx
+                }
+            }
+            return index
+        }
     }
 
     abstract fun getSendPayload(): ByteArray
@@ -49,16 +61,16 @@ abstract class AbstractCommand(val service: BluetoothLeService) {
         }
     }
 
-    open fun getIndex(value: ByteArray, byteNumber: Int): Int {
-        var index = -1
-        val checksumIndex = value.size - 2
-        value.forEachIndexed { idx, byte ->
-            val isDesiredIndex = idx != INDEX_SN && idx != INDEX_LENGTH && idx != checksumIndex
-            if (byte.toInt() == byteNumber && isDesiredIndex) {
-                return idx
-            }
-        }
-        return index
-    }
+//    open fun getIndex(value: ByteArray, byteNumber: Int): Int {
+//        var index = -1
+//        val checksumIndex = value.size - 2
+//        value.forEachIndexed { idx, byte ->
+//            val isDesiredIndex = idx != INDEX_SN && idx != INDEX_LENGTH && idx != checksumIndex
+//            if (byte.toInt() == byteNumber && isDesiredIndex) {
+//                return idx
+//            }
+//        }
+//        return index
+//    }
 
 }

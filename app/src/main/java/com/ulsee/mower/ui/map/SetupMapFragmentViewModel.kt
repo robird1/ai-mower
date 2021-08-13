@@ -108,7 +108,7 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
                     ActionChargingPath(intent, chargingPathDataMap, lastItemKey, _requestMapFinished).execute()
                 }
                 BLEBroadcastAction.ACTION_REQUEST_DELETE_MAP -> {
-                    Log.d(TAG, "[ACTION_REQUEST_DELETE_MAP]")
+                    Log.d("333", "[ACTION_REQUEST_DELETE_MAP]")
                     val type = intent.getStringExtra("type")
                     when (type) {
                         "grass" -> {
@@ -140,7 +140,7 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
                     }
                 }
                 BLEBroadcastAction.ACTION_RESPONSE_DELETE_MAP -> {
-                    Log.d(TAG, "[ACTION_RESPONSE_DELETE_MAP]")
+                    Log.d("333", "[ACTION_RESPONSE_DELETE_MAP]")
                     val command = intent.getIntExtra("command", -1)
                     val result = intent.getIntExtra("result", -1)
 
@@ -154,11 +154,13 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
                         else -> ""
                     }
 
+                    Log.d("333", "delete map result: $resultString")
+
                     if (result == 1) {
                         _deleteMapFinished.value = Event(true)
+                    } else {
+                        _deleteMapFinished.value = Event(false)
                     }
-
-                    Log.d("789", "result: $resultString")
                 }
             }
         }

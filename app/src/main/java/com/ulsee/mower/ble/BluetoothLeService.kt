@@ -500,8 +500,6 @@ class BluetoothLeService : Service() {
                 enqueueOperation(BleOperationType.DESCRIPTOR_WRITE {
                     enableNotifications()
                 })
-
-//                getStatusPeriodically()
             }
         }
 
@@ -545,11 +543,11 @@ class BluetoothLeService : Service() {
 
             with(characteristic) {
                 val instructionType = value[3].toInt()
-                if (instructionType != BLECommandTable.STATUS) {
+//                if (instructionType != BLECommandTable.STATUS) {
                     Log.d(TAG, "instructionType: $instructionType")
 //                    Log.d(TAG, "instructionType2: ${value[3]}")
                     Log.d(TAG, "Characteristic changed | value: ${value.toHexString()}")
-                }
+//                }
 
                 val command = getCommandInstance(instructionType)
                 command.receive(value)
@@ -586,9 +584,9 @@ class BluetoothLeService : Service() {
             // update packet number
             when (instructionType) {
                 BLECommandTable.MAP_DATA -> {
-                    val packetReceivedIdx = getIndex(value, 0x63) + 1
+                    val packetReceivedIdx = AbstractCommand.getIndex(value, 0x63) + 1
                     val packetNumber = value[packetReceivedIdx]
-                    val packetSendIdx = getIndex(commandPayload, 0x62) + 1
+                    val packetSendIdx = AbstractCommand.getIndex(commandPayload, 0x62) + 1
                     commandPayload[packetSendIdx] = (packetNumber + 1).toByte()
                 }
                 BLECommandTable.MOWING_DATA -> {
@@ -698,6 +696,7 @@ class BluetoothLeService : Service() {
             characteristic?.isNotifiable() == true -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             else -> {
                 Log.e(TAG, "${characteristic?.uuid} doesn't support notifications/indications")
+                reconnectDevice()
                 return
             }
         }
@@ -965,18 +964,6 @@ class BluetoothLeService : Service() {
             else ->
                 CommandNull(this@BluetoothLeService)
         }
-    }
-
-    private fun getIndex(value: ByteArray, byteNumber: Int): Int {
-        var index = -1
-        val checksumIndex = value.size - 2
-        value.forEachIndexed { idx, byte ->
-            val isDesiredIndex = idx != INDEX_SN && idx != INDEX_LENGTH && idx != checksumIndex
-            if (byte.toInt() == byteNumber && isDesiredIndex) {
-                index = idx
-            }
-        }
-        return index
     }
 
     private fun BluetoothGatt.printGattTable() {

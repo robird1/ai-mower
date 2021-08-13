@@ -171,17 +171,17 @@ class CommandStatus(service: BluetoothLeService): AbstractCommand(service) {
         return value[idx + 1].toInt()
     }
 
-    override fun getIndex(value: ByteArray, byteNumber: Int): Int {
+    private fun getIndex(value: ByteArray, byteNumber: Int): Int {
         var index = -1
         val checksumIndex = value.size - 2
         val lastCoordinateIdx = 12
         value.forEachIndexed { idx, byte ->
             val isDesiredIndex = idx != INDEX_SN && idx != INDEX_LENGTH && idx != checksumIndex
-                    && idx > lastCoordinateIdx && idx != 14 && idx != 15 && idx != 26 && idx != 27
+                    && idx > lastCoordinateIdx && idx != 14 && idx != 15 && idx != 17 && idx != 26 && idx != 27
                     && idx != 31 && idx != 32 && idx != 34 && idx != 35 && idx != 37 && idx != 38
                     && idx != 40 && idx != 41 && idx != 45 && idx != 46
             if (byte.toInt() == byteNumber && isDesiredIndex) {
-                index = idx
+                return idx
             }
         }
         return index

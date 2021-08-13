@@ -13,8 +13,8 @@ import com.ulsee.mower.data.BLEBroadcastAction
 import com.ulsee.mower.data.MapData
 
 
-private const val LAWN_WIDTH = 3000         // unit: cm
-private const val LAWN_HEIGHT = 1500
+private const val LAWN_WIDTH = 5000         // unit: cm
+private const val LAWN_HEIGHT = 5000
 private const val TRASH_CAN_PADDING = 30
 
 private val TAG = SetupMapView::class.java.simpleName
