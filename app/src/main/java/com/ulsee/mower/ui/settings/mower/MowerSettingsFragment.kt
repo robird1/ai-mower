@@ -140,7 +140,7 @@ class MowerSettingsFragment : Fragment() {
         viewModel.deleteMapOkLog.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { msg ->
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                findNavController().navigate(R.id.statusFragment)
+                findNavController().popBackStack()
             }
         }
     }
