@@ -121,6 +121,7 @@ class RobotListFragment: Fragment() {
         initDeviceNotFoundObserver()
         initConnectFailedObserver()
         initBindFailedObserver()
+        initReloadCloudDeivceFailedObserver()
         initRecyclerView()
         initGattStatusObserver()
         initGattNotSuccessObserver()

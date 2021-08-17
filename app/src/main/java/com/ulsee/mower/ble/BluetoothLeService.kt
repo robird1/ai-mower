@@ -58,7 +58,7 @@ class BluetoothLeService : Service() {
     private var scanResults: ArrayList<ScanResult> = ArrayList()
     private var bluetoothGatt: BluetoothGatt? = null
 
-    private var robotSerialNumber: String? = null
+    public var robotSerialNumber: String? = null
 
     private val operationQueue = ConcurrentLinkedQueue<BleOperationType>()
     private var pendingOperation: BleOperationType? = null

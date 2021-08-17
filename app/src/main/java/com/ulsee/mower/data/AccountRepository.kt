@@ -14,28 +14,35 @@ import java.util.*
 
 class AccountRepository(val dataSource: AccountDataSource, val prefs: SharedPreferences) {
 
-    var cookie: String? = null
-    var expiredAt: Date? = null
+    val cookie: String?
+        get() = prefs.getString("cookie", null)
+    val expiredAt: Date?
+        get() {
+            val expires = prefs.getString("expires", null)
+            if (expires != null) {
+                try {
+                    return parseExpires(expires)
+                } catch (e: java.text.ParseException) {
+                    e.printStackTrace()
+                }
+            }
+            return null
+        }
+    var email: String? = null
+    var password: String? = null
+
+    val onceLoggedIn: Boolean
+        get() = email != null && password != null
 
     val isLoggedIn: Boolean
-        get() = cookie != null && expiredAt != null && Date().before(expiredAt)
+        get() = email != null && password != null && cookie != null && expiredAt != null && Date().before(expiredAt)
 
     init {
-        cookie = prefs.getString("cookie", null)
-        val expires = prefs.getString("expires", null)
-        if (expires != null) {
-            try {
-                val expiredAt = parseExpires(expires)
-                this.expiredAt = expiredAt
-            } catch (e: java.text.ParseException) {
-                e.printStackTrace()
-            }
-        }
+        email = prefs.getString("email", null)
+        password = prefs.getString("password", null)
     }
 
     fun logout() {
-        cookie = null
-        expiredAt = null
         prefs.edit().remove("cookie").remove("expires").apply()
         dataSource.logout() // nothing to do
     }
@@ -50,11 +57,12 @@ class AccountRepository(val dataSource: AccountDataSource, val prefs: SharedPref
     suspend fun login(email: String, password: String): Result<LoginResponse> {
         val result = dataSource.login(email, password)
         if(result is Result.Success) {
+            prefs.edit().putString("email", email).putString("password", password).apply()
+
             val cookieString = result.data.cookie
             // cookie
             val idx = result.data.cookie.indexOf(";")
             val cookieValue = result.data.cookie.substring(6, idx)
-            this.cookie = cookieValue
             prefs.edit().putString("cookie", cookieValue).apply()
 
             // expiredat
@@ -63,7 +71,6 @@ class AccountRepository(val dataSource: AccountDataSource, val prefs: SharedPref
             val expires = cookieString.substring(beginIdx, endIdx)
             try {
                 val expiredAt = parseExpires(expires)
-                this.expiredAt = expiredAt
                 prefs.edit().putString("expires", expires).apply()
             } catch (e: java.text.ParseException) {
                 return Result.Error(Exception("Failed to parse expiredAt: ${e.message}"))
@@ -73,7 +80,11 @@ class AccountRepository(val dataSource: AccountDataSource, val prefs: SharedPref
     }
 
     suspend fun register(email: String, password: String): Result<RegisterResponse> {
-        return dataSource.register(email, password)
+        val result = dataSource.register(email, password)
+        if(result is Result.Success) {
+            prefs.edit().putString("email", email).putString("password", password).apply()
+        }
+        return result
     }
 
     suspend fun getMe(): Result<LoginResponse> {

@@ -79,4 +79,11 @@ dependencies {
 
     // qr code
     implementation 'com.journeyapps:zxing-android-embedded:4.2.0'
+    // workmanager for refresh cookie
+    implementation "androidx.work:work-runtime-ktx:2.5.0"
+
+    // aws
+    implementation 'com.amplifyframework:aws-auth-cognito:1.17.6'
+    implementation 'com.amazonaws:aws-android-sdk-iot:2.23.0'
+    implementation 'com.amplifyframework:core-kotlin:0.1.5'
 }

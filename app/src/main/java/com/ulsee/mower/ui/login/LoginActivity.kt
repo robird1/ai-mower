@@ -33,6 +33,8 @@ class LoginActivity : AppCompatActivity() {
         val password = findViewById<EditText>(R.id.password)
         val loginButton = findViewById<Button>(R.id.login)
         val loading = findViewById<ProgressBar>(R.id.loading)
+//        username.setText("codus.hsu@ulsee.com")
+//        password.setText("123456")
 
         loginButton.isEnabled = true
 

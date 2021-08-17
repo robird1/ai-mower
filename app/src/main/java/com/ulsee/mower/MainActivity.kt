@@ -2,15 +2,23 @@ package com.ulsee.mower
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import com.ulsee.mower.ble.BluetoothLeService
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
+import com.ulsee.mower.data.*
 import com.ulsee.mower.databinding.ActivityMainBinding
 import com.ulsee.mower.ui.login.LoginActivity
 import com.ulsee.mower.utils.Utils
+import java.util.concurrent.TimeUnit
 
 private val TAG = MainActivity::class.java.simpleName
 private const val ENABLE_BLUETOOTH_REQUEST_CODE = 1
@@ -57,6 +65,20 @@ class MainActivity: AppCompatActivity() {
                 }
             }
         }
+
+        initViewModel()
+        viewModel.keepUploadingStatus()
+        startRefreshCookieWorkManager()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        registerBLEReceiver()
+    }
+
+    override fun onStop() {
+        unregisterBLEReceiver()
+        super.onStop()
     }
 
     override fun onResume() {
@@ -91,6 +113,19 @@ class MainActivity: AppCompatActivity() {
             }
         }
     }
+    private fun initViewModel() {
+        val bluetoothService = (application as App).bluetoothService!!
+        viewModel = ViewModelProvider(this, MainActivityViewModelFactory(bluetoothService))
+            .get(MainActivityViewModel::class.java)
+    }
+
+    private fun startRefreshCookieWorkManager() {
+        val request = PeriodicWorkRequest
+            .Builder(CookieRefreshWorkManager::class.java, 15, TimeUnit.MINUTES)
+            .build()
+        WorkManager.getInstance(this)
+            .enqueueUniquePeriodicWork("CookieRefreshWorkManager", ExistingPeriodicWorkPolicy.KEEP, request)
+    }
 
     private fun checkService() {
         (application as App).bluetoothService?.let {
@@ -103,5 +138,18 @@ class MainActivity: AppCompatActivity() {
         }
     }
 
+    // =================================================
+    // ================== broadcast ====================
+    // =================================================
+    private fun registerBLEReceiver() {
+        val filter = IntentFilter()
+        filter.addAction(BLEBroadcastAction.ACTION_STATUS)
+        filter.addAction(BLEBroadcastAction.ACTION_GATT_DISCONNECTED)
+        filter.addAction(BLEBroadcastAction.ACTION_GATT_CONNECTED)
+        registerReceiver(viewModel.gattUpdateReceiver, filter)
+    }
 
+    private fun unregisterBLEReceiver() {
+        unregisterReceiver(viewModel.gattUpdateReceiver)
+    }
 }

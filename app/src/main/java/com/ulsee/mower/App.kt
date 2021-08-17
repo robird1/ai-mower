@@ -7,6 +7,9 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
+import com.amplifyframework.AmplifyException
+import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
+import com.amplifyframework.core.Amplify
 import com.ulsee.mower.ble.BluetoothLeService
 import io.realm.Realm
 import io.realm.RealmConfiguration
@@ -19,6 +22,7 @@ class App: Application() {
     override fun onCreate() {
         Log.d(TAG, "[Enter] onCreate()")
         super.onCreate()
+        initializeAWS()
         Realm.init(this)
         val config = RealmConfiguration.Builder()
             .name("appv2.realm")
@@ -58,6 +62,18 @@ class App: Application() {
         Log.d(TAG, "[Enter] bindService()")
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
         bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    private fun initializeAWS() {
+        try {
+            Amplify.addPlugin(AWSCognitoAuthPlugin())
+            Amplify.configure(applicationContext)
+            Log.i("MyAmplifyApp", "Initialized Amplify")
+        } catch (error: AmplifyException) {
+            Log.e("MyAmplifyApp", "Could not initialize Amplify", error)
+        } catch (error: Exception) {
+            Log.e("MyAmplifyApp", "Could not initialize Amplify", error)
+        }
     }
 
     //    suspend fun bindService() = suspendCoroutine<BluetoothLeService?> {
