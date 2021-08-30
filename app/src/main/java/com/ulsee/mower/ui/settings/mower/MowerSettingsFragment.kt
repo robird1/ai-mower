@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.RadioButton
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -72,6 +73,7 @@ class MowerSettingsFragment : Fragment() {
         viewModel.getSettings()
         initClearMapClick()
         initLogoutClick()
+        addOnBackPressedCallback()
         return binding.root
     }
 
@@ -234,4 +236,16 @@ class MowerSettingsFragment : Fragment() {
     private fun unregisterBLEReceiver() {
         requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
     }
+
+    private fun addOnBackPressedCallback() {
+        activity?.onBackPressedDispatcher?.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    val action = MowerSettingsFragmentDirections.actionSettingToStatusFragment()
+                    findNavController().navigate(action)
+                }
+            })
+    }
+
 }

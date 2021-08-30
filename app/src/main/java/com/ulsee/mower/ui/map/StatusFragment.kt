@@ -20,10 +20,12 @@ import com.ulsee.mower.R
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
 import com.ulsee.mower.data.BLEBroadcastAction
+import com.ulsee.mower.data.MapData
 import com.ulsee.mower.data.StartStop.Command.Companion.BACK_CHARGING_STATION
 import com.ulsee.mower.data.StartStop.Command.Companion.PAUSE_MOWING
 import com.ulsee.mower.data.StartStop.Command.Companion.RESUME_EMERGENCY_STOP
 import com.ulsee.mower.data.StartStop.Command.Companion.RESUME_FROM_INTERRUPT
+import com.ulsee.mower.data.StartStop.Command.Companion.RESUME_FROM_STUCK
 import com.ulsee.mower.data.StartStop.Command.Companion.RESUME_MOWING
 import com.ulsee.mower.data.StartStop.Command.Companion.START_MOWING
 import com.ulsee.mower.data.Status.*
@@ -33,6 +35,7 @@ import com.ulsee.mower.data.Status.WorkingMode.Companion.SUSPEND_WORKING_MODE
 import com.ulsee.mower.data.Status.WorkingMode.Companion.TESTING_BOUNDARY_MODE
 import com.ulsee.mower.data.Status.WorkingMode.Companion.WORKING_MODE
 import com.ulsee.mower.databinding.ActivityStatusBinding
+import com.ulsee.mower.ui.connect.RobotListFragmentArgs
 import com.ulsee.mower.ui.login.LoginActivity
 
 private val TAG = StatusFragment::class.java.simpleName
@@ -45,6 +48,7 @@ class StatusFragment: Fragment() {
     private var signalQuality = -1
     private var isMowingStatus = false
     private var workingMode = MANUAL_MODE
+//    private var estimatedTime = ""
 
     private var state = MowingState.Stop
     enum class MowingState {
@@ -84,9 +88,16 @@ class StatusFragment: Fragment() {
         initPauseButtonListener()
         initScheduleButton()
         initSettingButton()
+        initEditMapButton()
         registerBLEReceiver()
         viewModel.getStatusPeriodically()
-        getMapData()
+//        getMapData()
+
+        val args = StatusFragmentArgs.fromBundle(requireArguments())
+        Log.d("123", "args.refreshMap: ${args.refreshMap}")
+        if (args.refreshMap) {
+            getMapData()
+        }
 
         return binding.root
     }
@@ -107,6 +118,9 @@ class StatusFragment: Fragment() {
             requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
             isReceiverRegistered = false
         }
+
+        requireArguments().clear()
+
         super.onDestroyView()
     }
 
@@ -135,12 +149,13 @@ class StatusFragment: Fragment() {
                         .setCancelable(false)
                         .setPositiveButton(R.string.button_confirm) { _, _ ->
 
+                            MapData.clear()
                             viewModel.disconnectDevice()
                             findNavController().popBackStack()
 
                         }
-                        .setNegativeButton("cancel") { dialog, _ ->
-                            dialog.dismiss()
+                        .setNegativeButton("cancel") { it, _ ->
+                            it.dismiss()
                         }
                         .show()
                 }
@@ -185,7 +200,8 @@ class StatusFragment: Fragment() {
     }
 
     private fun initGlobalParameterObserver() {
-        viewModel.requestMapFinished.observe(viewLifecycleOwner) {
+//        viewModel.requestMapFinished.observe(viewLifecycleOwner) {
+        RequestMapAction.requestMapFinished.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { isFinished ->
                 binding.progressView.isVisible = false
                 if (isFinished) {
@@ -197,12 +213,12 @@ class StatusFragment: Fragment() {
 
     private fun initMowingDataObserver() {
         viewModel.mowingDataList.observe(viewLifecycleOwner) {
-            it.getContentIfNotHandled()?.let { list ->
+            it.getContentIfNotHandled()?.let { hashMap ->
 //                Log.d("666", "[Enter] updateMowingArea() size: ${it.size} isMowingStatus: $isMowingStatus")
 
                 // 刀盤啟動中或作業暫停中
                 if (isMowingStatus || workingMode == SUSPEND_WORKING_MODE) {
-                    binding.statusView.updateMowingArea(list)
+                    binding.statusView.updateMowingArea(hashMap)
                 }
             }
         }
@@ -254,7 +270,6 @@ class StatusFragment: Fragment() {
                 signalQuality = intent.getIntExtra("signal_quality", -1)
 
                 setWorkingAreaText(intent)
-                setWorkingTime(intent)
                 setPowerPercentage(power)
 //                setChargingText(isCharging)
                 setBatteryView(isCharging)
@@ -272,16 +287,18 @@ class StatusFragment: Fragment() {
         binding.powerPercentage.text = "$power %"
     }
 
-    private fun setWorkingTime(intent: Intent) {
-        val estimatedTime = intent.getStringExtra("estimated_time")
-        val elapsedTime = intent.getStringExtra("elapsed_time")
-        binding.workingTimeText.text = "$elapsedTime / $estimatedTime"
-    }
-
     private fun setWorkingAreaText(intent: Intent) {
         val totalArea = intent.getShortExtra("total_area", -1)
         val finishedArea = intent.getShortExtra("finished_area", -1)
         binding.workingAreaText.text = "$finishedArea㎡ / $totalArea㎡"
+
+        if (totalArea.toInt() != 0) {
+            binding.workingTimeText.text = getMowingPercentage(totalArea, finishedArea)
+        }
+    }
+
+    private fun getMowingPercentage(totalArea: Short, finishedArea: Short): String {
+        return "${Math.round(finishedArea.toFloat() / totalArea * 100)}%"
     }
 
     private fun checkSatelliteSignal() {
@@ -338,7 +355,7 @@ class StatusFragment: Fragment() {
             }
             TESTING_BOUNDARY_MODE -> {
 //                Log.d("777", "[Enter] TESTING_BOUNDARY_MODE")
-
+                // TODO
             }
         }
     }
@@ -386,6 +403,12 @@ class StatusFragment: Fragment() {
         }
     }
 
+    private fun initEditMapButton() {
+        binding.editMapButton.setOnClickListener {
+            findNavController().navigate(R.id.setupMapFragment)
+        }
+    }
+
     private fun initScheduleButton() {
         binding.scheduleButton.setOnClickListener {
             findNavController().navigate(R.id.scheduleListFragment)
@@ -425,20 +448,53 @@ class StatusFragment: Fragment() {
                 Toast.makeText(context, "Weak satellite signal", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             when (state) {
                 MowingState.Pause -> {
-                    viewModel.startStop(BACK_CHARGING_STATION)
-                    viewModel.startStop(RESUME_MOWING)
+                    showParkingDialog()
                 }
                 MowingState.Mowing -> {
-                    viewModel.startStop(BACK_CHARGING_STATION)
+                    showParkingDialog()
                 }
                 MowingState.Stop -> {
-                    // do nothing
+                    showParkingErrorDialog()
                 }
             }
-
         }
+    }
+
+    private fun showParkingDialog() {
+        val dialog = AlertDialog.Builder(context)
+            .setMessage("Cancel current task and go back to charging station?")
+            .setCancelable(false)
+            .setPositiveButton("ok") { it, _ ->
+                when (state) {
+                    MowingState.Pause -> {
+                        viewModel.startStop(BACK_CHARGING_STATION)
+                        viewModel.startStop(RESUME_MOWING)
+                    }
+                    MowingState.Mowing -> {
+                        viewModel.startStop(BACK_CHARGING_STATION)
+                    }
+                }
+                it.dismiss()
+            }
+            .setNegativeButton("cancel") { it, _ ->
+                it.dismiss()
+            }
+            .create()
+        dialog.show()
+    }
+
+    private fun showParkingErrorDialog() {
+        val dialog = AlertDialog.Builder(context)
+            .setMessage("[Error] Mower is only allowed to return to the charging station when it is mowing.")
+            .setCancelable(false)
+            .setPositiveButton("ok") { it, _ ->
+                it.dismiss()
+            }
+            .create()
+        dialog.show()
     }
 
     private fun showWorkingErrorDialog(message: String) {
@@ -457,7 +513,11 @@ class StatusFragment: Fragment() {
             .setMessage(message)
             .setCancelable(false)
             .setPositiveButton("Reset") { it, _ ->
-                viewModel.startStop(RESUME_EMERGENCY_STOP)
+                if (bitIndex != 2) {     // 2 -> 受困
+                    viewModel.startStop(RESUME_EMERGENCY_STOP)
+                } else {
+                    viewModel.startStop(RESUME_FROM_STUCK)
+                }
                 viewModel.emergencyStopIdxList.remove(bitIndex)
                 it.dismiss()
             }

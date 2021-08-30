@@ -13,7 +13,11 @@
             app:destination="@id/addRobotInstructionFragment" />
         <action
             android:id="@+id/action_robotListFragment_to_statusFragment"
-            app:destination="@id/statusFragment" />
+            app:destination="@id/statusFragment" >
+            <argument
+                android:name="refreshMap"
+                android:defaultValue="true" />
+        </action>
         <argument
             android:name="isGuideFinished"
             app:argType="boolean"
@@ -43,6 +47,16 @@
         <action
             android:id="@+id/action_statusFragment_to_instruction0Fragment3"
             app:destination="@id/instruction0Fragment" />
+        <argument
+            android:name="refreshMap"
+            app:argType="boolean"
+            android:defaultValue="true" />
+        <action
+            android:id="@+id/action_statusFragment_to_scheduleListFragment"
+            app:destination="@id/scheduleListFragment" />
+        <action
+            android:id="@+id/action_statusFragment_to_mowerSettingsFragment"
+            app:destination="@id/mowerSettingsFragment" />
     </fragment>
     <fragment
         android:id="@+id/setupMapFragment"
@@ -52,7 +66,11 @@
             android:id="@+id/action_setupMapFragment_to_statusFragment2"
             app:destination="@id/statusFragment"
             app:popUpTo="@id/statusFragment"
-            app:popUpToInclusive="true" />
+            app:popUpToInclusive="true" >
+            <argument
+                android:name="refreshMap"
+                android:defaultValue="true" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/instruction0Fragment"
@@ -111,6 +129,15 @@
         <action
             android:id="@+id/action_settingsFragment_to_settingsBladeHeightFragment"
             app:destination="@id/settingsBladeHeightFragment" />
+        <action
+            android:id="@+id/action_setting_to_statusFragment"
+            app:destination="@id/statusFragment"
+            app:popUpTo="@id/statusFragment"
+            app:popUpToInclusive="true" >
+            <argument
+                android:name="refreshMap"
+                android:defaultValue="false" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/settingsWorkOnRainDaysFragment"
@@ -142,6 +169,15 @@
         <action
             android:id="@+id/action_scheduleListFragment_to_scheduleCalendarFragment"
             app:destination="@id/scheduleCalendarFragment" />
+        <action
+            android:id="@+id/action_to_statusFragment"
+            app:destination="@id/statusFragment"
+            app:popUpTo="@id/statusFragment"
+            app:popUpToInclusive="true" >
+            <argument
+                android:name="refreshMap"
+                android:defaultValue="false" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/scheduleCalendarFragment"

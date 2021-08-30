@@ -41,16 +41,16 @@ class CommandMowingData(service: BluetoothLeService): AbstractCommand(service) {
         val packetCount = Utils.convert(packetCountArray).toInt()
         val packetNumberArray = byteArrayOf(value[10]) + value[11]
         val packetNumber = Utils.convert(packetNumberArray).toInt()
+        var finishGrassCount = -1
 
         // 0xB4.toByte() -> -76
         var index = getIndex(value, -76) + 1
 
         if (packetNumber == 0) {
-            val finishGrassCount = value[index++].toInt()
+            finishGrassCount = value[index++].toInt()
 //            Log.d("666", "finishGrassCount: $finishGrassCount")
-            var finishGrassNumber = -1
             for (i in 0 until finishGrassCount) {
-                finishGrassNumber = value[index++].toInt()
+                val finishGrassNumber = value[index++].toInt()
 //                Log.d("666", "finishGrassNumber: $finishGrassNumber")
             }
             var dataLen = value[index++]
@@ -64,6 +64,7 @@ class CommandMowingData(service: BluetoothLeService): AbstractCommand(service) {
 
         if (arrayList.size > 0) {
             val intent = Intent(BLEBroadcastAction.ACTION_MOWING_DATA)
+            intent.putExtra("finishGrassNumber", finishGrassCount.toString())
             intent.putExtra("packetCount", packetCount)
             intent.putExtra("packetNumber", packetNumber)
             intent.putExtra("data", Gson().toJson(arrayList))

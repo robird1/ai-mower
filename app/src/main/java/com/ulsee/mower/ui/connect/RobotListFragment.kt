@@ -3,7 +3,6 @@ package com.ulsee.mower.ui.connect
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
-import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -26,7 +25,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.ulsee.mower.App
@@ -47,7 +45,6 @@ import com.ulsee.mower.data.DatabaseRepository
 import com.ulsee.mower.databinding.FragmentRobotListBinding
 import com.ulsee.mower.ui.login.LoginActivity
 
-private const val ENABLE_BLUETOOTH_REQUEST_CODE = 1
 private const val LOCATION_PERMISSION_REQUEST_CODE = 2
 
 private val TAG = RobotListFragment::class.java.simpleName
@@ -91,11 +88,6 @@ class RobotListFragment: Fragment() {
         if (args.isGuideFinished) {
             showAddDeviceDialog()
         }
-
-        Log.d(TAG, "isLocationPermissionGranted: $isLocationPermissionGranted")
-//        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
-//            promptEnableBluetooth()
-//        }
 
         return binding.root
     }
@@ -184,7 +176,6 @@ class RobotListFragment: Fragment() {
             })
     }
 
-
     private fun registerBLEReceiver() {
         if (!isReceiverRegistered) {
             val filter = IntentFilter()
@@ -203,20 +194,6 @@ class RobotListFragment: Fragment() {
     override fun onResume() {
         Log.d(TAG, "[Enter] onResume")
         super.onResume()
-//        if (!viewModel.bluetoothAdapter.isEnabled) {
-//            promptEnableBluetooth()
-//        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            ENABLE_BLUETOOTH_REQUEST_CODE -> {
-                if (resultCode != Activity.RESULT_OK) {
-                    promptEnableBluetooth()
-                }
-            }
-        }
     }
 
     override fun onRequestPermissionsResult(
@@ -350,7 +327,11 @@ class RobotListFragment: Fragment() {
 //                    progressBar.isVisible = false
                     Toast.makeText(context, "verification success", Toast.LENGTH_SHORT).show()
                     Log.d("888", "[Enter] verification success")
-                    findNavController().navigate(R.id.statusFragment)
+//                    val action = RobotListFragmentDirections.actionRobotListFragmentToStatusFragment()
+//                    findNavController().navigate(action)
+                    val bundle = Bundle()
+                    bundle.putBoolean("refreshMap", true)
+                    findNavController().navigate(R.id.statusFragment, bundle)
                 } else {
                     Log.d("888", "[Enter] verification failed")
                     Toast.makeText(context, "verification failed", Toast.LENGTH_SHORT).show()
@@ -399,13 +380,6 @@ class RobotListFragment: Fragment() {
         snackbar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text).maxLines =
                 5 //Or as much as you need
         snackbar.show()
-    }
-
-    private fun promptEnableBluetooth() {
-        if (!bluetoothService.bluetoothAdapter.isEnabled) {
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBtIntent, ENABLE_BLUETOOTH_REQUEST_CODE)
-        }
     }
 
     fun Context.hasPermission(permissionType: String): Boolean {

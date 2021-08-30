@@ -129,6 +129,9 @@ class SetupMapView@JvmOverloads constructor(
         confirmedObstacle = MapData.obstacleData
         confirmedGrassRoute = MapData.grassPathData
         confirmedChargingRoute = MapData.chargingPathData
+        if (confirmedChargingRoute.size == 0) {
+            chargingStationCoordinate = null
+        }
 
         postInvalidate()
     }
@@ -168,7 +171,6 @@ class SetupMapView@JvmOverloads constructor(
             graphCenter = getCenterOfGrass()
             xAxisOffset = graphCenter.x - width / 2
             yAxisOffset = graphCenter.y - height / 2
-//            Log.d("123", "graphCenter.x: ${graphCenter.x} graphCenter.y: ${graphCenter.y}")
         }
 
         canvas?.apply {
@@ -329,7 +331,6 @@ class SetupMapView@JvmOverloads constructor(
     private fun Canvas.drawGrass() {
         confirmedGrass.forEach { (key, pointList) ->
             addPath(confirmedPathGrass, pointList)
-
             trashCanList[key] = pointList[0]
         }
 
@@ -337,53 +338,11 @@ class SetupMapView@JvmOverloads constructor(
     }
 
     private fun Canvas.drawWorkingElement() {
-//        state?.let {
-//            when (state) {
-//                is RecordObstacle -> {
-//                    if (workingElement.size > 0) {
-//                        addPath(workingPathElement, workingElement)
-//                    }
-//
-//                    drawPath(workingPathElement, paintWorkingObstacle)
-//                }
-//                is RecordChargingPath -> {
-//                    if (workingElement.size > 0) {
-//                        addPath(workingPathElement, workingElement)
-//                    }
-//
-//                    drawPath(workingPathElement, paintWorkingCharging)
-//                }
-//                is RecordGrassRoute -> {
-//                    if (workingElement.size > 0) {
-//                        addPath(workingPathElement, workingElement)
-//                    }
-//
-//                    drawPath(workingPathElement, paintWorkingGrassRoute)
-//                }
-//                is RecordGrass -> {
-//                    if (workingElement.size > 0) {
-//                        addPath(workingPathElement, workingElement)
-//                    }
-//
-//                    drawPath(workingPathElement, paintWorkingGrass)
-//                }
-//                else -> {
-//                    // do nothing
-//                    if (workingElement.size > 0) {
-//                        addPath(workingPathElement, workingElement)
-//                    }
-//
-//                    drawPath(workingPathElement, paintWorkingGrass)
-//
-//                }
-//            }
-//        }
         if (workingElement.size > 0) {
             addPath(workingPathElement, workingElement)
         }
 
         drawPath(workingPathElement, paintWorkingGrass)
-
     }
 
     private fun Canvas.drawWorkingPoint() {
@@ -512,11 +471,6 @@ class SetupMapView@JvmOverloads constructor(
                 point.y
             )
         }
-
-//        path.setLastPoint(
-//            pointList[0].x - xAxisOffset,
-//            pointList[0].y - yAxisOffset
-//        )
     }
 
     private fun getCenterOfGrass(): PointF {
@@ -635,7 +589,6 @@ class SetupMapView@JvmOverloads constructor(
 
     // TODO　refactor this function
     fun setGrassStartPoint() {
-        Log.d("123", "[Enter] setGrassStartPoint()")
         if (MapData.grassData.size == 0) {            // 無任何地圖數據的情況
             graphCenter.x = robotCoordinateX.toFloat() * xScale
             graphCenter.y = -(robotCoordinateY.toFloat()) * yScale
@@ -646,7 +599,6 @@ class SetupMapView@JvmOverloads constructor(
             workingStartPointPosition = PointF(width / 2F, height / 2F)
 
         } else {                // 已存在草皮，新增草皮的情況
-
             val point = getPixelPosition(PointF(robotCoordinateX.toFloat(), robotCoordinateY.toFloat()))
             workingStartPointPosition = PointF(point.x, point.y)
         }
@@ -655,6 +607,8 @@ class SetupMapView@JvmOverloads constructor(
     }
 
     fun setChargingStation() {
+        if (chargingStationCoordinate != null)
+            return
         chargingStationCoordinate = PointF()
         chargingStationCoordinate!!.x = robotCoordinateX.toFloat()
         chargingStationCoordinate!!.y = robotCoordinateY.toFloat()
@@ -679,14 +633,11 @@ class SetupMapView@JvmOverloads constructor(
         paintWorkingGrass.strokeWidth = dp2px(3)
         paintWorkingGrass.isAntiAlias = true
         paintWorkingGrass.color = Color.parseColor("#00D91D")
-//        workingBorderPaint.setXfermode( PorterDuffXfermode(PorterDuff.Mode.XOR))
     }
 
     private fun initGrassConfirmedPaint() {
         paintConfirmedGrass = Paint()
-//        workingBorderPaint.style = Paint.Style.STROKE
-        paintConfirmedGrass.style = Paint.Style.FILL_AND_STROKE
-        paintConfirmedGrass.strokeWidth = dp2px(3)
+        paintConfirmedGrass.style = Paint.Style.FILL
         paintConfirmedGrass.isAntiAlias = true
         paintConfirmedGrass.color = Color.parseColor("#00D91D")
         paintConfirmedGrass.alpha = 150
@@ -702,8 +653,7 @@ class SetupMapView@JvmOverloads constructor(
 
     private fun initObstacleConfirmedPaint() {
         paintConfirmedObstacle = Paint()
-        paintConfirmedObstacle.style = Paint.Style.FILL_AND_STROKE
-        paintConfirmedObstacle.strokeWidth = dp2px(3)
+        paintConfirmedObstacle.style = Paint.Style.FILL
         paintConfirmedObstacle.isAntiAlias = true
         paintConfirmedObstacle.color = Color.parseColor("#802A2A")
         paintConfirmedObstacle.alpha = 150

@@ -25,7 +25,6 @@ import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_DEVICE_NOT_FOUND
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_CONNECTED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_DISCONNECTED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_NOT_SUCCESS
-import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_VERIFICATION_FAILED
 import com.ulsee.mower.data.BLECommandTable
 import com.ulsee.mower.utils.MD5
 import com.ulsee.mower.utils.Utils
@@ -182,7 +181,6 @@ class BluetoothLeService : Service() {
     fun stopScan() {
         Log.d(TAG, "[Enter] stopScan()")
         bleScanner.stopScan(scanCallback)
-//        _isScanning.value = false
     }
 
     fun connectDevice(serialNumber: String) {
@@ -205,16 +203,6 @@ class BluetoothLeService : Service() {
 
     fun disconnectDevice() {
         Log.d(TAG, "[Enter] disconnectDevice()")
-//        enqueueOperation(BleOperationType.DISCONNECT {
-//            bluetoothGatt?.close()
-//            bluetoothGatt = null
-//            pendingOperation = null
-//            operationQueue.clear()
-//            commandTimeoutTask?.let { handler.removeCallbacks(it) }
-//            AbstractCommand.resetSerialNumber()
-//            cancelStatusTask()
-//            cancelGetMowingData()
-//        })
         bluetoothGatt?.close()
         bluetoothGatt = null
         pendingOperation = null
@@ -266,37 +254,6 @@ class BluetoothLeService : Service() {
         }, 50)
     }
 
-    fun recordBoundary(command: Int, subject: Int) {
-        val payload = CommandRecordBoundary(this).getSendPayload(command, subject)
-        enqueueCommand(payload)
-    }
-
-    fun startStop(command: Int) {
-        val payload = CommandStartStop(this).getSendPayload(command)
-        enqueueCommand(payload)
-    }
-
-    fun configSettings(instructionType: Int, value: Byte) {
-        val payload = CommandSettings(this).getConfigPayload(instructionType, value)
-        enqueueCommand(payload)
-    }
-
-    fun lookupSettings() {
-        val payload = CommandSettings(this).getLookupPayload()
-        enqueueCommand(payload)
-    }
-
-    fun configSchedule(utcOffset: Short, calendarList: ArrayList<Int>, mowerCount: Int) {
-        val payload = CommandSchedule(this).getConfigPayload(utcOffset, calendarList, mowerCount)
-        Log.i(TAG, "configSchedule ${payload.toHexString()}")
-        enqueueCommand(payload)
-    }
-
-    fun lookupSchedule() {
-        val payload = CommandSchedule(this).getLookupPayload()
-        enqueueCommand(payload)
-    }
-
     fun getMapGlobalParameters() {
         getMapDataTask?.let {
             handler.removeCallbacks(it)
@@ -306,51 +263,6 @@ class BluetoothLeService : Service() {
             enqueueCommand(payload)
         }
         handler.post(getMapDataTask!!)
-    }
-
-    fun getGrassBoundary(grassNumber: Byte, packetNumber: Byte) {
-        val payload = CommandGrassBoundary(this).getSendPayload(grassNumber, packetNumber)
-        enqueueCommand(payload)
-    }
-
-    fun getObstacleBoundary(grassNumber: Byte, packetNumber: Byte, obstacleNumber: Byte) {
-        val payload = CommandObstacleBoundary(this).getSendPayload(grassNumber, packetNumber, obstacleNumber)
-        enqueueCommand(payload)
-    }
-
-    fun getGrassPath(grassNumber: Byte, packetNumber: Byte, targetNumber: Byte, pathNumber: Byte) {
-        val payload = CommandGrassPath(this).getSendPayload(grassNumber, packetNumber, targetNumber, pathNumber)
-        enqueueCommand(payload)
-    }
-
-    fun getChargingPath(grassNumber: Byte, packetNumber: Byte, pathNumber: Byte) {
-        val payload = CommandChargingPath(this).getSendPayload(grassNumber, packetNumber, pathNumber)
-        enqueueCommand(payload)
-    }
-
-    fun deleteGrass(grassNumber: Byte) {
-        val payload = CommandDeleteGrass(this).getSendPayload(grassNumber)
-        enqueueCommand(payload)
-    }
-
-    fun deleteObstacle(grassNumber: Byte, obstacleNumber: Byte) {
-        val payload = CommandDeleteObstacle(this).getSendPayload(grassNumber, obstacleNumber)
-        enqueueCommand(payload)
-    }
-
-    fun deleteChargingPath(grassNumber: Byte, pathNumber: Byte) {
-        val payload = CommandDeleteChargingPath(this).getSendPayload(grassNumber, pathNumber)
-        enqueueCommand(payload)
-    }
-
-    fun deleteGrassPath(grassNumber: Byte, targetGrassNumber: Byte, pathNumber: Byte) {
-        val payload = CommandDeleteGrassPath(this).getSendPayload(grassNumber, targetGrassNumber, pathNumber)
-        enqueueCommand(payload)
-    }
-
-    fun deleteAllMap() {
-        val payload = CommandDeleteAll(this).getSendPayload()
-        enqueueCommand(payload)
     }
 
     /**
@@ -383,7 +295,7 @@ class BluetoothLeService : Service() {
         enqueueCommand(payload)
     }
 
-    private fun enqueueCommand(payload: ByteArray) {
+    fun enqueueCommand(payload: ByteArray) {
         enqueueOperation(BleOperationType.CHARACTERISTIC_WRITE(payload) {
             writeCharacteristic(payload)
         })
@@ -420,7 +332,7 @@ class BluetoothLeService : Service() {
 
                         val checkSumArray = newPayload.sliceArray(IntRange(0, newPayload.size - 3))
                         val checksumIdx = newPayload.size - 2
-                        newPayload[checksumIdx] = getCheckSum(checkSumArray).toByte()
+                        newPayload[checksumIdx] = AbstractCommand.getCheckSum(checkSumArray).toByte()
 
                         it.payload = newPayload
                         it.lambda = {
@@ -433,14 +345,6 @@ class BluetoothLeService : Service() {
                 }
             }
         }
-    }
-
-    fun getCheckSum(chars: ByteArray): Int {
-        var XOR = 0
-        for (element in chars) {
-            XOR = XOR xor element.toInt()
-        }
-        return XOR
     }
 
     private val gattCallback = object : BluetoothGattCallback() {
@@ -544,10 +448,11 @@ class BluetoothLeService : Service() {
             with(characteristic) {
                 val instructionType = value[3].toInt()
 //                if (instructionType != BLECommandTable.STATUS) {
+                if (instructionType == BLECommandTable.MOWING_DATA) {
                     Log.d(TAG, "instructionType: $instructionType")
 //                    Log.d(TAG, "instructionType2: ${value[3]}")
                     Log.d(TAG, "Characteristic changed | value: ${value.toHexString()}")
-//                }
+                }
 
                 val command = getCommandInstance(instructionType)
                 command.receive(value)
@@ -607,7 +512,7 @@ class BluetoothLeService : Service() {
             // update checksum
             val checkSumArray = commandPayload.sliceArray(IntRange(0, commandPayload.size - 3))
             val checksumIdx = commandPayload.size - 2
-            commandPayload[checksumIdx] = command.getCheckSum(checkSumArray).toByte()
+            commandPayload[checksumIdx] = AbstractCommand.getCheckSum(checkSumArray).toByte()
 
             Log.d("666", "[After] configNewPayload() serialNumber: ${commandPayload[snIndex]} commandPayload: ${commandPayload.toHexString()}")
 
@@ -723,20 +628,6 @@ class BluetoothLeService : Service() {
             Log.d("TAG", "[Enter] payload.size < 4")
             return
         }
-//        if (payload[3].toInt() == 0x70) {
-//            val type = when (payload[5].toInt()) {
-//                0x00 -> "[START RECORD]"
-//                0x01 -> "[FINISH RECORD]"
-//                0x02 -> "[START POINT RECORD]"
-//                0x03 -> "[SET POINT]"
-//                0x04 -> "[FINISH SET POINT]"
-//                0x05 -> "[CANCEL RECORD]"
-//                0x06 -> "[SAVE BOUNDARY]"
-//                0x07 -> "[DISCARD BOUNDARY]"
-//                else -> "[NULL]"
-//            }
-//            Log.d("123", "[Enter] writeCharacteristic() instruction: $type")
-//        }
         val serialNumber = payload[1]
         val instructionType = payload[3].toInt()
         if ((instructionType != BLECommandTable.STATUS) &&
@@ -831,8 +722,6 @@ class BluetoothLeService : Service() {
 
     @Synchronized
     private fun signalEndOfOperation() {
-//        showQueue()
-
         pendingOperation = null
 
         commandTimeoutTask?.let {

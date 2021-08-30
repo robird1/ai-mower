@@ -24,9 +24,6 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
     private var _hasMapData = MutableLiveData<Event<Boolean>>()
     val hasMapData : LiveData<Event<Boolean>>
         get() = _hasMapData
-    private var _requestMapFinished = MutableLiveData<Event<Boolean>>()
-    val requestMapFinished : LiveData<Event<Boolean>>
-        get() = _requestMapFinished
     private var _startStopResult = MutableLiveData<Event<Pair<Boolean,String>>>()
     val startStopResult : LiveData<Event<Pair<Boolean,String>>>
         get() = _startStopResult
@@ -39,25 +36,22 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
 
     private var isMowingStatus = false
 
-    var grassDataMap = HashMap<String, ByteArray>()
-    var obstacleDataMap = HashMap<String, ByteArray>()
-    var grassPathDataMap = HashMap<String, ByteArray>()
-    var chargingPathDataMap = HashMap<String, ByteArray>()
-
     private var globalList = ArrayList<GlobalParameter> ()
     private var grassCount = 0
 
     private var lastItemKey = ""
 
     private var mowingList = ArrayList<Byte> ()
-    private var _mowingDataList = MutableLiveData<Event<ArrayList<PointF>>>()
-    val mowingDataList : LiveData<Event<ArrayList<PointF>>>
+    private var _mowingDataList = MutableLiveData<Event<HashMap<String, ArrayList<PointF>>>>()
+    val mowingDataList : LiveData<Event<HashMap<String, ArrayList<PointF>>>>
         get() = _mowingDataList
 
     val workingErrorCodeList = ArrayList<Int>()
     val emergencyStopIdxList = ArrayList<Int>()
     val interruptionIdxList = ArrayList<Int>()
 
+    private var finishGrassNumber = "-1"
+    private val mowingDataHashMap = HashMap<String, ArrayList<PointF>>()
 
     val gattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -95,10 +89,7 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
                     val jsonString = intent.getStringExtra("data")
                     val listOfMyClassObject: Type = object : TypeToken<ArrayList<GlobalParameter?>?>() {}.type
                     globalList = Gson().fromJson(jsonString, listOfMyClassObject)
-                    grassDataMap.clear()
-                    obstacleDataMap.clear()
-                    grassPathDataMap.clear()
-                    chargingPathDataMap.clear()
+                    RequestMapAction.clear()
 
                     globalList.apply {
                         if (size == 0) {
@@ -117,20 +108,19 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
                 }
                 BLEBroadcastAction.ACTION_GRASS_BOARDER -> {
                     Log.d(TAG, "[ACTION_GRASS_BOARDER]")
-                    ActionGrassBoarder(intent, grassDataMap, lastItemKey, _requestMapFinished).execute()
+                    ActionGrassBoarder(intent, lastItemKey).execute()
                 }
                 BLEBroadcastAction.ACTION_OBSTACLE_BOARDER -> {
                     Log.d(TAG, "[ACTION_OBSTACLE_BOARDER]")
-                    ActionObstacleBoarder(intent, obstacleDataMap, lastItemKey, _requestMapFinished).execute()
+                    ActionObstacleBoarder(intent, lastItemKey).execute()
                 }
                 BLEBroadcastAction.ACTION_GRASS_PATH -> {
                     Log.d(TAG, "[ACTION_GRASS_PATH]")
-                    ActionGrassPath(intent, grassPathDataMap, lastItemKey, _requestMapFinished).execute()
-
+                    ActionGrassPath(intent, lastItemKey).execute()
                 }
                 BLEBroadcastAction.ACTION_CHARGING_PATH -> {
                     Log.d(TAG, "[ACTION_CHARGING_PATH]")
-                    ActionChargingPath(intent, chargingPathDataMap, lastItemKey, _requestMapFinished).execute()
+                    ActionChargingPath(intent, lastItemKey).execute()
                 }
                 BLEBroadcastAction.ACTION_MOWING_DATA -> {
                     val packetCount = intent.getIntExtra("packetCount", -1)
@@ -139,6 +129,9 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
                     val listOfMyClassObject: Type = object : TypeToken<ArrayList<Byte?>?>() {}.type
                     val tempList: ArrayList<Byte> = Gson().fromJson(jsonString, listOfMyClassObject)
 
+                    if (packetNumber == 0) {
+                        finishGrassNumber = intent.getStringExtra("finishGrassNumber") ?: "-1"
+                    }
 //                    if (isMowingStatus) {
 //                        Log.d("666", "[Enter] BLEBroadcastAction.ACTION_MOWING_DATA isMowingStatus: $isMowingStatus")
                         mowingList.addAll(tempList)
@@ -147,7 +140,9 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
                     if (packetNumber == packetCount - 1) {           // 資料已要完
                         val list = CommandMowingData.convertBytesToCoordinate(mowingList)
                         if (list.isNotEmpty()) {
-                            _mowingDataList.value = Event(list)
+//                            Log.d("555", "[Enter] list.isNotEmpty() finishGrassNumber: $finishGrassNumber list.size: ${list.size}")
+                            mowingDataHashMap[finishGrassNumber] = list
+                            _mowingDataList.value = Event(mowingDataHashMap)
                         }
                         mowingList.clear()
                     }
@@ -258,9 +253,6 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
     private fun doVerification() {
         bleRepository.doVerification()
     }
-
-    fun ByteArray.toHexString(): String =
-        joinToString(separator = " ", prefix = "0x") { String.format("%02X", it) }
 
 }
 

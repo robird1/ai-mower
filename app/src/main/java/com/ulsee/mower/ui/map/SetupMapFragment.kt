@@ -167,7 +167,8 @@ class SetupMapFragment: Fragment() {
     }
 
     private fun initGlobalParameterObserver() {
-        viewModel.requestMapFinished.observe(viewLifecycleOwner) {
+//        viewModel.requestMapFinished.observe(viewLifecycleOwner) {
+        RequestMapAction.requestMapFinished.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { isFinished ->
                 binding.progressView.isVisible = false
                 Log.d(TAG, "[Enter] requestMapFinished.observe")
@@ -214,11 +215,9 @@ class SetupMapFragment: Fragment() {
                     Status.TestingBoundaryState.TEST_CANCELLED -> {   // 取消绕边
 
                     }
-
                 }
 
                 binding.mapView.notifyRobotCoordinate(x, y, angle, state)
-
             }
         }
     }
@@ -228,14 +227,12 @@ class SetupMapFragment: Fragment() {
             it.getContentIfNotHandled()?.let { intent ->
                 val result = intent.getIntExtra("result", -1)
                 val command = intent.getIntExtra("command", -1)
-
                 when (result) {
                     RESPONSE_SUCCESS -> {
-//                    showSaveOrDiscardBoundary()
-                        showDialog("success")
+                        Toast.makeText(context, "success", Toast.LENGTH_SHORT).show()
                     }
                     RESPONSE_FAILED -> {
-                        showDialog("failed")
+                        Toast.makeText(context, "failed", Toast.LENGTH_SHORT).show()
                     }
                     else -> {
                         val info = StartStop.ErrorCode.map[result]
@@ -257,23 +254,34 @@ class SetupMapFragment: Fragment() {
 
                     val info = RecordBoundary.ErrorCode.map[result]
 
-                    val cmd = when (command) {
-                        0x00 -> "START_RECORD"
-                        0x01 -> "FINISH_RECORD"
-                        0x02 -> "START_POINT_MODE"
-                        0x03 -> "SET_POINT"
-                        0x04 -> "FINISH_POINT_MODE"
-                        0x05 -> "CANCEL_RECORD"
-                        0x06 -> "SAVE_BOUNDARY"
-                        0x07 -> "DISCARD_BOUNDARY"
-                        else -> ""
-                    }
-                    Log.d("456", "info: $info command: $cmd")
+//                    val cmd = when (command) {
+//                        0x00 -> "START_RECORD"
+//                        0x01 -> "FINISH_RECORD"
+//                        0x02 -> "START_POINT_MODE"
+//                        0x03 -> "SET_POINT"
+//                        0x04 -> "FINISH_POINT_MODE"
+//                        0x05 -> "CANCEL_RECORD"
+//                        0x06 -> "SAVE_BOUNDARY"
+//                        0x07 -> "DISCARD_BOUNDARY"
+//                        else -> ""
+//                    }
+//                    Log.d("456", "info: $info command: $cmd")
                     if (result == RESPONSE_SUCCESS) {
                         getBoundaryRecordAction(command, subject, result, intent).execute()
 
                     } else {
-                        showDialog(info ?: "unknown error code")
+                        val lambda = {
+                            binding.progressView.isVisible = false
+                            when (command) {
+                                0x01 -> { // "FINISH_RECORD"
+                                    viewModel.recordBoundary(RecordBoundary.Command.CANCEL_RECORD, subject)
+                                }
+                                else -> {
+                                    // do nothing
+                                }
+                            }
+                        }
+                        showDialog(info ?: "unknown error code", lambda)
                     }
                 }
             }
@@ -318,7 +326,6 @@ class SetupMapFragment: Fragment() {
             .setMessage("Save or discard the working boundary?")
             .setCancelable(false)
             .setPositiveButton("save") { it, _ ->
-//                    Log.d(TAG, "[Enter] viewModel.recordBoundary(SAVE_BOUNDARY, GRASS)")
                 viewModel.recordBoundary(
                     RecordBoundary.Command.SAVE_BOUNDARY,
                     RecordBoundary.Subject.GRASS
@@ -366,7 +373,11 @@ class SetupMapFragment: Fragment() {
             .setMessage(message)
             .setCancelable(false)
             .setPositiveButton("Reset") { it, _ ->
-                viewModel.startStop(StartStop.Command.RESUME_EMERGENCY_STOP)
+                if (bitIndex != 2) {     // 2 -> 受困
+                    viewModel.startStop(StartStop.Command.RESUME_EMERGENCY_STOP)
+                } else {
+                    viewModel.startStop(StartStop.Command.RESUME_FROM_STUCK)
+                }
                 emergencyStopIdxList.remove(bitIndex)
                 it.dismiss()
             }
@@ -387,8 +398,18 @@ class SetupMapFragment: Fragment() {
         dialog.show()
     }
 
-    private fun showDialog(result: String) {
-        Toast.makeText(context, "result: $result", Toast.LENGTH_SHORT).show()
+    private fun showDialog(result: String, errorHandling: (() -> Unit)? = null) {
+        val dialog = AlertDialog.Builder(context)
+            .setMessage(result)
+            .setCancelable(false)
+            .setPositiveButton("OK") { it, _ ->
+                it.dismiss()
+                if (errorHandling != null) {
+                    errorHandling()
+                }
+            }
+            .create()
+        dialog.show()
     }
 
     private fun getBoundaryRecordAction(command: Int, subject: Int, result: Int, intent: Intent): ActionRecordBoundary {

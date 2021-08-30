@@ -27,18 +27,18 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
     val borderRecordIntent : LiveData<Event<Intent>>
         get() = _borderRecordIntent
 
-    private var _requestMapFinished = MutableLiveData<Event<Boolean>>()
-    val requestMapFinished : LiveData<Event<Boolean>>
-        get() = _requestMapFinished
+//    private var _requestMapFinished = MutableLiveData<Event<Boolean>>()
+//    val requestMapFinished : LiveData<Event<Boolean>>
+//        get() = _requestMapFinished
 
     private var _deleteMapFinished = MutableLiveData<Event<Boolean>>()
     val deleteMapFinished : LiveData<Event<Boolean>>
         get() = _deleteMapFinished
 
-    var grassDataMap = HashMap<String, ByteArray>()
-    var obstacleDataMap = HashMap<String, ByteArray>()
-    var grassPathDataMap = HashMap<String, ByteArray>()
-    var chargingPathDataMap = HashMap<String, ByteArray>()
+//    var grassDataMap = HashMap<String, ByteArray>()
+//    var obstacleDataMap = HashMap<String, ByteArray>()
+//    var grassPathDataMap = HashMap<String, ByteArray>()
+//    var chargingPathDataMap = HashMap<String, ByteArray>()
 
     private var globalList = ArrayList<GlobalParameter> ()
     private var grassCount = 0
@@ -70,10 +70,11 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
                     val jsonString = intent.getStringExtra("data")
                     val listOfMyClassObject: Type = object : TypeToken<ArrayList<GlobalParameter?>?>() {}.type
                     globalList = Gson().fromJson(jsonString, listOfMyClassObject)
-                    grassDataMap.clear()
-                    obstacleDataMap.clear()
-                    grassPathDataMap.clear()
-                    chargingPathDataMap.clear()
+//                    grassDataMap.clear()
+//                    obstacleDataMap.clear()
+//                    grassPathDataMap.clear()
+//                    chargingPathDataMap.clear()
+                    RequestMapAction.clear()
 
                     globalList.apply {
                         if (size == 0) {
@@ -92,20 +93,24 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
                 }
                 BLEBroadcastAction.ACTION_GRASS_BOARDER -> {
                     Log.d(TAG, "[ACTION_GRASS_BOARDER]")
-                    ActionGrassBoarder(intent, grassDataMap, lastItemKey, _requestMapFinished).execute()
+//                    ActionGrassBoarder(intent, grassDataMap, lastItemKey, _requestMapFinished).execute()
+                    ActionGrassBoarder(intent, lastItemKey).execute()
                 }
                 BLEBroadcastAction.ACTION_OBSTACLE_BOARDER -> {
                     Log.d(TAG, "[ACTION_OBSTACLE_BOARDER]")
-                    ActionObstacleBoarder(intent, obstacleDataMap, lastItemKey, _requestMapFinished).execute()
+//                    ActionObstacleBoarder(intent, obstacleDataMap, lastItemKey, _requestMapFinished).execute()
+                    ActionObstacleBoarder(intent, lastItemKey).execute()
                 }
                 BLEBroadcastAction.ACTION_GRASS_PATH -> {
                     Log.d(TAG, "[ACTION_GRASS_PATH]")
-                    ActionGrassPath(intent, grassPathDataMap, lastItemKey, _requestMapFinished).execute()
+//                    ActionGrassPath(intent, grassPathDataMap, lastItemKey, _requestMapFinished).execute()
+                    ActionGrassPath(intent, lastItemKey).execute()
 
                 }
                 BLEBroadcastAction.ACTION_CHARGING_PATH -> {
                     Log.d(TAG, "[ACTION_CHARGING_PATH]")
-                    ActionChargingPath(intent, chargingPathDataMap, lastItemKey, _requestMapFinished).execute()
+//                    ActionChargingPath(intent, chargingPathDataMap, lastItemKey, _requestMapFinished).execute()
+                    ActionChargingPath(intent, lastItemKey).execute()
                 }
                 BLEBroadcastAction.ACTION_REQUEST_DELETE_MAP -> {
                     Log.d("333", "[ACTION_REQUEST_DELETE_MAP]")

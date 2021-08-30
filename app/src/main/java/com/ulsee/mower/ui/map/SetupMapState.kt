@@ -161,7 +161,7 @@ class StartChargingPath(private val fragment: SetupMapFragment) : SetupMapState(
 
 class StartGrassRoute(private val fragment: SetupMapFragment) : SetupMapState(fragment) {
 
-    override fun onTitleHintText() = "Tap the button \"Add Route\" when mower is in grass area."
+    override fun onTitleHintText() = "Tap the button \"START\" when mower is in grass area."
 
     override fun onFooterButtonsView() = binding.footerViewStartRoute
 

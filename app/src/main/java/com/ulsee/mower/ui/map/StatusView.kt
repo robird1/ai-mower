@@ -9,8 +9,8 @@ import com.ulsee.mower.R
 import com.ulsee.mower.data.MapData
 
 
-private const val LAWN_WIDTH = 3000         // unit: cm
-private const val LAWN_HEIGHT = 1500
+private const val LAWN_WIDTH = 5000         // unit: cm
+private const val LAWN_HEIGHT = 5000
 
 private val TAG = SetupMapView::class.java.simpleName
 
@@ -54,8 +54,10 @@ class StatusView@JvmOverloads constructor(
     private var confirmedGrassRoute = HashMap<String, ArrayList<PointF>>()
     private var confirmedChargingRoute = HashMap<String, ArrayList<PointF>>()
 
+    private var mowingData = HashMap<String, ArrayList<PointF>>()
+
     // 建圖過程中尚未結束記錄的座標數據
-    private var mowingData = ArrayList<PointF>()
+//    private var mowingData = ArrayList<PointF>()
 
 
     private var state: SetupMapState? = null
@@ -116,10 +118,9 @@ class StatusView@JvmOverloads constructor(
     override fun onDraw(canvas: Canvas?) {
 //        Log.d(TAG, "[Enter] onDraw()")
         if (confirmedGrass.size > 0) {
-            graphCenter = getCenterOfGrass()
+            graphCenter = getGraphCenter()
             xAxisOffset = graphCenter.x - width / 2
             yAxisOffset = graphCenter.y - height / 2
-//            Log.d("123", "graphCenter.x: ${graphCenter.x} graphCenter.y: ${graphCenter.y}")
         }
 
         canvas?.apply {
@@ -149,10 +150,10 @@ class StatusView@JvmOverloads constructor(
         postInvalidate()
     }
 
-    fun updateMowingArea(data: ArrayList<PointF>) {
+    fun updateMowingArea(data: HashMap<String, ArrayList<PointF>>) {
         mowingAreaPath.reset()
         mowingData.clear()
-        mowingData.addAll(data)
+        mowingData.putAll(data)
 //        postInvalidate()
     }
 
@@ -169,13 +170,15 @@ class StatusView@JvmOverloads constructor(
     }
 
     private fun Canvas.drawMowingArea() {
-        if (mowingData.size > 0) {
-            addPath(mowingAreaPath, mowingData)
+        mowingData.forEach { (_, pointList) ->
+            addPath(mowingAreaPath, pointList)
         }
+
         drawPath(mowingAreaPath, paintMowingArea)
     }
 
     private fun Canvas.drawGrass() {
+        confirmedPathGrass.reset()
         confirmedGrass.forEach { (_, pointList) ->
             addPath(confirmedPathGrass, pointList)
         }
@@ -184,6 +187,7 @@ class StatusView@JvmOverloads constructor(
     }
 
     private fun Canvas.drawObstacle() {
+        confirmedPathObstacle.reset()
         confirmedObstacle.forEach { (_, pointList) ->
             addPath(confirmedPathObstacle, pointList)
         }
@@ -192,6 +196,7 @@ class StatusView@JvmOverloads constructor(
     }
 
     private fun Canvas.drawGrassRoute() {
+        confirmedPathGrassRoute.reset()
         confirmedGrassRoute.forEach { (_, pointList) ->
             addPath(confirmedPathGrassRoute, pointList)
         }
@@ -200,6 +205,7 @@ class StatusView@JvmOverloads constructor(
     }
 
     private fun Canvas.drawChargingRoute() {
+        confirmedPathCharging.reset()
         confirmedChargingRoute.forEach { (_, pointList) ->
             addPath(confirmedPathCharging, pointList)
 
@@ -250,28 +256,10 @@ class StatusView@JvmOverloads constructor(
                 point.y
             )
         }
-
-//        path.setLastPoint(
-//            pointList[0].x - xAxisOffset,
-//            pointList[0].y - yAxisOffset
-//        )
     }
 
-    private fun getCenterOfGrass(): PointF {
-        val grassCenterList = ArrayList<PointF>()
-        confirmedGrass.forEach { (_, pointList) ->
-            if (pointList.size > 0) {
-                confirmedPathGrass.reset()
-                confirmedPathGrass.moveTo(pointList[0].x * xScale, -pointList[0].y * yScale)
-                for (idx in 0 until pointList.size) {
-                    confirmedPathGrass.lineTo(pointList[idx].x * xScale, -pointList[idx].y * yScale)
-                }
-
-                grassCenterList.add(getPathCenter(confirmedPathGrass))
-            }
-        }
-        confirmedPathGrass.reset()
-
+    private fun getGraphCenter(): PointF {
+        val grassCenterList = getCenterPointsOfGrasses()
         var temp = PointF()
         for (i in grassCenterList) {
             temp.x += i.x
@@ -281,6 +269,23 @@ class StatusView@JvmOverloads constructor(
         graphCenter.x = temp.x / grassCenterList.size
         graphCenter.y = temp.y / grassCenterList.size
         return graphCenter
+    }
+
+    private fun getCenterPointsOfGrasses(): ArrayList<PointF> {
+        val grassCenterList = ArrayList<PointF>()
+        confirmedGrass.forEach { (_, pointList) ->
+            if (pointList.size > 0) {
+                confirmedPathGrass.reset()
+                confirmedPathGrass.moveTo(pointList[0].x * xScale, -pointList[0].y * yScale)
+                for (idx in 0 until pointList.size) {
+                    confirmedPathGrass.lineTo(pointList[idx].x * xScale, -pointList[idx].y * yScale)
+                }
+                val centerPoint = getPathCenter(confirmedPathGrass)
+                grassCenterList.add(centerPoint)
+            }
+        }
+        confirmedPathGrass.reset()
+        return grassCenterList
     }
 
     private fun getPathCenter(path: Path): PointF {
@@ -316,48 +321,54 @@ class StatusView@JvmOverloads constructor(
     private fun initMowingPaint() {
         paintMowingArea = Paint()
         paintMowingArea.style = Paint.Style.STROKE
-        paintMowingArea.strokeWidth = dp2px(10)
+        paintMowingArea.strokeWidth = dp2px(3)
         paintMowingArea.isAntiAlias = true
-        paintMowingArea.color = Color.parseColor("#94CD9A")
+        paintMowingArea.color = Color.parseColor("#00D91D")
     }
 
     private fun initGrassConfirmedPaint() {
         paintConfirmedGrass = Paint()
-//        workingBorderPaint.style = Paint.Style.STROKE
-        paintConfirmedGrass.style = Paint.Style.FILL_AND_STROKE
-        paintConfirmedGrass.strokeWidth = dp2px(3)
+        paintConfirmedGrass.style = Paint.Style.FILL
+//        paintConfirmedGrass.strokeWidth = dp2px(3)
         paintConfirmedGrass.isAntiAlias = true
-        paintConfirmedGrass.color = Color.parseColor("#00D91D")
-        paintConfirmedGrass.alpha = 150
+        paintConfirmedGrass.color = Color.parseColor("#3d301b")
     }
 
     private fun initObstacleConfirmedPaint() {
         paintConfirmedObstacle = Paint()
-        paintConfirmedObstacle.style = Paint.Style.FILL_AND_STROKE
-        paintConfirmedObstacle.strokeWidth = dp2px(3)
+        paintConfirmedObstacle.style = Paint.Style.FILL
+//        paintConfirmedObstacle.strokeWidth = dp2px(3)
         paintConfirmedObstacle.isAntiAlias = true
-        paintConfirmedObstacle.color = Color.parseColor("#802A2A")
+        paintConfirmedObstacle.color = Color.parseColor("#fc9400")
         paintConfirmedObstacle.alpha = 150
     }
 
-    // TODO use only one paint for grass route?
     private fun initGrassRouteConfirmedPaint() {
         paintConfirmedGrassRoute = Paint()
         paintConfirmedGrassRoute.style = Paint.Style.STROKE
-        paintConfirmedGrassRoute.strokeWidth = dp2px(6)
+        paintConfirmedGrassRoute.strokeWidth = dp2px(4)
         paintConfirmedGrassRoute.isAntiAlias = true
-        paintConfirmedGrassRoute.color = Color.parseColor("#00D91D")
+        paintConfirmedGrassRoute.color = Color.parseColor("#8c6f3e")
 //        paintConfirmedGrassRoute.alpha = 150
+
+        paintConfirmedGrassRoute.pathEffect = DashPathEffect(
+            // array of ON and OFF distances
+//            floatArrayOf(20F, 30F, 40F, 50F),
+            floatArrayOf(20F, 15F),
+            0F // phase : offset into the intervals array
+        )
     }
 
-    // TODO use only one paint for charging route?
     private fun initChargingConfirmedPaint() {
         paintConfirmedCharging = Paint()
         paintConfirmedCharging.style = Paint.Style.STROKE
-        paintConfirmedCharging.strokeWidth = dp2px(6)
+        paintConfirmedCharging.strokeWidth = dp2px(4)
         paintConfirmedCharging.isAntiAlias = true
         paintConfirmedCharging.color = Color.parseColor("#D90000")
-//        paintConfirmedCharging.alpha = 150
+        paintConfirmedCharging.pathEffect = DashPathEffect(
+            floatArrayOf(20F, 15F),
+            0F // phase : offset into the intervals array
+        )
     }
 
     private fun dp2px(dp:Int):Float= dp * context.resources.displayMetrics.density

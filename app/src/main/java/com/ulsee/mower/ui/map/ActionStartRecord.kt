@@ -1,42 +1,35 @@
 package com.ulsee.mower.ui.map
 
 import android.widget.Toast
-import com.ulsee.mower.data.RecordBoundary
+import com.ulsee.mower.data.RecordBoundary.Subject.Companion.GRASS
+import com.ulsee.mower.data.RecordBoundary.Subject.Companion.OBSTACLE
+import com.ulsee.mower.data.RecordBoundary.Subject.Companion.CHARGING
+import com.ulsee.mower.data.RecordBoundary.Subject.Companion.GRASS_PATH
 
 class ActionStartRecord(val subject: Int, val result: Int, fragment: SetupMapFragment): ActionRecordBoundary(fragment) {
     override fun execute() {
         when (subject) {
-            RecordBoundary.Subject.GRASS -> {
+            GRASS -> {
                 binding.mapView.setGrassStartPoint()
-                binding.mapView.mode = SetupMapView.Mode.Drive
-                fragment.state.onNextState()
-
-                Toast.makeText(context, "[Success] START_RECORD", Toast.LENGTH_SHORT).show()
-
+                doAction()
             }
-            RecordBoundary.Subject.OBSTACLE -> {
-                binding.mapView.mode = SetupMapView.Mode.Drive
-                fragment.state.onNextState()
-
-                Toast.makeText(context, "[Success] START_RECORD", Toast.LENGTH_SHORT).show()
-
+            OBSTACLE -> {
+                doAction()
             }
-            RecordBoundary.Subject.CHARGING -> {
+            CHARGING -> {
                 binding.mapView.setChargingStation()
-                binding.mapView.mode = SetupMapView.Mode.Drive
-                fragment.state.onNextState()
-
-                Toast.makeText(context, "[Success] START_RECORD", Toast.LENGTH_SHORT).show()
-
+                doAction()
             }
-            RecordBoundary.Subject.GRASS_PATH -> {
-                binding.mapView.mode = SetupMapView.Mode.Drive
-                fragment.state.onNextState()
-
-                Toast.makeText(context, "[Success] START_RECORD", Toast.LENGTH_SHORT).show()
-
+            GRASS_PATH -> {
+                doAction()
             }
         }
+    }
+
+    private fun doAction() {
+        binding.mapView.mode = SetupMapView.Mode.Drive
+        fragment.state.onNextState()
+        Toast.makeText(context, "[Success] START_RECORD", Toast.LENGTH_SHORT).show()
     }
 
 }

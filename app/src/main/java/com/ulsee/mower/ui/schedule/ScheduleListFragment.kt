@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +18,7 @@ import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
 import com.ulsee.mower.data.BLEBroadcastAction
 import com.ulsee.mower.databinding.FragmentScheduleListBinding
+import com.ulsee.mower.ui.map.SetupMapFragmentDirections
 
 private val TAG = ScheduleListFragment::class.java.simpleName
 
@@ -56,6 +58,7 @@ class ScheduleListFragment : Fragment() {
         initWeekdays()
         bindClick()
         viewModel.getSchedule()
+        addOnBackPressedCallback()
         return binding.root
     }
 
@@ -212,4 +215,16 @@ class ScheduleListFragment : Fragment() {
     private fun unregisterBLEReceiver() {
         requireActivity().unregisterReceiver(viewModel.gattUpdateReceiver)
     }
+
+    private fun addOnBackPressedCallback() {
+        activity?.onBackPressedDispatcher?.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    val action = ScheduleListFragmentDirections.actionToStatusFragment()
+                    findNavController().navigate(action)
+                }
+            })
+    }
+
 }

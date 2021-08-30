@@ -21,6 +21,7 @@
         android:layout_width="350dp"
         android:layout_height="64dp"
         android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/instructionNextBtn"
         app:layout_constraintStart_toEndOf="@+id/joystick"
         app:layout_constraintTop_toBottomOf="@+id/imageView6"
         app:srcCompat="@drawable/map_instruction" />

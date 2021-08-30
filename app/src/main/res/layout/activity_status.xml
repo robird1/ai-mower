@@ -5,455 +5,637 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_marginLeft="-250dp"
+    android:layout_marginRight="-250dp"
+    android:background="@drawable/bg_map">
 
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayoutCustomView"
-        android:layout_width="match_parent"
+    <com.ulsee.mower.ui.map.StatusView
+        android:id="@+id/statusView"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline"
-        tools:visibility="gone">
-
-        <com.ulsee.mower.ui.map.StatusView
-            android:id="@+id/statusView"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="@drawable/bg_map"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0" />
-
-        <View
-            android:id="@+id/view3"
-            android:layout_width="wrap_content"
-            android:layout_height="84dp"
-            android:background="#000000"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <ImageView
-            android:id="@+id/parkingButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="54dp"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/tab_button_selector"
-            app:layout_constraintBottom_toTopOf="@+id/textView6"
-            app:layout_constraintEnd_toStartOf="@+id/startMowingBtn"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toEndOf="@+id/view3"
-            app:srcCompat="@drawable/ic_tab_chargingstation" />
-
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="13dp"
-            android:text="Parking"
-            android:textColor="@color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/parkingButton"
-            app:layout_constraintStart_toStartOf="@+id/parkingButton" />
-
-        <ImageView
-            android:id="@+id/startMowingBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="54dp"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/tab_button_selector"
-            app:layout_constraintBottom_toTopOf="@+id/startText"
-            app:layout_constraintEnd_toStartOf="@+id/pauseButton"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/parkingButton"
-            app:srcCompat="@drawable/ic_tab_start" />
-
-        <TextView
-            android:id="@+id/startText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="13dp"
-            android:text="Start"
-            android:textColor="@color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/startMowingBtn"
-            app:layout_constraintStart_toStartOf="@+id/startMowingBtn" />
-
-        <ImageView
-            android:id="@+id/pauseButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="54dp"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/tab_button_selector"
-            android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@+id/pauseText"
-            app:layout_constraintEnd_toStartOf="@+id/scheduleButton"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/startMowingBtn"
-            app:srcCompat="@drawable/ic_tab_pause"
-            tools:visibility="visible" />
-
-        <TextView
-            android:id="@+id/pauseText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="13dp"
-            android:text="Pause"
-            android:textColor="@color/white"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/pauseButton"
-            app:layout_constraintStart_toStartOf="@+id/pauseButton"
-            tools:visibility="visible" />
-
-        <ImageView
-            android:id="@+id/scheduleButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="54dp"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/tab_button_selector"
-            app:layout_constraintBottom_toTopOf="@+id/textView17"
-            app:layout_constraintEnd_toStartOf="@+id/settingButton"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/pauseButton"
-            app:srcCompat="@drawable/ic_tab_schedule" />
-
-        <TextView
-            android:id="@+id/textView17"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="13dp"
-            android:text="Schedule"
-            android:textColor="@color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/scheduleButton"
-            app:layout_constraintStart_toStartOf="@+id/scheduleButton" />
-
-        <TextView
-            android:id="@+id/textView18"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="13dp"
-            android:text="Settings"
-            android:textColor="@color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/settingButton"
-            app:layout_constraintStart_toStartOf="@+id/settingButton" />
-
-        <ImageView
-            android:id="@+id/settingButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/tab_button_selector"
-            app:layout_constraintBottom_toTopOf="@+id/textView18"
-            app:layout_constraintEnd_toStartOf="@+id/view3"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/scheduleButton"
-            app:srcCompat="@drawable/ic_tab_settings" />
-
-        <ImageView
-            android:id="@+id/imageView8"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="6dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_operated_area" />
-
-        <TextView
-            android:id="@+id/workingAreaText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/imageView8"
-            app:layout_constraintStart_toEndOf="@+id/imageView8"
-            app:layout_constraintTop_toTopOf="@+id/imageView8" />
-
-        <ImageView
-            android:id="@+id/imageView9"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="6dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView8"
-            app:srcCompat="@drawable/ic_operated_time" />
-
-        <TextView
-            android:id="@+id/workingTimeText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/imageView9"
-            app:layout_constraintStart_toEndOf="@+id/imageView9"
-            app:layout_constraintTop_toTopOf="@+id/imageView9" />
-
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayoutNoMap"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline"
-        tools:visibility="visible">
-
-        <TextView
-            android:id="@+id/status_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:fontFamily="@font/roboto"
-            android:text="No map data"
-            android:textColor="#7AA507"
-            android:visibility="visible"
-            app:layout_constraintEnd_toEndOf="@+id/imageView7"
-            app:layout_constraintStart_toStartOf="@+id/imageView7"
-            app:layout_constraintTop_toBottomOf="@+id/imageView7" />
-
-        <ImageView
-            android:id="@+id/imageView7"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHeight_percent="0.2"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_ladybug_96" />
-
-        <Button
-            android:id="@+id/setupButton"
-            android:layout_width="162dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="41dp"
-            android:text="Set up Map"
-            android:textColor="@color/white"
-            android:textSize="13sp"
-            app:backgroundTint="#A5E009"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <ImageView
-        android:id="@+id/connectedView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/guideline"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_connected_s"
-        tools:visibility="visible" />
-
-    <ImageView
-        android:id="@+id/disconnectedView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/guideline"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_disconnected_s" />
-
-    <TextView
-        android:id="@+id/connectStausText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Connected"
-        app:layout_constraintBottom_toTopOf="@+id/guideline"
-        app:layout_constraintStart_toStartOf="@+id/guideline4"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/batteryView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        app:layout_constraintBottom_toBottomOf="@+id/connectStausText"
-        app:layout_constraintEnd_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toTopOf="@+id/connectStausText"
-        app:layout_constraintVertical_bias="0.666"
-        app:srcCompat="@drawable/ic_battery_bg"
-        tools:visibility="visible" />
-
-    <ImageView
-        android:id="@+id/batteryView_charging"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        app:layout_constraintBottom_toBottomOf="@+id/connectStausText"
-        app:layout_constraintEnd_toStartOf="@+id/power_percentage"
-        app:layout_constraintTop_toTopOf="@+id/connectStausText"
-        app:srcCompat="@drawable/ic_battery_charging"
-        tools:visibility="gone" />
-
-    <TextView
-        android:id="@+id/power_percentage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:text="100%"
-        app:layout_constraintBaseline_toBaselineOf="@+id/connectStausText"
-        app:layout_constraintStart_toStartOf="@+id/guideline2" />
-
-    <ImageView
-        android:id="@+id/signalView_good"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        app:layout_constraintBottom_toBottomOf="@+id/power_percentage"
-        app:layout_constraintEnd_toStartOf="@+id/signalStatus"
-        app:layout_constraintTop_toTopOf="@+id/power_percentage"
-        app:layout_constraintVertical_bias="0.333"
-        app:srcCompat="@drawable/ic_signal" />
-
-    <ImageView
-        android:id="@+id/signalView_bad"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/power_percentage"
-        app:layout_constraintEnd_toEndOf="@+id/signalView_good"
-        app:layout_constraintTop_toTopOf="@+id/power_percentage"
-        app:srcCompat="@drawable/ic_signal_copy" />
-
-    <TextView
-        android:id="@+id/signalStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="12dp"
-        android:text="Unavailable"
-        app:layout_constraintBaseline_toBaselineOf="@+id/power_percentage"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/chargingTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="(charging)"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/power_percentage"
-        app:layout_constraintStart_toEndOf="@+id/power_percentage"
-        app:layout_constraintTop_toTopOf="@+id/power_percentage"
-        tools:visibility="gone" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/progressView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#CC000000"
-        android:visibility="gone"
+        android:layout_marginStart="250dp"
+        android:layout_marginEnd="250dp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ProgressBar
-            android:id="@+id/progressBar2"
-            style="?android:attr/progressBarStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
+        <View
+            android:id="@+id/statusBar"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:background="#FFFFFF"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/connectedView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:visibility="visible"
+            app:layout_constraintBottom_toTopOf="@+id/guideline"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_connected_s"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/disconnectedView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/guideline"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_disconnected_s" />
+
+        <TextView
+            android:id="@+id/connectStausText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Connected"
+            app:layout_constraintBottom_toTopOf="@+id/guideline"
+            app:layout_constraintStart_toStartOf="@+id/guideline4"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/batteryView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            app:layout_constraintBottom_toBottomOf="@+id/connectStausText"
+            app:layout_constraintEnd_toStartOf="@+id/guideline2"
+            app:layout_constraintTop_toTopOf="@+id/connectStausText"
+            app:layout_constraintVertical_bias="0.666"
+            app:srcCompat="@drawable/ic_battery_bg"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/batteryView_charging"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            app:layout_constraintBottom_toBottomOf="@+id/connectStausText"
+            app:layout_constraintEnd_toStartOf="@+id/power_percentage"
+            app:layout_constraintTop_toTopOf="@+id/connectStausText"
+            app:srcCompat="@drawable/ic_battery_charging"
+            tools:visibility="gone" />
+
+        <TextView
+            android:id="@+id/power_percentage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="100%"
+            app:layout_constraintBaseline_toBaselineOf="@+id/connectStausText"
+            app:layout_constraintStart_toStartOf="@+id/guideline2" />
+
+        <ImageView
+            android:id="@+id/signalView_good"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            app:layout_constraintBottom_toBottomOf="@+id/power_percentage"
+            app:layout_constraintEnd_toStartOf="@+id/signalStatus"
+            app:layout_constraintTop_toTopOf="@+id/power_percentage"
+            app:layout_constraintVertical_bias="0.333"
+            app:srcCompat="@drawable/ic_signal" />
+
+        <ImageView
+            android:id="@+id/signalView_bad"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/power_percentage"
+            app:layout_constraintEnd_toEndOf="@+id/signalView_good"
+            app:layout_constraintTop_toTopOf="@+id/power_percentage"
+            app:srcCompat="@drawable/ic_signal_copy" />
+
+        <TextView
+            android:id="@+id/signalStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:text="Unavailable"
+            app:layout_constraintBaseline_toBaselineOf="@+id/power_percentage"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/chargingTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="(charging)"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/power_percentage"
+            app:layout_constraintStart_toEndOf="@+id/power_percentage"
+            app:layout_constraintTop_toTopOf="@+id/power_percentage"
+            tools:visibility="gone" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/progressView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#CC000000"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ProgressBar
+                android:id="@+id/progressBar2"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.07" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="45dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5" />
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayoutCustomView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/statusBar"
+            tools:visibility="visible">
+
+            <Button
+                android:id="@+id/editMapButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:text="Edit"
+                app:layout_constraintBottom_toTopOf="@+id/view3"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <View
+                android:id="@+id/view3"
+                android:layout_width="wrap_content"
+                android:layout_height="84dp"
+                android:background="#000000"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <ImageView
+                android:id="@+id/parkingButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="54dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/tab_button_selector"
+                app:layout_constraintBottom_toTopOf="@+id/textView6"
+                app:layout_constraintEnd_toStartOf="@+id/startMowingBtn"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toEndOf="@+id/view3"
+                app:srcCompat="@drawable/ic_tab_chargingstation" />
+
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="13dp"
+                android:text="Parking"
+                android:textColor="@color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/parkingButton"
+                app:layout_constraintStart_toStartOf="@+id/parkingButton" />
+
+            <ImageView
+                android:id="@+id/startMowingBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="54dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/tab_button_selector"
+                app:layout_constraintBottom_toTopOf="@+id/startText"
+                app:layout_constraintEnd_toStartOf="@+id/pauseButton"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/parkingButton"
+                app:srcCompat="@drawable/ic_tab_start" />
+
+            <TextView
+                android:id="@+id/startText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="13dp"
+                android:text="Start"
+                android:textColor="@color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/startMowingBtn"
+                app:layout_constraintStart_toStartOf="@+id/startMowingBtn" />
+
+            <ImageView
+                android:id="@+id/pauseButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="54dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/tab_button_selector"
+                android:visibility="gone"
+                app:layout_constraintBottom_toTopOf="@+id/pauseText"
+                app:layout_constraintEnd_toStartOf="@+id/scheduleButton"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/startMowingBtn"
+                app:srcCompat="@drawable/ic_tab_pause"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/pauseText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="13dp"
+                android:text="Pause"
+                android:textColor="@color/white"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/pauseButton"
+                app:layout_constraintStart_toStartOf="@+id/pauseButton"
+                tools:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/scheduleButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="54dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/tab_button_selector"
+                app:layout_constraintBottom_toTopOf="@+id/textView17"
+                app:layout_constraintEnd_toStartOf="@+id/settingButton"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/pauseButton"
+                app:srcCompat="@drawable/ic_tab_schedule" />
+
+            <TextView
+                android:id="@+id/textView17"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="13dp"
+                android:text="Schedule"
+                android:textColor="@color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/scheduleButton"
+                app:layout_constraintStart_toStartOf="@+id/scheduleButton" />
+
+            <TextView
+                android:id="@+id/textView18"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="13dp"
+                android:text="Settings"
+                android:textColor="@color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/settingButton"
+                app:layout_constraintStart_toStartOf="@+id/settingButton" />
+
+            <ImageView
+                android:id="@+id/settingButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/tab_button_selector"
+                app:layout_constraintBottom_toTopOf="@+id/textView18"
+                app:layout_constraintEnd_toStartOf="@+id/view3"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/scheduleButton"
+                app:srcCompat="@drawable/ic_tab_settings" />
+
+            <ImageView
+                android:id="@+id/imageView8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="6dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_operated_area" />
+
+            <TextView
+                android:id="@+id/workingAreaText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                app:layout_constraintBottom_toBottomOf="@+id/imageView8"
+                app:layout_constraintStart_toEndOf="@+id/imageView8"
+                app:layout_constraintTop_toTopOf="@+id/imageView8" />
+
+            <ImageView
+                android:id="@+id/imageView9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="6dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/imageView8"
+                app:srcCompat="@drawable/ic_operated_time" />
+
+            <TextView
+                android:id="@+id/workingTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                app:layout_constraintBottom_toBottomOf="@+id/imageView9"
+                app:layout_constraintStart_toEndOf="@+id/imageView9"
+                app:layout_constraintTop_toTopOf="@+id/imageView9" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayoutNoMap"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="#FFFFFF"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/statusBar"
+            tools:visibility="gone">
+
+            <TextView
+                android:id="@+id/status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/roboto"
+                android:text="No map data"
+                android:textColor="#7AA507"
+                android:visibility="visible"
+                app:layout_constraintEnd_toEndOf="@+id/imageView7"
+                app:layout_constraintStart_toStartOf="@+id/imageView7"
+                app:layout_constraintTop_toBottomOf="@+id/imageView7" />
+
+            <ImageView
+                android:id="@+id/imageView7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHeight_percent="0.2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_ladybug_96" />
+
+            <Button
+                android:id="@+id/setupButton"
+                android:layout_width="162dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="41dp"
+                android:text="Set up Map"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                app:backgroundTint="#A5E009"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!--        <ImageView-->
+        <!--            android:id="@+id/connectedView"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginStart="12dp"-->
+        <!--            android:visibility="visible"-->
+        <!--            app:layout_constraintBottom_toTopOf="@+id/guideline"-->
+        <!--            app:layout_constraintStart_toStartOf="parent"-->
+        <!--            app:layout_constraintTop_toTopOf="parent"-->
+        <!--            app:srcCompat="@drawable/ic_connected_s"-->
+        <!--            tools:visibility="visible" />-->
+
+        <!--        <ImageView-->
+        <!--            android:id="@+id/disconnectedView"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginStart="15dp"-->
+        <!--            android:visibility="gone"-->
+        <!--            app:layout_constraintBottom_toTopOf="@+id/guideline"-->
+        <!--            app:layout_constraintStart_toStartOf="parent"-->
+        <!--            app:layout_constraintTop_toTopOf="parent"-->
+        <!--            app:srcCompat="@drawable/ic_disconnected_s" />-->
+
+        <!--        <TextView-->
+        <!--            android:id="@+id/connectStausText"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:text="Connected"-->
+        <!--            app:layout_constraintBottom_toTopOf="@+id/guideline"-->
+        <!--            app:layout_constraintStart_toStartOf="@+id/guideline4"-->
+        <!--            app:layout_constraintTop_toTopOf="parent" />-->
+
+        <!--        <ImageView-->
+        <!--            android:id="@+id/batteryView"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginEnd="4dp"-->
+        <!--            app:layout_constraintBottom_toBottomOf="@+id/connectStausText"-->
+        <!--            app:layout_constraintEnd_toStartOf="@+id/guideline2"-->
+        <!--            app:layout_constraintTop_toTopOf="@+id/connectStausText"-->
+        <!--            app:layout_constraintVertical_bias="0.666"-->
+        <!--            app:srcCompat="@drawable/ic_battery_bg"-->
+        <!--            tools:visibility="visible" />-->
+
+        <!--        <ImageView-->
+        <!--            android:id="@+id/batteryView_charging"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginEnd="4dp"-->
+        <!--            app:layout_constraintBottom_toBottomOf="@+id/connectStausText"-->
+        <!--            app:layout_constraintEnd_toStartOf="@+id/power_percentage"-->
+        <!--            app:layout_constraintTop_toTopOf="@+id/connectStausText"-->
+        <!--            app:srcCompat="@drawable/ic_battery_charging"-->
+        <!--            tools:visibility="gone" />-->
+
+        <!--        <TextView-->
+        <!--            android:id="@+id/power_percentage"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginStart="4dp"-->
+        <!--            android:text="100%"-->
+        <!--            app:layout_constraintBaseline_toBaselineOf="@+id/connectStausText"-->
+        <!--            app:layout_constraintStart_toStartOf="@+id/guideline2" />-->
+
+        <!--        <ImageView-->
+        <!--            android:id="@+id/signalView_good"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginEnd="4dp"-->
+        <!--            app:layout_constraintBottom_toBottomOf="@+id/power_percentage"-->
+        <!--            app:layout_constraintEnd_toStartOf="@+id/signalStatus"-->
+        <!--            app:layout_constraintTop_toTopOf="@+id/power_percentage"-->
+        <!--            app:layout_constraintVertical_bias="0.333"-->
+        <!--            app:srcCompat="@drawable/ic_signal" />-->
+
+        <!--        <ImageView-->
+        <!--            android:id="@+id/signalView_bad"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:visibility="gone"-->
+        <!--            app:layout_constraintBottom_toBottomOf="@+id/power_percentage"-->
+        <!--            app:layout_constraintEnd_toEndOf="@+id/signalView_good"-->
+        <!--            app:layout_constraintTop_toTopOf="@+id/power_percentage"-->
+        <!--            app:srcCompat="@drawable/ic_signal_copy" />-->
+
+        <!--        <TextView-->
+        <!--            android:id="@+id/signalStatus"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginEnd="12dp"-->
+        <!--            android:text="Unavailable"-->
+        <!--            app:layout_constraintBaseline_toBaselineOf="@+id/power_percentage"-->
+        <!--            app:layout_constraintEnd_toEndOf="parent" />-->
+
+        <!--        <TextView-->
+        <!--            android:id="@+id/chargingTxt"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginStart="8dp"-->
+        <!--            android:text="(charging)"-->
+        <!--            android:visibility="gone"-->
+        <!--            app:layout_constraintBottom_toBottomOf="@+id/power_percentage"-->
+        <!--            app:layout_constraintStart_toEndOf="@+id/power_percentage"-->
+        <!--            app:layout_constraintTop_toTopOf="@+id/power_percentage"-->
+        <!--            tools:visibility="gone" />-->
+
+        <!--        <androidx.constraintlayout.widget.ConstraintLayout-->
+        <!--            android:id="@+id/progressView"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="match_parent"-->
+        <!--            android:background="#CC000000"-->
+        <!--            android:visibility="gone"-->
+        <!--            app:layout_constraintBottom_toBottomOf="parent"-->
+        <!--            app:layout_constraintEnd_toEndOf="parent"-->
+        <!--            app:layout_constraintStart_toStartOf="parent"-->
+        <!--            app:layout_constraintTop_toTopOf="parent">-->
+
+        <!--            <ProgressBar-->
+        <!--                android:id="@+id/progressBar2"-->
+        <!--                style="?android:attr/progressBarStyle"-->
+        <!--                android:layout_width="wrap_content"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                app:layout_constraintBottom_toBottomOf="parent"-->
+        <!--                app:layout_constraintEnd_toEndOf="parent"-->
+        <!--                app:layout_constraintStart_toStartOf="parent"-->
+        <!--                app:layout_constraintTop_toTopOf="parent" />-->
+        <!--        </androidx.constraintlayout.widget.ConstraintLayout>-->
+
+        <!--        <androidx.constraintlayout.widget.Guideline-->
+        <!--            android:id="@+id/guideline"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:orientation="horizontal"-->
+        <!--            app:layout_constraintGuide_percent="0.064295486" />-->
+
+        <!--        <androidx.constraintlayout.widget.Guideline-->
+        <!--            android:id="@+id/guideline4"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:orientation="vertical"-->
+        <!--            app:layout_constraintGuide_begin="45dp" />-->
+
+        <!--        <androidx.constraintlayout.widget.Guideline-->
+        <!--            android:id="@+id/guideline2"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:orientation="vertical"-->
+        <!--            app:layout_constraintGuide_percent="0.5" />-->
+
+
+        <!--    <LinearLayout-->
+        <!--        android:layout_width="match_parent"-->
+        <!--        android:layout_height="84dp"-->
+        <!--        android:background="#000000"-->
+        <!--        android:orientation="horizontal"-->
+        <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+        <!--        app:layout_constraintTop_toTopOf="@+id/view3">-->
+
+
+        <!--        <ImageButton-->
+        <!--            android:id="@+id/parkingButton"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_weight="1"-->
+
+        <!--            app:srcCompat="@drawable/ic_tab_chargingstation" />-->
+
+        <!--        <ImageButton-->
+        <!--            android:id="@+id/startMowingBtn"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_weight="1"-->
+        <!--            app:srcCompat="@drawable/ic_tab_start" />-->
+
+        <!--        <ImageButton-->
+        <!--            android:id="@+id/pauseButton"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_weight="1"-->
+        <!--            android:visibility="gone"-->
+        <!--            app:srcCompat="@drawable/ic_tab_pause" />-->
+
+        <!--        <ImageButton-->
+        <!--            android:id="@+id/scheduleButton"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_weight="1"-->
+        <!--            app:srcCompat="@drawable/ic_tab_schedule" />-->
+
+        <!--        <ImageButton-->
+        <!--            android:id="@+id/settingButton"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_weight="1"-->
+        <!--            app:srcCompat="@drawable/ic_tab_settings" />-->
+
+        <!--    </LinearLayout>-->
+
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_begin="47dp" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="45dp" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.5" />
-
-
-    <!--    <LinearLayout-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="84dp"-->
-<!--        android:background="#000000"-->
-<!--        android:orientation="horizontal"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="@+id/view3">-->
-
-
-<!--        <ImageButton-->
-<!--            android:id="@+id/parkingButton"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_weight="1"-->
-
-<!--            app:srcCompat="@drawable/ic_tab_chargingstation" />-->
-
-<!--        <ImageButton-->
-<!--            android:id="@+id/startMowingBtn"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_weight="1"-->
-<!--            app:srcCompat="@drawable/ic_tab_start" />-->
-
-<!--        <ImageButton-->
-<!--            android:id="@+id/pauseButton"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_weight="1"-->
-<!--            android:visibility="gone"-->
-<!--            app:srcCompat="@drawable/ic_tab_pause" />-->
-
-<!--        <ImageButton-->
-<!--            android:id="@+id/scheduleButton"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_weight="1"-->
-<!--            app:srcCompat="@drawable/ic_tab_schedule" />-->
-
-<!--        <ImageButton-->
-<!--            android:id="@+id/settingButton"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_weight="1"-->
-<!--            app:srcCompat="@drawable/ic_tab_settings" />-->
-
-<!--    </LinearLayout>-->
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
