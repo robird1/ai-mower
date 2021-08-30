@@ -1,5 +1,8 @@
 package com.ulsee.mower
 
+import com.google.gson.Gson
+import com.ulsee.mower.data.model.DesiredBool
+import com.ulsee.mower.data.model.IotCoreShadowPayload
 import org.junit.Assert.*
 import org.junit.Test
 import java.text.DateFormat
@@ -16,6 +19,13 @@ class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
         assertEquals(4, 2 + 2)
+    }
+
+    @Test
+    fun testDesiredRainMode() {
+        val message = "{\"state\":{\"desired\":{\"rainmode\":\"ON\"}},\"metadata\":{\"desired\":{\"rainmode\":{\"timestamp\":1629275090}}},\"version\":60,\"timestamp\":1629275090}"
+        val payload = Gson().fromJson(message, IotCoreShadowPayload::class.java)
+        assertEquals(DesiredBool.yes, payload.state.desired?.rainmode)
     }
 
     @Test

@@ -221,6 +221,7 @@ class BLEBroadcastAction {
         const val ACTION_GATT_CONNECTED = "action_gatt_connected"
         const val ACTION_GATT_DISCONNECTED = "action_gatt_disconnected"
         const val ACTION_GATT_NOT_SUCCESS = "action_gatt_not_success"
+        const val ACTION_ON_DISCONNECT_DEVICE = "action_on_disconnect_device"
         const val ACTION_VERIFICATION_SUCCESS = "action_verification_success"
         const val ACTION_VERIFICATION_FAILED = "action_verification_failed"
         const val ACTION_STATUS = "action_status"

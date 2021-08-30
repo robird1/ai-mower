@@ -8,7 +8,7 @@
         android:id="@+id/robotListFragment"
         android:name="com.ulsee.mower.ui.connect.RobotListFragment"
         android:label="RobotListFragment">
-        <action
+        <actionf
             android:id="@+id/action_robotListFragment_to_addRobotInstructionFragment"
             app:destination="@id/addRobotInstructionFragment" />
         <action

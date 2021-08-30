@@ -22,10 +22,7 @@ import com.ulsee.mower.App
 import com.ulsee.mower.R
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
-import com.ulsee.mower.data.AccountDataSource
-import com.ulsee.mower.data.AccountRepository
-import com.ulsee.mower.data.BLEBroadcastAction
-import com.ulsee.mower.data.Status
+import com.ulsee.mower.data.*
 import com.ulsee.mower.databinding.FragmentSettingsBinding
 import com.ulsee.mower.databinding.FragmentSettingsMowerBinding
 import com.ulsee.mower.ui.login.LoginActivity
@@ -79,7 +76,7 @@ class MowerSettingsFragment : Fragment() {
 
     fun initViewModel() {
         bleRepository = BluetoothLeRepository(bluetoothService)
-        viewModel = ViewModelProvider(this, MowerSettingsFragmentViewModelFactory(bleRepository)).get(MowerSettingsFragmentViewModel::class.java)
+        viewModel = ViewModelProvider(this,  MowerSettingsFragmentViewModelFactory(DatabaseRepository(), bleRepository)).get(MowerSettingsFragmentViewModel::class.java)
     }
 
     private fun initSettingsObserver() {
@@ -153,6 +150,7 @@ class MowerSettingsFragment : Fragment() {
                 val prefs = it.getSharedPreferences("account", Context.MODE_PRIVATE)
                 val loginRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/"), prefs)
                 loginRepository.logout()
+                DatabaseRepository().clearDevices()
                 bleRepository.disconnectDevice()
                 it.startActivity(Intent(it, LoginActivity::class.java))
                 it.finish()

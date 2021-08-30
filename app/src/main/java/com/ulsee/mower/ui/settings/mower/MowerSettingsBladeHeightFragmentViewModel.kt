@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ulsee.mower.ble.BluetoothLeRepository
+import com.ulsee.mower.ble.CommandSettings
 import com.ulsee.mower.data.BLEBroadcastAction
 import com.ulsee.mower.data.model.Device
 import com.ulsee.mower.utils.Event
@@ -46,7 +47,7 @@ class MowerSettingsBladeHeightFragmentViewModel(private val bleRepository: Bluet
         mIsLoading.value = true
         viewModelScope.launch {
             Log.i(TAG, "updateKnifeHeihgt ${height.toByte()}")
-            bleRepository.configSettings(-120/*0x88*/, height.toByte())
+            bleRepository.configSettings(CommandSettings.INSTRUCTION_BLADE_HEIGHT/*0x88*/, height.toByte())
         }
     }
 

@@ -39,4 +39,11 @@ class DatabaseRepository {
         return@withContext deviceList
     }
 
+    fun clearDevices() {
+        val realm = Realm.getDefaultInstance()
+        realm.beginTransaction()
+        realm.delete(RealmDevice::class.java)
+        realm.commitTransaction()
+        realm.close()
+    }
 }

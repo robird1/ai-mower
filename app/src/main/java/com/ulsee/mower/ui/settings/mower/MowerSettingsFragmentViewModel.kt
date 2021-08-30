@@ -9,12 +9,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ulsee.mower.ble.BluetoothLeRepository
+import com.ulsee.mower.ble.CommandSettings
 import com.ulsee.mower.data.BLEBroadcastAction
+import com.ulsee.mower.data.DatabaseRepository
 import com.ulsee.mower.data.MapData
 import com.ulsee.mower.utils.Event
 import kotlinx.coroutines.launch
 
-class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepository) : ViewModel() {
+class MowerSettingsFragmentViewModel(private val dbRepository: DatabaseRepository, private val bleRepository: BluetoothLeRepository) : ViewModel() {
 
     private val TAG = "MowerSettingsFragmentViewModel"
     private var mIsLoading : MutableLiveData<Boolean> = MutableLiveData()
@@ -51,7 +53,7 @@ class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepos
         viewModelScope.launch {
             val value : Byte = if(isWorkingOnRainlyDay) 0x01 else 0x00
             Log.i(TAG, "updateWorkingOnRainlyDay $value")
-            bleRepository.configSettings(-125/*0x83*/, value)
+            bleRepository.configSettings(CommandSettings.INSTRUCTION_RAIN_MODE/*0x83*/, value)
         }
     }
 
@@ -74,7 +76,7 @@ class MowerSettingsFragmentViewModel(private val bleRepository: BluetoothLeRepos
                 else -> 0x00
             }
             Log.i(TAG, "updateWorkingMode $value")
-            bleRepository.configSettings(-126/*82*/, value)
+            bleRepository.configSettings(CommandSettings.INSTRUCTION_WORKING_MODE/*82*/, value)
         }
     }
 

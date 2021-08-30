@@ -25,6 +25,7 @@ import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_DEVICE_NOT_FOUND
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_CONNECTED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_DISCONNECTED
 import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_GATT_NOT_SUCCESS
+import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_ON_DISCONNECT_DEVICE
 import com.ulsee.mower.data.BLECommandTable
 import com.ulsee.mower.utils.MD5
 import com.ulsee.mower.utils.Utils
@@ -202,6 +203,7 @@ class BluetoothLeService : Service() {
     }
 
     fun disconnectDevice() {
+        broadcastUpdate(ACTION_ON_DISCONNECT_DEVICE)
         Log.d(TAG, "[Enter] disconnectDevice()")
         bluetoothGatt?.close()
         bluetoothGatt = null

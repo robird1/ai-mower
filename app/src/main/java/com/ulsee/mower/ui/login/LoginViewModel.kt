@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ulsee.mower.R
 import com.ulsee.mower.data.AccountRepository
+import com.ulsee.mower.data.DatabaseRepository
 import com.ulsee.mower.data.Result
 import kotlinx.coroutines.launch
 
@@ -18,6 +19,9 @@ class LoginViewModel(private val loginRepository: AccountRepository) : ViewModel
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> = _loginResult
 
+    private val _registerResult = MutableLiveData<LoginResult>()
+    val registerResult: LiveData<LoginResult> = _registerResult
+
     private val _requestResetPasswordResult = MutableLiveData<ActionResult>()
     val requestResetPasswordResult: LiveData<ActionResult> = _requestResetPasswordResult
 
@@ -28,6 +32,7 @@ class LoginViewModel(private val loginRepository: AccountRepository) : ViewModel
         viewModelScope.launch {
             val result = loginRepository.login(email, password)
             if (result is Result.Success) {
+                DatabaseRepository().clearDevices()
                 _loginResult.value = LoginResult(success = LoggedInUserView(displayName = result.data.displayname))
             } else {
                 _loginResult.value = LoginResult(error = (result as Result.Error).exception.message)
@@ -40,9 +45,9 @@ class LoginViewModel(private val loginRepository: AccountRepository) : ViewModel
             val result = loginRepository.register(email, password)
 
             if (result is Result.Success) {
-                _loginResult.value = LoginResult(success = LoggedInUserView(displayName = result.data.result))
+                _registerResult.value = LoginResult(success = LoggedInUserView(displayName = result.data.result))
             } else {
-                _loginResult.value = LoginResult(error = (result as Result.Error).exception.message)
+                _registerResult.value = LoginResult(error = (result as Result.Error).exception.message)
             }
         }
     }

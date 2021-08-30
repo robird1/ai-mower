@@ -4,6 +4,11 @@ import android.content.Intent
 import com.ulsee.mower.data.BLEBroadcastAction
 
 class CommandSettings(service: BluetoothLeService): AbstractCommand(service) {
+    companion object {
+        val INSTRUCTION_BLADE_HEIGHT : Int = -120
+        val INSTRUCTION_RAIN_MODE : Int = -125
+        val INSTRUCTION_WORKING_MODE : Int = -126
+    }
     override fun getSendPayload(): ByteArray {
         TODO("Not yet implemented")
     }
@@ -23,7 +28,8 @@ class CommandSettings(service: BluetoothLeService): AbstractCommand(service) {
         val grassCount = value[getIndex(value, -122) + 1].toInt()
         val knifeHeightIdx = 38//38 + (grassCount-1) * 9
         // TODO: 每一個草坪可能有不同的刀片高度
-        return value[knifeHeightIdx].toUByte().toInt()
+//        return value[knifeHeightIdx].toUByte().toInt()
+        return value[getIndex(value, -117)+1].toInt()
     }
 
     fun getConfigPayload(instructionType: Int, value: Byte): ByteArray {

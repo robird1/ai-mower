@@ -34,6 +34,7 @@ import com.ulsee.mower.data.Status.WorkingMode.Companion.MANUAL_MODE
 import com.ulsee.mower.data.Status.WorkingMode.Companion.SUSPEND_WORKING_MODE
 import com.ulsee.mower.data.Status.WorkingMode.Companion.TESTING_BOUNDARY_MODE
 import com.ulsee.mower.data.Status.WorkingMode.Companion.WORKING_MODE
+import com.ulsee.mower.data.StatusFragmentBroadcast
 import com.ulsee.mower.databinding.ActivityStatusBinding
 import com.ulsee.mower.ui.connect.RobotListFragmentArgs
 import com.ulsee.mower.ui.login.LoginActivity
@@ -51,6 +52,14 @@ class StatusFragment: Fragment() {
 //    private var estimatedTime = ""
 
     private var state = MowingState.Stop
+        set(value) {
+            field = value
+            when (value) {
+                MowingState.Mowing -> context?.sendBroadcast(Intent(StatusFragmentBroadcast.MOWER_STATUS_MOWING))
+                MowingState.Pause -> context?.sendBroadcast(Intent(StatusFragmentBroadcast.MOWER_STATUS_PAUSE))
+                MowingState.Stop -> context?.sendBroadcast(Intent(StatusFragmentBroadcast.MOWER_STATUS_STOP))
+            }
+        }
     enum class MowingState {
         Mowing, Pause, Stop
     }
@@ -60,6 +69,16 @@ class StatusFragment: Fragment() {
         super.onCreate(savedInstanceState)
         checkService()
         initViewModel()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        context?.sendBroadcast(Intent(StatusFragmentBroadcast.LIFECYCLE_ONRESUME))
+    }
+
+    override fun onPause() {
+        context?.sendBroadcast(Intent(StatusFragmentBroadcast.LIFECYCLE_ONPAUSE))
+        super.onPause()
     }
 
     private fun checkService() {

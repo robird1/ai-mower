@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.ulsee.mower.R
 import com.ulsee.mower.data.model.Device
+import java.lang.Exception
 
 private val TAG = RobotListAdapter::class.java.simpleName
 

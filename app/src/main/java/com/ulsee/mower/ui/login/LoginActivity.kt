@@ -23,6 +23,7 @@ import com.ulsee.mower.ui.register.RegisterActivity
 class LoginActivity : AppCompatActivity() {
 
     lateinit var loginViewModel: LoginViewModel
+    val registerActivityRequestCode = 1234
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,7 +89,7 @@ class LoginActivity : AppCompatActivity() {
         val signUp = findViewById<View>(R.id.textView_subtitle_signup)
         val forgetPassword = findViewById<View>(R.id.textView_forgetPassword)
         signUp.setOnClickListener{
-            startActivity(Intent(this@LoginActivity, RegisterActivity::class.java))
+            startActivityForResult(Intent(this@LoginActivity, RegisterActivity::class.java), registerActivityRequestCode)
             finish()
         }
         forgetPassword.setOnClickListener {
@@ -107,6 +108,13 @@ class LoginActivity : AppCompatActivity() {
 
     private fun showLoginFailed(@StringRes errorString: String) {
         Toast.makeText(applicationContext, errorString, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == registerActivityRequestCode && resultCode == RESULT_OK) {
+            finish()
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 }
 

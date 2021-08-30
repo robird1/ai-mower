@@ -2,7 +2,6 @@ package com.ulsee.mower
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
@@ -14,6 +13,7 @@ import com.ulsee.mower.ble.BluetoothLeService
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
+import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.data.*
 import com.ulsee.mower.databinding.ActivityMainBinding
 import com.ulsee.mower.ui.login.LoginActivity
@@ -115,7 +115,8 @@ class MainActivity: AppCompatActivity() {
     }
     private fun initViewModel() {
         val bluetoothService = (application as App).bluetoothService!!
-        viewModel = ViewModelProvider(this, MainActivityViewModelFactory(bluetoothService))
+        val bleRepository = BluetoothLeRepository(bluetoothService)
+        viewModel = ViewModelProvider(this, MainActivityViewModelFactory(bluetoothService, bleRepository))
             .get(MainActivityViewModel::class.java)
     }
 
@@ -144,8 +145,15 @@ class MainActivity: AppCompatActivity() {
     private fun registerBLEReceiver() {
         val filter = IntentFilter()
         filter.addAction(BLEBroadcastAction.ACTION_STATUS)
-        filter.addAction(BLEBroadcastAction.ACTION_GATT_DISCONNECTED)
+        filter.addAction(BLEBroadcastAction.ACTION_SETTINGS)
+        filter.addAction(BLEBroadcastAction.ACTION_ON_DISCONNECT_DEVICE)
         filter.addAction(BLEBroadcastAction.ACTION_GATT_CONNECTED)
+
+        filter.addAction(StatusFragmentBroadcast.LIFECYCLE_ONRESUME)
+        filter.addAction(StatusFragmentBroadcast.LIFECYCLE_ONPAUSE)
+        filter.addAction(StatusFragmentBroadcast.MOWER_STATUS_MOWING)
+        filter.addAction(StatusFragmentBroadcast.MOWER_STATUS_PAUSE)
+        filter.addAction(StatusFragmentBroadcast.MOWER_STATUS_STOP)
         registerReceiver(viewModel.gattUpdateReceiver, filter)
     }
 

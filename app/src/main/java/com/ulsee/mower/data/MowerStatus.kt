@@ -1,8 +1,6 @@
 package com.ulsee.mower.data
 
-import com.ulsee.mower.data.model.IotCoreShadowPayload
-import com.ulsee.mower.data.model.IotCoreShadowPayloadState
-import com.ulsee.mower.data.model.IotCoreShadowPayloadStateReported
+import com.ulsee.mower.data.model.ReportedState
 
 data class MowerStatus(
     val x: Int,
@@ -16,18 +14,28 @@ data class MowerStatus(
     val isMowingStatus: Boolean,
     val interruptionCode: String?,
     val testingBoundaryState: Int,
-    val signalQuality: Int
+    val signalQuality: Int,
+    val estimatedTime: String?,
+    val elapsedTime: String?,
+    val totalArea: Short?,
+    val finishedArea: Short?,
 ) {
-    fun genPayload(): IotCoreShadowPayload {
-        val currentState = 1
-        val clientToken = System.currentTimeMillis() % 1000000
-
-        val payloadReported = IotCoreShadowPayloadStateReported(
-            currentState,
-            this
-        )
-        val payloadState = IotCoreShadowPayloadState(payloadReported)
-        val payload = IotCoreShadowPayload(payloadState, "$clientToken")
-        return payload
-    }
+    val workingPercentage: Int?
+        get() {
+            if (totalArea == null) return null
+            if (finishedArea == null) return null
+            if (totalArea.toInt() == 0) return null
+            return (100 * finishedArea) / totalArea
+        }
+    val isError: Boolean?
+        get() {
+            if (errorCode>0) { // error
+                return true
+            } else if ((robotStatus?.indexOf('1') ?: 0) >= 0) { // robotStatus emergency stop
+                return true
+            } else if ((interruptionCode?.indexOf('1') ?: 0) >= 0) { // robotStatus emergency stop
+                return true
+            }
+            return false
+        }
 }

@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.ulsee.mower.MainActivity
 import com.ulsee.mower.R
 import com.ulsee.mower.ui.login.*
 import kotlinx.coroutines.async
@@ -56,7 +57,7 @@ class RegisterActivity  : AppCompatActivity() {
                 ).show()
                 return@setOnClickListener
             }
-            if (password.text.toString().length < 6) {
+            if (password.text.toString().length < 5) {
                 password.error = getString(R.string.invalid_password)
                 return@setOnClickListener
             }
@@ -84,27 +85,31 @@ class RegisterActivity  : AppCompatActivity() {
                 false
             }
         }
-        registerViewModel.loginResult.observe(this, {
-            loading.visibility = View.GONE
+        registerViewModel.registerResult.observe(this, {
             if (it.error != null) {
                 showRegisterFailed(it.error)
             } else {
-
-                val adb: AlertDialog.Builder = AlertDialog.Builder(this@RegisterActivity)
-                val d: Dialog = adb.
-                setTitle("Registration Success").
-                setMessage(R.string.hint_login_after_register).
-                setCancelable(false).
-                setPositiveButton("ok") { dialog, which ->
-                    startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
-                }.
-                create()
-                d.show()
+                login()
+            }
+        })
+        registerViewModel.loginResult.observe(this, {
+            loading.visibility = View.GONE
+            if (it.error != null) {
+                showLoginFailed(it.error)
+            } else {
+                val intent = Intent(this@RegisterActivity, MainActivity::class.java)
+                startActivity(intent)
+                setResult(RESULT_OK)
+                finish()
             }
         })
     }
 
     private fun showRegisterFailed(@StringRes errorString: String) {
+        Toast.makeText(applicationContext, errorString, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showLoginFailed(@StringRes errorString: String) {
         Toast.makeText(applicationContext, errorString, Toast.LENGTH_SHORT).show()
     }
     fun register() {
@@ -114,5 +119,13 @@ class RegisterActivity  : AppCompatActivity() {
         loading.visibility = View.VISIBLE
 
         registerViewModel.register(username.text.toString(), password.text.toString())
+    }
+    fun login() {
+        val loading = findViewById<ProgressBar>(R.id.loading)
+        val username = findViewById<EditText>(R.id.username)
+        val password = findViewById<EditText>(R.id.password)
+        loading.visibility = View.VISIBLE
+
+        registerViewModel.login(username.text.toString(), password.text.toString())
     }
 }
