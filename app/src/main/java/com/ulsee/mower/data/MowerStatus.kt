@@ -8,7 +8,7 @@ data class MowerStatus(
     val angle: Float,
     val power: Int,
     val workingMode: Int,
-    val errorCode: Int,
+    var errorCode: Int,
     val robotStatus: String?,
     val isCharging: Boolean,
     val isMowingStatus: Boolean,
@@ -38,4 +38,7 @@ data class MowerStatus(
             }
             return false
         }
+    fun hideError() {
+        errorCode = 0
+    }
 }

@@ -45,6 +45,7 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
 //    var lastUploadStatusAt = 0L
     var lastUploadingStatusAt = 0L
     var lastUploadStatusIsError = false
+    var ignoreErrorCode = 0
 
     private lateinit var statusHandler: StatusHandler
     private inner class StatusHandler(looper: Looper) : Handler(looper) {
@@ -96,7 +97,7 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
                 }
             } else {
                 val now = System.currentTimeMillis()
-                val isError = status?.isError == true
+                var isError = status?.isError == true
                 val delay = if (isError && lastUploadStatusIsError) 5000 else 1000
                 if (now - lastUploadingStatusAt < delay) { // 每1 or 5秒傳
                     Log.i(TAG, "upload skip just uploaded ${(now - lastUploadingStatusAt)/1000}s ago")
@@ -105,6 +106,14 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
 
                 Log.i(TAG, "upload.... isAWSIotMqttManagerConnected=$isAWSIotMqttManagerConnected status = ${if(status == null) "null" else "exist"}")
                 if (isAWSIotMqttManagerConnected) {
+                    // errorCode會持續，因此要忽略 begin
+                    if (isError && status?.errorCode == ignoreErrorCode) {
+                        status?.hideError()
+                    } else {
+                        ignoreErrorCode = status?.errorCode ?: 0
+                    }
+                    isError = status?.isError == true
+                    // errorCode會持續，因此要忽略 end
                     status?.let {
                         lastUploadingStatusAt = System.currentTimeMillis()
                         lastUploadStatusIsError = isError
@@ -186,7 +195,6 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
                             Log.i(TAG, "desired action ${it.action}")
                             when(it.action) {
                                 DesiredAction.go -> {
-                                    Log.i(TAG, "desired action TODO: go, state =$state")
                                     if (!isStatusFragmentActive) {
                                         Log.i(TAG, "desired action but status fragment not active")
                                     }
@@ -202,7 +210,6 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
                                     }
                                 }
                                 DesiredAction.pause -> {
-                                    Log.i(TAG, "desired action TODO: pause, state=$state")
                                     if (!isStatusFragmentActive) {
                                         Log.i(TAG, "desired action but status fragment not active")
                                     }
@@ -219,7 +226,6 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
                                     }
                                 }
                                 DesiredAction.charge -> {
-                                    Log.i(TAG, "desired action TODO: charge, state=$state")
                                     if (!isStatusFragmentActive) {
                                         Log.i(TAG, "desired action but status fragment not active")
                                     }
@@ -279,8 +285,10 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
 
         val acceptedTopic = "$SHADOW_PREFIX$thingName$SHADOW_OP_UPDATE/accepted"
         val rejectedTopic = "$SHADOW_PREFIX$thingName$SHADOW_OP_UPDATE/rejected"
-        mAWSIotMqttManager?.unsubscribeTopic(acceptedTopic)
-        mAWSIotMqttManager?.unsubscribeTopic(rejectedTopic)
+        try {
+            mAWSIotMqttManager?.unsubscribeTopic(acceptedTopic)
+            mAWSIotMqttManager?.unsubscribeTopic(rejectedTopic)
+        } catch (ignore: Exception) {} // SDK會crash
     }
 
     override fun onCleared() {
