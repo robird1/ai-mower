@@ -448,11 +448,11 @@ class BluetoothLeService : Service() {
             with(characteristic) {
                 val instructionType = value[3].toInt()
 //                if (instructionType != BLECommandTable.STATUS) {
-                if (instructionType == BLECommandTable.MOWING_DATA) {
+//                if (instructionType == BLECommandTable.MOWING_DATA) {
                     Log.d(TAG, "instructionType: $instructionType")
 //                    Log.d(TAG, "instructionType2: ${value[3]}")
                     Log.d(TAG, "Characteristic changed | value: ${value.toHexString()}")
-                }
+//                }
 
                 val command = getCommandInstance(instructionType)
                 command.receive(value)

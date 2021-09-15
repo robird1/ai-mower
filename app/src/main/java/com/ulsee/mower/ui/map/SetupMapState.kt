@@ -1,5 +1,6 @@
 package com.ulsee.mower.ui.map
 
+import android.app.AlertDialog
 import android.util.Log
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -218,6 +219,7 @@ class StateControlPanel(private val fragment: SetupMapFragment) : SetupMapState(
         binding.chargingButton.setOnClickListener {
             fragment.state = StartChargingPath(fragment)
             fragment.state.createView()
+            showInstructionDialog()
         }
         binding.finishText.setOnClickListener {
             onNextState()
@@ -237,6 +239,17 @@ class StateControlPanel(private val fragment: SetupMapFragment) : SetupMapState(
         binding.nextLawnButton.setOnClickListener(null)
         binding.obstacleButton.setOnClickListener(null)
         binding.routeButton.setOnClickListener(null)
+    }
+
+    private fun showInstructionDialog() {
+        val dialog = AlertDialog.Builder(context)
+            .setMessage("The starting point of charging path is only allowed to be set at charging station. Please move your mower to the charging station.")
+            .setCancelable(false)
+            .setPositiveButton("ok") { it, _ ->
+                it.dismiss()
+            }
+            .create()
+        dialog.show()
     }
 
 }
@@ -347,7 +360,7 @@ class RecordObstacle(fragment: SetupMapFragment): RecordGrass(fragment) {
 
 class RecordChargingPath(fragment: SetupMapFragment): RecordGrass(fragment) {
 
-    override fun onTitleHintText() = "Drive mower to the grass area that is closet to charging station. Tap “END” when it’s finished."
+    override fun onTitleHintText() = "Drive mower to the grass area. Tap “END” when it’s finished."
 
     override fun onRecordType() = CHARGING
 

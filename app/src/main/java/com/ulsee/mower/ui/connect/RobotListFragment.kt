@@ -15,9 +15,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -27,6 +29,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import com.google.zxing.integration.android.IntentIntegrator
 import com.ulsee.mower.App
 import com.ulsee.mower.BuildConfig
 import com.ulsee.mower.R
@@ -59,7 +62,10 @@ class RobotListFragment: Fragment() {
         get() = requireActivity().hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     private var inputSerialNumber: String? = null
     private var isReceiverRegistered = false
+
+    private var editTextInput: EditText? = null
 //    private val args: RobotListFragmentArgs by navArgs()
+
 
     override fun onAttach(context: Context) {
         Log.d(TAG, "[Enter] onAttach")
@@ -232,22 +238,61 @@ class RobotListFragment: Fragment() {
     }
 
     private fun showAddDeviceDialog() {
-        val input = EditText(context)
-        input.setText("JCF20210302H0000001")
+        val view = layoutInflater.inflate(R.layout.input_serial_number_view, null, false)
+        editTextInput = view.findViewById(R.id.inputText)
+        editTextInput!!.setText("JCF20210302H0000001")
+        val qrCodeIcon = view.findViewById<ImageView>(R.id.qrCodeIcon)
+        qrCodeIcon.setOnClickListener {
+            initZxingScanner()
+        }
+
         val dialog = AlertDialog.Builder(activity)
         dialog.setTitle("Please enter serial number")
-            .setView(input)
+            .setView(view)
             .setCancelable(true)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-
-                val textInput = input.text.toString()
+                val textInput = editTextInput!!.text.toString()
                 Log.d(TAG, "textInput: $textInput")
-
                 inputSerialNumber = textInput
-
                 viewModel.isInputDuplicated(textInput)
-
             }.show()
+    }
+
+    private fun initZxingScanner() {
+        val integrator = IntentIntegrator.forSupportFragment(this)
+        integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
+        integrator.setPrompt("Scan device QRCode")
+        integrator.setOrientationLocked(false)
+        integrator.initiateScan()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == IntentIntegrator.REQUEST_CODE) {
+            val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+            if (result != null) {
+                if (result.contents == null) {
+                    Toast.makeText(context, "Cancelled", Toast.LENGTH_SHORT).show()
+                } else {
+                    checkQRCode(result.contents)
+                }
+            } else {
+                super.onActivityResult(requestCode, resultCode, data)
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
+    private fun checkQRCode(qrCode: String) {
+        val isValidQRCode = qrCode.startsWith("JCF")
+        if(!isValidQRCode) {
+            Toast.makeText(context, "QRCode is invalid", Toast.LENGTH_SHORT).show()
+            initZxingScanner()
+            return
+        }
+        editTextInput!!.setText(qrCode)
+        inputSerialNumber = qrCode
+        viewModel.isInputDuplicated(qrCode)
     }
 
     private fun initDeviceListObserver() {

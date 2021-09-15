@@ -150,11 +150,15 @@ class CommandStatus(service: BluetoothLeService): AbstractCommand(service) {
         val idx = getIndex(value,  0x54)
 
         for (i in 1 until 3) {                // only the first 2 bytes indicate the abnormal status
-            val intValue = value[idx + i].toInt()
+            val intValue = value[idx + i].toUByte().toInt()
+//            Log.d("888", "intValue $intValue")
+
             var temp = Integer.toBinaryString(intValue)
             while (temp.length < 8) {
                 temp = "0$temp"
             }
+//            Log.d("888", "temp $temp")
+
             status += temp
         }
 //        Log.d("888", "[Enter] getRobotStatus() $status")

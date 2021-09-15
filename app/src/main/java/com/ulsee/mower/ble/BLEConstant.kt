@@ -55,7 +55,7 @@ class Status {
                 map[11] = "启动失败，没有需要作业的草坪"
                 map[12] = "初始化失败，请手动控制回充电桩或重新启动"
                 map[13] = "学习失败，正在尝试返回充电桩"
-                map[14] = "当前点非法，请确认远离边界及障碍物"
+                map[14] = "请确认割草機位置远离边界及障碍物1.2m以上，再啟動割草機"
                 map[15] = "启动失败，请放置于充电桩或围线边缘/内部"
                 map[16] = "电量过低，不建议启动，请充电"
                 map[255] = "unknown error"
@@ -155,7 +155,6 @@ class RecordBoundary {
     class ErrorCode {
         companion object {
             val map = hashMapOf<Int, String>()
-
             init {
                 map[0] = "failed"
                 map[1] = "success"
@@ -199,7 +198,6 @@ class StartStop {
     class ErrorCode {
         companion object {
             val map = hashMapOf<Int, String>()
-
             init {
                 map[0] = "表示接收异常"
                 map[1] = "表示接受正常"
