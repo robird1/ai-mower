@@ -146,7 +146,9 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
 
     private fun saveDeviceIfNotExisting() {
         viewModelScope.launch {
-            val isDeviceExisting =_deviceList.value?.firstOrNull { it.getSerialNumber() == deviceSerialNumber!! } != null
+            val isDeviceExisting =_deviceList.value?.firstOrNull {
+                it.getSerialNumber() == deviceSerialNumber!!
+            } != null
             if (!isDeviceExisting) {
                 saveDevice(deviceSerialNumber!!)
             }

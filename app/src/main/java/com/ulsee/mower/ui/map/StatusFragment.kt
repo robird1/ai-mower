@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.jarvislau.destureviewbinder.GestureViewBinder
 import com.ulsee.mower.App
+import com.ulsee.mower.MainActivity
 import com.ulsee.mower.R
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
@@ -117,6 +118,7 @@ class StatusFragment: Fragment() {
         if (args.refreshMap) {
             getMapData()
         }
+        observerMainActivityAWSMqttStatus(binding.root)
 
         return binding.root
     }
@@ -146,6 +148,15 @@ class StatusFragment: Fragment() {
     private fun initViewModel() {
         viewModel = ViewModelProvider(requireActivity(), StatusFragmentFactory(
             BluetoothLeRepository(bluetoothService))).get(StatusFragmentViewModel::class.java)
+    }
+
+    fun observerMainActivityAWSMqttStatus(view: View) {
+        val statusView = view.findViewById<View>(R.id.view_aws_status_view)
+        val isConnected = (requireActivity() as MainActivity).viewModel.isAWSMqttManagerConnected.value == true
+        statusView?.setBackgroundColor(requireContext().getColor(if (isConnected)android.R.color.holo_green_light else android.R.color.darker_gray))
+        (requireActivity() as MainActivity).viewModel.isAWSMqttManagerConnected.observe(viewLifecycleOwner, {
+            statusView?.setBackgroundColor(requireContext().getColor(if (it)android.R.color.holo_green_light else android.R.color.darker_gray))
+        })
     }
 
     private fun getMapData() {

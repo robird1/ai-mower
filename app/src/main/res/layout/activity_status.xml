@@ -637,6 +637,17 @@
 
         <!--    </LinearLayout>-->
 
+
+        <View
+            android:id="@+id/view_aws_status_view"
+            android:background="@android:color/darker_gray"
+            android:layout_width="5dp"
+            android:layout_height="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="12dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

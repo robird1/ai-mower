@@ -41,7 +41,6 @@ class MainActivity: AppCompatActivity() {
         } else {
             initView()
         }
-        initAWSConnectFailedObserver()
     }
 
     private fun initView() {
@@ -70,6 +69,7 @@ class MainActivity: AppCompatActivity() {
         }
 
         initViewModel()
+        initAWSConnectFailedObserver()
         viewModel.keepUploadingStatus()
         startRefreshCookieWorkManager()
     }

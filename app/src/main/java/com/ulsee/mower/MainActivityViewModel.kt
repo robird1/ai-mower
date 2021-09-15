@@ -48,6 +48,8 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
     var lastUploadStatusIsError = false
     var ignoreErrorCode = 0
 
+    val isAWSMqttManagerConnected : LiveData<Boolean> =  MutableLiveData()
+
     private var _awsConnectFailedLog : MutableLiveData<Event<String>> = MutableLiveData()
     val awsConnectFailedLog : LiveData<Event<String>>
         get() = _awsConnectFailedLog
@@ -150,6 +152,9 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
             AWSMobileClient.getInstance()
         ) { status, throwable ->
             isAWSIotMqttManagerConnected = status == AWSIotMqttClientStatusCallback.AWSIotMqttClientStatus.Connected
+            Handler(Looper.getMainLooper()).post {
+                (isAWSMqttManagerConnected as MutableLiveData).value = isAWSIotMqttManagerConnected
+            }
             if (isAWSIotMqttManagerConnected) subscribeIotMQTT(bleService.robotSerialNumber!!)
             Log.i(
                 TAG,
@@ -360,6 +365,9 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
                     Log.i(TAG, "ACTION_ON_DISCONNECT_DEVICE...")
                     isDeviceConnected = false
                     isAWSIotMqttManagerConnected = false
+                    Handler(Looper.getMainLooper()).post {
+                        (isAWSMqttManagerConnected as MutableLiveData).value = isAWSIotMqttManagerConnected
+                    }
                     isIotInitialized = false
                     unsubscribeIotMQTT(bleService.robotSerialNumber!!)
                     mAWSIotMqttManager?.disconnect()
