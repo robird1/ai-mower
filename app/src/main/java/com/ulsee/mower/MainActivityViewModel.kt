@@ -5,9 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttClientStatusCallback
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttManager
@@ -15,6 +13,8 @@ import com.amazonaws.mobileconnectors.iot.AWSIotMqttQos
 import com.amazonaws.regions.Region
 import com.amazonaws.services.iot.AWSIotClient
 import com.amazonaws.services.iot.model.AttachPolicyRequest
+import com.amplifyframework.auth.options.AuthSignInOptions
+import com.amplifyframework.core.Amplify
 import com.google.gson.Gson
 import com.ulsee.mower.ble.BluetoothLeRepository
 import com.ulsee.mower.ble.BluetoothLeService
@@ -30,6 +30,7 @@ import com.ulsee.mower.data.model.ReportedState
 import com.ulsee.mower.ui.map.StatusFragment
 import com.ulsee.mower.ui.settings.mower.MowerSettings
 import com.ulsee.mower.ui.settings.mower.MowerWorkingMode
+import com.ulsee.mower.utils.Event
 import kotlinx.coroutines.launch
 import java.util.*
 import com.amplifyframework.kotlin.core.Amplify as CoroutineAmplify
@@ -46,6 +47,10 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
     var lastUploadingStatusAt = 0L
     var lastUploadStatusIsError = false
     var ignoreErrorCode = 0
+
+    private var _awsConnectFailedLog : MutableLiveData<Event<String>> = MutableLiveData()
+    val awsConnectFailedLog : LiveData<Event<String>>
+        get() = _awsConnectFailedLog
 
     private lateinit var statusHandler: StatusHandler
     private inner class StatusHandler(looper: Looper) : Handler(looper) {
@@ -68,8 +73,8 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
     }
 
     // 每分鐘上傳資料
+    var isLoginedToAWS = false
     fun keepUploadingStatus() {
-        var isLogined = false
 
         HandlerThread("keepUploadStatusThread", Process.THREAD_PRIORITY_BACKGROUND).apply {
             start()
@@ -79,9 +84,9 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
         uploadStatusTask = Runnable {
             uploadStatusTask?.let { statusHandler.postDelayed(it, 5000) }
             // 1. login
-            if(!isLogined) {
+            if(!isLoginedToAWS) {
                 viewModelScope.launch {
-                    isLogined = login()
+                    login()
                 }
             } else if(!isIotInitialized) {
                 Log.i(TAG, "try to init iot, sn = ${bleService.robotSerialNumber}, isDeviceConnected = $isDeviceConnected")
@@ -327,10 +332,24 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
         }
     }
 
-    private suspend fun login() : Boolean {
+    private fun login() {
         val username = "codus.hsu@ulsee.com"
         val password = "assa4415"
-        return CoroutineAmplify.Auth.signIn(username, password).isSignInComplete
+
+        Amplify.Auth.signIn(username, password, AuthSignInOptions.defaults(), {
+            isLoginedToAWS = true
+        }, {
+            Log.i(TAG, "failed to login to aws")
+            it.printStackTrace()
+        })
+
+//        try {
+//            return CoroutineAmplify.Auth.signIn(username, password).isSignInComplete
+//        } catch (e: Exception) {
+//            _awsConnectFailedLog.value = Event("Failed to connect to aws: ${e.message}")
+//            e.printStackTrace()
+//        }
+//        return false
     }
 
     val gattUpdateReceiver = object : BroadcastReceiver() {

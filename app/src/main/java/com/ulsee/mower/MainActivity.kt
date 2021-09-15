@@ -6,7 +6,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import com.ulsee.mower.ble.BluetoothLeService
@@ -39,6 +41,7 @@ class MainActivity: AppCompatActivity() {
         } else {
             initView()
         }
+        initAWSConnectFailedObserver()
     }
 
     private fun initView() {
@@ -86,6 +89,14 @@ class MainActivity: AppCompatActivity() {
         super.onResume()
         if (!bluetoothService.bluetoothAdapter.isEnabled) {
             promptEnableBluetooth()
+        }
+    }
+
+    private fun initAWSConnectFailedObserver() {
+        viewModel.awsConnectFailedLog.observe(this) {
+            it.getContentIfNotHandled()?.let { msg ->
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

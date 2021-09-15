@@ -130,28 +130,6 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
         bleRepository.disconnectDevice()
     }
 
-    fun reloadCloudDevice() {
-        isLoading.value = true
-        viewModelScope.launch {
-            // save to api
-            val result = accountRepository.getMe()
-            if (result is com.ulsee.mower.data.Result.Success) {
-                val devices = result.data.history
-                for(device in devices) {
-                    if (deviceList.value?.firstOrNull { it.getSerialNumber() == device.sn } == null) {
-                        val md5 = MD5.convertMD5(device.sn)
-                        dbRepository.saveDevice(device.sn, md5)
-                    }
-                }
-                getDeviceList()
-            } else {
-                _reloadCloudDeviceFailedLog.value = Event((result as com.ulsee.mower.data.Result.Error).exception)
-            }
-            isLoading.value = false
-        }
-    }
-
-    // 1. write cloud device 2. add device, 3. reload device
     fun saveDevice(serialNumber: String) {
 
         isLoading.value = true
@@ -159,10 +137,6 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
             // save to api
             val result = accountRepository.bind(serialNumber)
             if (result is com.ulsee.mower.data.Result.Success) {
-                //  save to db
-                val md5 = MD5.convertMD5(serialNumber)
-                dbRepository.saveDevice(serialNumber, md5)
-                getDeviceList()
             } else {
                 _bindFailedLog.value = Event((result as com.ulsee.mower.data.Result.Error).exception)
             }
@@ -172,7 +146,7 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
 
     private fun saveDeviceIfNotExisting() {
         viewModelScope.launch {
-            val isDeviceExisting = dbRepository.isSerialNumberDuplicated(deviceSerialNumber!!)
+            val isDeviceExisting =_deviceList.value?.firstOrNull { it.getSerialNumber() == deviceSerialNumber!! } != null
             if (!isDeviceExisting) {
                 saveDevice(deviceSerialNumber!!)
             }
@@ -181,18 +155,27 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
 
     fun isInputDuplicated(sn: String) {
         viewModelScope.launch {
-            _isInputDuplicated.value = Event(dbRepository.isSerialNumberDuplicated(sn))
+            val isDeviceExisting =_deviceList.value?.firstOrNull { it.getSerialNumber() == sn } != null
+            _isInputDuplicated.value = Event(isDeviceExisting)
         }
     }
 
     fun getDeviceList() {
+    isLoading.value = true
         viewModelScope.launch {
-            if (_deviceList.value == null) {
-                _deviceList.value = dbRepository.getDevices()
-                reloadCloudDevice()
+            val result = accountRepository.getMe()
+            if (result is com.ulsee.mower.data.Result.Success) {
+                val devices = result.data.history
+                _deviceList.value = devices.map {
+                    val device = Device()
+                    device.setSerialNumber(it.sn)
+                    device.setSnMD5(MD5.convertMD5(it.sn))
+                    device
+                }
             } else {
-                _deviceList.value = dbRepository.getDevices()
+                _reloadCloudDeviceFailedLog.value = Event((result as com.ulsee.mower.data.Result.Error).exception)
             }
+            isLoading.value = false
         }
     }
 
