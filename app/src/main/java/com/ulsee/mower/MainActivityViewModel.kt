@@ -333,8 +333,8 @@ class MainActivityViewModel(private var bleService: BluetoothLeService, private 
     }
 
     private fun login() {
-        val username = "codus.hsu@ulsee.com"
-        val password = "assa4415"
+        val username = "develop@ulsee.com"
+        val password = "1qaz2wsx"
 
         Amplify.Auth.signIn(username, password, AuthSignInOptions.defaults(), {
             isLoginedToAWS = true
