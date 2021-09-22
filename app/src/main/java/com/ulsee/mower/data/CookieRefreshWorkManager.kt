@@ -14,7 +14,7 @@ class CookieRefreshWorkManager(val context: Context, params: WorkerParameters) :
     override fun doWork(): Result {
 
         val prefs = context.getSharedPreferences("account", Context.MODE_PRIVATE)
-        val accountRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/"), prefs)
+        val accountRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/", prefs), prefs)
         Log.i(TAG, "accountRepository.onceLoggedIn = ${accountRepository.onceLoggedIn}")
         if (accountRepository.onceLoggedIn) {
             GlobalScope.launch {

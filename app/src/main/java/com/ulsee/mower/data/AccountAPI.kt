@@ -2,6 +2,7 @@ package com.ulsee.mower.data
 
 import com.ulsee.mower.data.model.*
 import kotlinx.coroutines.Deferred
+import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.*
 //import okhttp3.Response
@@ -13,6 +14,9 @@ interface AccountAPI {
 
     @POST("account/login")
     fun login(@Body payload: LoginRequest): Deferred<Response<LoginResponse>>
+
+    @POST("account/login")
+    fun relogin(@Body payload: LoginRequest): Call<Response<LoginResponse>>
 
     @GET("account/whoami")
     fun getMe(@Header("Cookie") cookie: String): Deferred<LoginResponse> // response most likely login

@@ -20,7 +20,7 @@ class LaunchActivity : AppCompatActivity() {
         Timer().schedule(object : TimerTask() {
             override fun run() {
                 val prefs = getSharedPreferences("account", Context.MODE_PRIVATE)
-                val loginRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/"), prefs)
+                val loginRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/", prefs), prefs)
                 if (loginRepository.isLoggedIn) {
                     startMainActivity()
                 } else {

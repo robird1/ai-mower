@@ -49,8 +49,8 @@ class AccountRepository(val dataSource: AccountDataSource, val prefs: SharedPref
 
     fun parseExpires(expires: String): Date {
         val df: java.text.DateFormat = java.text.SimpleDateFormat("E, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH)
-        df.timeZone = java.util.TimeZone.getTimeZone("GMT+08:00")
-        return df.parse(expires)
+//        df.timeZone = java.util.TimeZone.getTimeZone("GMT+08:00")
+        return df.parse(if (expires.endsWith("GMT")) expires + "+08:00" else expires)
     }
 
 //    robot=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50Ijp7InVzZXJpZCI6NSwiY3JlYXRldGltZSI6IjIwMjEtMDgtMDNUMTQ6MjM6MjkrMDg6MDAiLCJhY2Nlc3N0aW1lIjoiMjAyMS0wOC0wM1QxNDo1ODoyMiswODowMCIsInN0YXR1cyI6Im5vcm1hbCIsInJvbGUiOiJ1c2VyIiwidXNlcm5hbWUiOiIiLCJwYXNzd29yZCI6ImUxMGFkYzM5NDliYTU5YWJiZTU2ZTA1N2YyMGY4ODNlIiwiZ3JvdXBuYW1lIjoidWxzZWUiLCJkaXNwbGF5bmFtZSI6ImNvZHVzLmhzdUB1bHNlZS5jb20iLCJjb21wYW55IjoiIiwiZW1haWwiOiJjb2R1cy5oc3VAdWxzZWUuY29tIiwicGhvbmUiOiIiLCJjb3VudHJ5IjoiVEFJV0FOIn0sImV4cCI6MTYyNzk5MjE3MywiaWF0IjoxNjI3OTc0MTczfQ.q53b8evUtnezV-JpQFHEmCqyZaN5ONYW6iPHUOR4yc8; Path=/; Expires=Tue, 03 Aug 2021 20:02:53 GMT; Secure; SameSite=None

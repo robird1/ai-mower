@@ -1,10 +1,12 @@
 package com.ulsee.mower.data
 
+import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.ulsee.mower.data.model.*
 import kotlinx.coroutines.Deferred
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
@@ -12,17 +14,25 @@ import java.io.IOException
 /**
  * Class that handles authentication w/ login credentials and retrieves user information.
  */
-class AccountDataSource(val baseURLString: String) {
+
+
+class AccountDataSource(val baseURLString: String, val prefs: SharedPreferences) {
 
     lateinit var api: AccountAPI
 
     init {
+        val appAuthenticator = AppAuthenticator()
+        val client = OkHttpClient.Builder().authenticator(appAuthenticator).build()
+
         val retrofit = Retrofit.Builder()
             .baseUrl(baseURLString)
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(CoroutineCallAdapterFactory())
             .build()
         api = retrofit.create(AccountAPI::class.java)
+
+        appAuthenticator.setInfo(api, prefs)
     }
 
     suspend fun register(email: String, password: String): Result<RegisterResponse> {

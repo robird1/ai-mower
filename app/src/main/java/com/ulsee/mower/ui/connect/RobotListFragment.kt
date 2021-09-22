@@ -471,7 +471,7 @@ class RobotListFragment: Fragment() {
     private fun initViewModel() {
         bleRepository = BluetoothLeRepository(bluetoothService)
         val prefs = requireContext().getSharedPreferences("account", Context.MODE_PRIVATE)
-        val accountRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/"), prefs)
+        val accountRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/", prefs), prefs)
         viewModel = ViewModelProvider(this, RobotListFactory(bleRepository, DatabaseRepository(), accountRepository)).get(RobotListFragmentViewModel::class.java)
     }
 

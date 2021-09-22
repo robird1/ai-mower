@@ -17,7 +17,7 @@ class LoginViewModelFactory(val prefs: SharedPreferences) : ViewModelProvider.Fa
         if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
             return LoginViewModel(
                     loginRepository = AccountRepository(
-                        dataSource = AccountDataSource("https://fr.ulsee.club/api/"),
+                        dataSource = AccountDataSource("https://fr.ulsee.club/api/", prefs),
                         prefs = prefs
                     )
             ) as T

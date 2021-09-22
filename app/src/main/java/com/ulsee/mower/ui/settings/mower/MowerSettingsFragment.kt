@@ -148,7 +148,7 @@ class MowerSettingsFragment : Fragment() {
         binding.layoutLogout.setOnClickListener {
             activity?.let {
                 val prefs = it.getSharedPreferences("account", Context.MODE_PRIVATE)
-                val loginRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/"), prefs)
+                val loginRepository = AccountRepository(AccountDataSource("https://fr.ulsee.club/api/", prefs), prefs)
                 loginRepository.logout()
                 DatabaseRepository().clearDevices()
                 bleRepository.disconnectDevice()
