@@ -10,6 +10,7 @@ import android.content.Intent
 import android.os.*
 import android.util.Log
 import android.widget.Toast
+import com.google.gson.Gson
 import com.ulsee.mower.ble.CommandChargingPath.Companion.CHARGING_PATH
 import com.ulsee.mower.ble.CommandDeleteAll.Companion.DELETE_ALL
 import com.ulsee.mower.ble.CommandDeleteChargingPath.Companion.DELETE_CHARGING_PATH
@@ -29,8 +30,13 @@ import com.ulsee.mower.data.BLEBroadcastAction.Companion.ACTION_ON_DISCONNECT_DE
 import com.ulsee.mower.data.BLECommandTable
 import com.ulsee.mower.utils.MD5
 import com.ulsee.mower.utils.Utils
+import java.io.Serializable
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import com.google.gson.GsonBuilder
+
+
+
 
 private val TAG = BluetoothLeService::class.java.simpleName
 
@@ -40,6 +46,14 @@ private val CHARACTERISTIC_WRITE_UUID = UUID.fromString("0000abf1-0000-1000-8000
 private val CHARACTERISTIC_READ_UUID = UUID.fromString("0000abf2-0000-1000-8000-00805f9b34fb")
 private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 private const val GATT_MAX_MTU_SIZE = 512
+
+class BLEDeviceDebugInfo : Serializable {
+    var name = ""
+    var mac = ""
+    var sn = ""
+    var expected = ""
+    var mID = ""
+}
 
 class BluetoothLeService : Service() {
 
@@ -57,6 +71,7 @@ class BluetoothLeService : Service() {
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
     private var scanResults: ArrayList<ScanResult> = ArrayList()
+    private var allScanResults: ArrayList<ScanResult> = ArrayList()
     private var bluetoothGatt: BluetoothGatt? = null
 
     public var robotSerialNumber: String? = null
@@ -155,6 +170,13 @@ class BluetoothLeService : Service() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
 //            Log.d(TAG, "[Enter] onScanResult")
             with(result.device) {
+                val idx = allScanResults.indexOfFirst { it.device.address == address }
+                if (idx >= 0) {
+                    allScanResults[idx] = result
+                } else {
+                    allScanResults.add(result)
+                }
+
                 val scanRecord = result.scanRecord
                 val manufacturerData = scanRecord?.manufacturerSpecificData ?: return
                 if (manufacturerData.size() > 0) {
@@ -199,7 +221,51 @@ class BluetoothLeService : Service() {
                 return
             }
         }
-        broadcastUpdate(ACTION_DEVICE_NOT_FOUND)
+
+
+        val snList = arrayListOf<String>(
+            "JCF20210302H0000001",
+            "JCF20210601H0000006",
+            "JCF20210617H0000007",
+            "JCF20210617H0000008",
+            "JCF20210617H0000009",
+            "JCF20210630H0000010",
+            "JCF20210630H0000011",
+            "JCF20210630H0000012",
+            "JCF20210630H0000013",
+            "JCF20210630H0000014",
+            "JCF20210630H0000015")
+        val snMD5List = arrayListOf<String>(
+            MD5.convertMD5("JCF20210302H0000001") ?: "",
+            MD5.convertMD5("JCF20210601H0000006") ?: "",
+            MD5.convertMD5("JCF20210617H0000007") ?: "",
+            MD5.convertMD5("JCF20210617H0000008") ?: "",
+            MD5.convertMD5("JCF20210617H0000009") ?: "",
+            MD5.convertMD5("JCF20210630H0000010") ?: "",
+            MD5.convertMD5("JCF20210630H0000011") ?: "",
+            MD5.convertMD5("JCF20210630H0000012") ?: "",
+            MD5.convertMD5("JCF20210630H0000013") ?: "",
+            MD5.convertMD5("JCF20210630H0000014") ?: "",
+            MD5.convertMD5("JCF20210630H0000015") ?: "")
+
+        val bleDeviceDebugInfos = ArrayList<BLEDeviceDebugInfo>()
+        for (scanResult in allScanResults ) {
+            val info = BLEDeviceDebugInfo()
+            info.name = scanResult.device.name ?: ""
+            info.mac = scanResult.device.address ?: ""
+            info.mID = scanResult.scanRecord?.getManufacturerSpecificData(MANUFACTURER_ID)?.toHexString() ?: ""
+            if(info.mID.isNotEmpty())info.sn = getScanDeviceSN(scanResult)
+
+            val idx = snMD5List.indexOf(info.sn)
+            if (idx >= 0) info.expected = snList[idx]
+
+            bleDeviceDebugInfos.add(info)
+        }
+        bleDeviceDebugInfos.sortBy { 0- it.expected.length*10000 - it.sn.length * 2000 - it.mID.length * 400}
+        val gson = GsonBuilder().setPrettyPrinting().create()
+
+        val msg = gson.toJson(bleDeviceDebugInfos)
+        broadcastUpdate(ACTION_DEVICE_NOT_FOUND, msg)
     }
 
     fun disconnectDevice() {

@@ -28,8 +28,8 @@ private val TAG = RobotListFragmentViewModel::class.java.simpleName
 
 class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepository, private val dbRepository: DatabaseRepository, private val accountRepository: AccountRepository) : ViewModel() {
 
-    private var _isDeviceFound : MutableLiveData<Event<Boolean>> = MutableLiveData()
-    val isDeviceFound : LiveData<Event<Boolean>>
+    private var _isDeviceFound : MutableLiveData<Event<String>> = MutableLiveData()
+    val isDeviceFound : LiveData<Event<String>>
         get() = _isDeviceFound
     private var _connectFailedLog : MutableLiveData<Event<String>> = MutableLiveData()
     val connectFailedLog : LiveData<Event<String>>
@@ -76,7 +76,7 @@ class RobotListFragmentViewModel(private val bleRepository: BluetoothLeRepositor
                     _connectFailedLog.value = Event(message!!)
                 }
                 ACTION_DEVICE_NOT_FOUND -> {
-                    _isDeviceFound.value = Event(false)
+                    _isDeviceFound.value = Event(message ?: "no message")
                 }
                 ACTION_GATT_CONNECTED -> {
                     _gattStatusCode.value = Event(message!!.toInt())

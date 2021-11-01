@@ -3,6 +3,7 @@ package com.ulsee.mower
 import com.google.gson.Gson
 import com.ulsee.mower.data.model.DesiredBool
 import com.ulsee.mower.data.model.IotCoreShadowPayload
+import com.ulsee.mower.utils.MD5
 import org.junit.Assert.*
 import org.junit.Test
 import java.text.DateFormat
@@ -18,7 +19,9 @@ import java.util.*
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+        //i=4941319, md5=0e9c5ef54e253fe8280b4741b7deaee0
+        // i=11030738, md5=009aaa40fdf96a7c2542642a30ebe0b0
+        assertEquals("abc", MD5.convertMD5("11030738"))
     }
 
     @Test

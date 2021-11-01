@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
@@ -66,6 +67,8 @@ class RobotListFragment: Fragment() {
     private var editTextInput: EditText? = null
 //    private val args: RobotListFragmentArgs by navArgs()
 
+    var isConnecting = false
+    var connectingBeginAt = 0L
 
     override fun onAttach(context: Context) {
         Log.d(TAG, "[Enter] onAttach")
@@ -241,7 +244,8 @@ class RobotListFragment: Fragment() {
     private fun showAddDeviceDialog() {
         val view = layoutInflater.inflate(R.layout.input_serial_number_view, null, false)
         editTextInput = view.findViewById(R.id.inputText)
-        editTextInput!!.setText("JCF20210302H0000001")
+//        editTextInput!!.setText("JCF20210302H0000001")
+        editTextInput!!.setText("JCF20210630H0000015")
         val qrCodeIcon = view.findViewById<ImageView>(R.id.qrCodeIcon)
         qrCodeIcon.setOnClickListener {
             initZxingScanner()
@@ -307,9 +311,31 @@ class RobotListFragment: Fragment() {
 
     private fun initDeviceNotFoundObserver() {
         viewModel.isDeviceFound.observe(viewLifecycleOwner) {
-            it.getContentIfNotHandled()?.let { isFound ->
-                progressBar.isVisible = false
+            it.getContentIfNotHandled()?.let { msg ->
+                val isFound = msg == "true"
+//                progressBar.isVisible = false
                 if (!isFound) {
+                    if (isConnecting) {
+                        val now = System.currentTimeMillis()
+                        // 10秒內都再次嘗試
+                        if (inputSerialNumber != null && now - connectingBeginAt < 10000) {
+//                            progressBar.isVisible = true
+                            Handler().postDelayed({
+                                viewModel.connectBLEDevice(inputSerialNumber!!)
+                            }, 1000)
+                            return@let
+                        } else {
+
+                            AlertDialog.Builder(activity)
+                                .setMessage(msg)
+                                .setPositiveButton(android.R.string.ok) { it, _ ->
+                                    it.dismiss()
+                                }
+                                .setCancelable(false)
+                                .show()
+                        }
+                    }
+                    progressBar.isVisible = false
                     Toast.makeText(context, "error: Device not found", Toast.LENGTH_SHORT).show()
 
                     // restart the scanning if it has been stopped
@@ -390,9 +416,11 @@ class RobotListFragment: Fragment() {
         viewModel.isInputDuplicated.observe(viewLifecycleOwner) { it ->
             it.getContentIfNotHandled()?.let { isDuplicated ->
                 if (!isDuplicated) {
+                    connectingBeginAt = System.currentTimeMillis()
+                    isConnecting = true
                     progressBar.isVisible = true
                     viewModel.connectBLEDevice(inputSerialNumber!!)
-
+                    Log.i(TAG, "!isDuplicated, connectBLEDevice")
                 } else {
                     AlertDialog.Builder(activity)
                         .setMessage("Device has already been added before!")
