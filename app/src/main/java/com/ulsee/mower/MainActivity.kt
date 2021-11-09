@@ -27,7 +27,7 @@ private const val ENABLE_BLUETOOTH_REQUEST_CODE = 1
 
 class MainActivity: AppCompatActivity() {
     var binding: ActivityMainBinding? = null
-    lateinit var viewModel: MainActivityViewModel
+    var viewModel: MainActivityViewModel? = null
     private lateinit var bluetoothService: BluetoothLeService
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +70,7 @@ class MainActivity: AppCompatActivity() {
 
         initViewModel()
         initAWSConnectFailedObserver()
-        viewModel.keepUploadingStatus()
+        viewModel?.keepUploadingStatus()
         startRefreshCookieWorkManager()
     }
 
@@ -93,7 +93,7 @@ class MainActivity: AppCompatActivity() {
     }
 
     private fun initAWSConnectFailedObserver() {
-        viewModel.awsConnectFailedLog.observe(this) {
+        viewModel?.awsConnectFailedLog?.observe(this) {
             it.getContentIfNotHandled()?.let { msg ->
                 Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
             }
@@ -165,10 +165,10 @@ class MainActivity: AppCompatActivity() {
         filter.addAction(StatusFragmentBroadcast.MOWER_STATUS_MOWING)
         filter.addAction(StatusFragmentBroadcast.MOWER_STATUS_PAUSE)
         filter.addAction(StatusFragmentBroadcast.MOWER_STATUS_STOP)
-        registerReceiver(viewModel.gattUpdateReceiver, filter)
+        if (viewModel != null) registerReceiver(viewModel!!.gattUpdateReceiver, filter)
     }
 
     private fun unregisterBLEReceiver() {
-        unregisterReceiver(viewModel.gattUpdateReceiver)
+        if (viewModel != null) unregisterReceiver(viewModel!!.gattUpdateReceiver)
     }
 }

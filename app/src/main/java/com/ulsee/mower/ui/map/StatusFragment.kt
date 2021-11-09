@@ -152,9 +152,9 @@ class StatusFragment: Fragment() {
 
     fun observerMainActivityAWSMqttStatus(view: View) {
         val statusView = view.findViewById<View>(R.id.view_aws_status_view)
-        val isConnected = (requireActivity() as MainActivity).viewModel.isAWSMqttManagerConnected.value == true
+        val isConnected = (requireActivity() as MainActivity).viewModel?.isAWSMqttManagerConnected?.value == true
         statusView?.setBackgroundColor(requireContext().getColor(if (isConnected)android.R.color.holo_green_light else android.R.color.darker_gray))
-        (requireActivity() as MainActivity).viewModel.isAWSMqttManagerConnected.observe(viewLifecycleOwner, {
+        (requireActivity() as MainActivity).viewModel?.isAWSMqttManagerConnected?.observe(viewLifecycleOwner, {
             statusView?.setBackgroundColor(requireContext().getColor(if (it)android.R.color.holo_green_light else android.R.color.darker_gray))
         })
     }
