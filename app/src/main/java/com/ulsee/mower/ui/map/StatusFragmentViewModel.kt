@@ -33,6 +33,9 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
     private var _gattConnected = MutableLiveData<Event<Boolean>>()
     val gattConnected : LiveData<Event<Boolean>>
         get() = _gattConnected
+    private var _exceedReconnectLimit = MutableLiveData<Event<Boolean>>()
+    val exceedReconnectLimit : LiveData<Event<Boolean>>
+        get() = _exceedReconnectLimit
 
     private var isMowingStatus = false
 
@@ -53,6 +56,8 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
     private var finishGrassNumber = "-1"
     private val mowingDataHashMap = HashMap<String, ArrayList<PointF>>()
 
+    var isMapObtained = false
+
     val gattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
 
@@ -67,8 +72,15 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
                 BLEBroadcastAction.ACTION_GATT_NOT_SUCCESS -> {
                     _gattConnected.value = Event(false)
                 }
+                BLEBroadcastAction.EXCEED_RECONNECT_MAX_NUMBER -> {
+                    _exceedReconnectLimit.value = Event(true)
+                }
                 BLEBroadcastAction.ACTION_VERIFICATION_SUCCESS -> {
-                    getStatusPeriodically()
+                    if (isMapObtained) {
+                        getStatusPeriodically()
+                    } else {
+                        getMapGlobalParameters()
+                    }
                 }
                 BLEBroadcastAction.ACTION_VERIFICATION_FAILED -> {
                     doVerification()
@@ -210,6 +222,10 @@ open class StatusFragmentViewModel(private val bleRepository: BluetoothLeReposit
         viewModelScope.launch {
             bleRepository.getStatusPeriodically()
         }
+    }
+
+    fun reconnectDevice() {
+        bleRepository.reconnectDevice()
     }
 
     fun disconnectDevice() {

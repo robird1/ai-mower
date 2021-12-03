@@ -31,16 +31,21 @@ class MainActivity: AppCompatActivity() {
     private lateinit var bluetoothService: BluetoothLeService
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG, "[Enter] onCreate")
+//        Log.d(TAG, "[Enter] onCreate bluetoothService: $bluetoothService")
         super.onCreate(savedInstanceState)
 
         checkService()
 
-        if (!bluetoothService.bluetoothAdapter.isEnabled) {
-            promptEnableBluetooth()
-        } else {
-            initView()
-        }
+//        if (bluetoothService != null) {
+            Log.d(TAG, "[Enter] bluetoothService != null")
+            if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
+                promptEnableBluetooth()
+            } else {
+                initView()
+            }
+//        } else {
+//            Log.d(TAG, "[Enter] bluetoothService == null")
+//        }
     }
 
     private fun initView() {
@@ -87,7 +92,7 @@ class MainActivity: AppCompatActivity() {
     override fun onResume() {
         Log.d(TAG, "[Enter] onResume")
         super.onResume()
-        if (!bluetoothService.bluetoothAdapter.isEnabled) {
+        if (!bluetoothService!!.bluetoothAdapter.isEnabled) {
             promptEnableBluetooth()
         }
     }
@@ -140,10 +145,13 @@ class MainActivity: AppCompatActivity() {
     }
 
     private fun checkService() {
+        Log.d(TAG, "[Enter] checkService")
         (application as App).bluetoothService?.let {
             bluetoothService = it
+            Log.d(TAG, "[Enter] bluetoothService: $bluetoothService")
 
         } ?: run {
+            Log.d(TAG, "[Enter] startActivity() LoginActivity")
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
             finish()

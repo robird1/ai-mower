@@ -20,6 +20,12 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
     private var _statusIntent = MutableLiveData<Event<Intent>>()
     val statusIntent : LiveData<Event<Intent>>
         get() = _statusIntent
+    private var _gattConnected = MutableLiveData<Event<Boolean>>()
+    val gattConnected : LiveData<Event<Boolean>>
+        get() = _gattConnected
+    private var _exceedReconnectLimit = MutableLiveData<Event<Boolean>>()
+    val exceedReconnectLimit : LiveData<Event<Boolean>>
+        get() = _exceedReconnectLimit
     private var _startStopIntent = MutableLiveData<Event<Intent>>()
     val startStopIntent : LiveData<Event<Intent>>
         get() = _startStopIntent
@@ -50,6 +56,15 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
             when (intent.action) {
                 BLEBroadcastAction.ACTION_STATUS -> {
                     _statusIntent.value = Event(intent)
+                }
+                BLEBroadcastAction.ACTION_GATT_CONNECTED -> {
+                    _gattConnected.value = Event(true)
+                }
+                BLEBroadcastAction.ACTION_GATT_NOT_SUCCESS -> {
+                    _gattConnected.value = Event(false)
+                }
+                BLEBroadcastAction.EXCEED_RECONNECT_MAX_NUMBER -> {
+                    _exceedReconnectLimit.value = Event(true)
                 }
                 BLEBroadcastAction.ACTION_VERIFICATION_SUCCESS -> {
                     getStatusPeriodically()
@@ -284,6 +299,10 @@ class SetupMapFragmentViewModel(private val bleRepository: BluetoothLeRepository
 
     private fun doVerification() {
         bleRepository.doVerification()
+    }
+
+    fun reconnectDevice() {
+        bleRepository.reconnectDevice()
     }
 
 }

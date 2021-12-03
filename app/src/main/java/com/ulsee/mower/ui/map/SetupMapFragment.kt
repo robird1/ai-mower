@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -66,7 +67,7 @@ class SetupMapFragment: Fragment() {
 
         activity?.requestedOrientation = SCREEN_ORIENTATION_LANDSCAPE
 
-        viewModel.getStatusPeriodically()
+//        viewModel.getStatusPeriodically()
 
         state = if (MapData.grassData.size > 0) {
             StateControlPanel(this)
@@ -95,6 +96,8 @@ class SetupMapFragment: Fragment() {
         initBorderRecordObserver()
         initGlobalParameterObserver()
         initDeleteMapObserver()
+        initGattConnectedStatus()
+        initReconnectLimitObserver()
     }
 
     override fun onDestroyView() {
@@ -141,6 +144,8 @@ class SetupMapFragment: Fragment() {
         if (!isReceiverRegistered) {
             val filter = IntentFilter()
             filter.addAction(BLEBroadcastAction.ACTION_STATUS)
+            filter.addAction(BLEBroadcastAction.ACTION_GATT_CONNECTED)
+            filter.addAction(BLEBroadcastAction.ACTION_GATT_NOT_SUCCESS)
             filter.addAction(BLEBroadcastAction.ACTION_VERIFICATION_SUCCESS)
             filter.addAction(BLEBroadcastAction.ACTION_VERIFICATION_FAILED)
             filter.addAction(BLEBroadcastAction.ACTION_BORDER_RECORD)
@@ -152,6 +157,7 @@ class SetupMapFragment: Fragment() {
             filter.addAction(BLEBroadcastAction.ACTION_CHARGING_PATH)
             filter.addAction(BLEBroadcastAction.ACTION_REQUEST_DELETE_MAP)
             filter.addAction(BLEBroadcastAction.ACTION_RESPONSE_DELETE_MAP)
+            filter.addAction(BLEBroadcastAction.EXCEED_RECONNECT_MAX_NUMBER)
             requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
             isReceiverRegistered = true
         }
@@ -192,6 +198,7 @@ class SetupMapFragment: Fragment() {
 
                 checkRobotStatus(robotStatus)
                 checkInterruptionCode(interruptionCode)
+                checkSatelliteSignal()
 
                 when (testingBoundaryState) {
                     Status.TestingBoundaryState.WAITING -> {          // 等待指令(饶边或保存)
@@ -218,6 +225,56 @@ class SetupMapFragment: Fragment() {
                 }
 
                 binding.mapView.notifyRobotCoordinate(x, y, angle, state)
+            }
+        }
+    }
+
+    private fun checkSatelliteSignal() {
+        when (signalQuality) {
+            1 -> {
+                binding.signalText.text = "Available"
+                binding.signalGood.isVisible = true
+                binding.signalBad.isVisible = false
+            }
+            0 -> {
+                binding.signalText.text = "Unavailable"
+                binding.signalGood.isVisible = false
+                binding.signalBad.isVisible = true
+            }
+        }
+    }
+
+    private fun initGattConnectedStatus() {
+        viewModel.gattConnected.observe(viewLifecycleOwner) { it->
+            it.getContentIfNotHandled()?.let { isConnected ->
+                if (isConnected) {
+                    binding.bleConnected.isVisible = true
+                    binding.bleDisconnected.isVisible = false
+                    binding.bleText.text = "Connected"
+                } else {
+                    binding.bleConnected.isVisible = false
+                    binding.bleDisconnected.isVisible = true
+                    binding.bleText.text = "Disconnected"
+                }
+            }
+        }
+    }
+
+    private fun initReconnectLimitObserver() {
+        viewModel.exceedReconnectLimit.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { isExceed ->
+                if (isExceed) {
+                    val dialog = AlertDialog.Builder(requireContext())
+                        .setTitle("Connect Failed")
+                        .setMessage("please close to mower first and then retry connection again.")
+                        .setCancelable(false)
+                        .setPositiveButton("retry") { it, _ ->
+                            viewModel.reconnectDevice()
+                            it.dismiss()
+                        }
+                        .create()
+                    dialog.show()
+                }
             }
         }
     }

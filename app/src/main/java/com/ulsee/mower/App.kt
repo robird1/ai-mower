@@ -49,8 +49,8 @@ class App: Application() {
             componentName: ComponentName,
             service: IBinder
         ) {
-            Log.d(TAG, "[Enter] onServiceConnected")
             bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
+            Log.d(TAG, "[Enter] onServiceConnected bluetoothService: $bluetoothService")
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {

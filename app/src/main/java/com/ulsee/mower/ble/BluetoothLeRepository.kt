@@ -24,6 +24,10 @@ class BluetoothLeRepository(private var bleService: BluetoothLeService?) {
         bleService?.disconnectDevice()
     }
 
+    fun reconnectDevice() {
+        bleService?.reconnectDevice()
+    }
+
     fun getStatusPeriodically() {
         bleService?.getStatusPeriodically()
     }

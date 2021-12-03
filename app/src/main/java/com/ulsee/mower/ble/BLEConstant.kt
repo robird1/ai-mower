@@ -237,5 +237,7 @@ class BLEBroadcastAction {
         const val ACTION_MOWING_DATA = "action_mowing_data"
         const val ACTION_SETTINGS = "action_settings"
         const val ACTION_SCHEDULING = "action_scheduling"
+        const val EXCEED_RECONNECT_MAX_NUMBER = "exceed_reconnect_max_number"
+
     }
 }

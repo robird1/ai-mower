@@ -37,7 +37,6 @@ import com.ulsee.mower.data.Status.WorkingMode.Companion.TESTING_BOUNDARY_MODE
 import com.ulsee.mower.data.Status.WorkingMode.Companion.WORKING_MODE
 import com.ulsee.mower.data.StatusFragmentBroadcast
 import com.ulsee.mower.databinding.ActivityStatusBinding
-import com.ulsee.mower.ui.connect.RobotListFragmentArgs
 import com.ulsee.mower.ui.login.LoginActivity
 
 private val TAG = StatusFragment::class.java.simpleName
@@ -51,6 +50,7 @@ class StatusFragment: Fragment() {
     private var isMowingStatus = false
     private var workingMode = MANUAL_MODE
 //    private var estimatedTime = ""
+//    private var isMapRequesting = false
 
     private var state = MowingState.Stop
         set(value) {
@@ -110,14 +110,15 @@ class StatusFragment: Fragment() {
         initSettingButton()
         initEditMapButton()
         registerBLEReceiver()
-        viewModel.getStatusPeriodically()
-//        getMapData()
 
         val args = StatusFragmentArgs.fromBundle(requireArguments())
         Log.d("123", "args.refreshMap: ${args.refreshMap}")
         if (args.refreshMap) {
             getMapData()
+            viewModel.isMapObtained = false
         }
+        val isBleConnected = (requireActivity().application as App).bluetoothService!!.isBleConnected
+        updateStatusBLE(isBleConnected)
         observerMainActivityAWSMqttStatus(binding.root)
 
         return binding.root
@@ -131,6 +132,7 @@ class StatusFragment: Fragment() {
         initGlobalParameterObserver()
         initMowingDataObserver()
         initGattConnectedStatus()
+        initReconnectLimitObserver()
     }
 
     override fun onDestroyView() {
@@ -207,6 +209,7 @@ class StatusFragment: Fragment() {
             filter.addAction(BLEBroadcastAction.ACTION_GATT_NOT_SUCCESS)
             filter.addAction(BLEBroadcastAction.ACTION_VERIFICATION_SUCCESS)
             filter.addAction(BLEBroadcastAction.ACTION_VERIFICATION_FAILED)
+            filter.addAction(BLEBroadcastAction.EXCEED_RECONNECT_MAX_NUMBER)
             requireActivity().registerReceiver(viewModel.gattUpdateReceiver, filter)
             isReceiverRegistered = true
         }
@@ -235,7 +238,9 @@ class StatusFragment: Fragment() {
             it.getContentIfNotHandled()?.let { isFinished ->
                 binding.progressView.isVisible = false
                 if (isFinished) {
+                    viewModel.getStatusPeriodically()
                     binding.statusView.initData()
+                    viewModel.isMapObtained = true
                 }
             }
         }
@@ -257,14 +262,40 @@ class StatusFragment: Fragment() {
     private fun initGattConnectedStatus() {
         viewModel.gattConnected.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { isConnected ->
-                if (isConnected) {
-                    binding.connectedView.isVisible = true
-                    binding.disconnectedView.isVisible = false
-                    binding.connectStausText.text = "Connected"
-                } else {
-                    binding.connectedView.isVisible = false
-                    binding.disconnectedView.isVisible = true
-                    binding.connectStausText.text = "Disconnected"
+                updateStatusBLE(isConnected)
+            }
+        }
+    }
+
+    private fun updateStatusBLE(isConnected: Boolean) {
+        Log.d("666", "isConnected: $isConnected")
+        if (isConnected) {
+            binding.connectedView.isVisible = true
+            binding.disconnectedView.isVisible = false
+            binding.connectStausText.text = "Connected"
+            binding.editMapButton.isVisible = true
+        } else {
+            binding.connectedView.isVisible = false
+            binding.disconnectedView.isVisible = true
+            binding.connectStausText.text = "Disconnected"
+            binding.editMapButton.isVisible = false
+        }
+    }
+
+    private fun initReconnectLimitObserver() {
+        viewModel.exceedReconnectLimit.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { isExceed ->
+                if (isExceed) {
+                    val dialog = AlertDialog.Builder(requireContext())
+                        .setTitle("Connect Failed")
+                        .setMessage("please close to mower first and then retry connection again.")
+                        .setCancelable(false)
+                        .setPositiveButton("retry") { it, _ ->
+                            viewModel.reconnectDevice()
+                            it.dismiss()
+                        }
+                        .create()
+                    dialog.show()
                 }
             }
         }

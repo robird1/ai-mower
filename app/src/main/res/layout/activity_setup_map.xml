@@ -650,6 +650,74 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <TextView
+            android:id="@+id/signalText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:text="Unavailable"
+            android:textColor="@color/white"
+            android:textSize="10sp"
+            app:layout_constraintEnd_toEndOf="@+id/guideView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/signal_good"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/signalText"
+            app:layout_constraintEnd_toStartOf="@+id/signalText"
+            app:layout_constraintTop_toTopOf="@+id/signalText"
+            app:srcCompat="@drawable/ic_signal" />
+
+        <ImageView
+            android:id="@+id/signal_bad"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@+id/signalText"
+            app:layout_constraintEnd_toStartOf="@+id/signalText"
+            app:layout_constraintTop_toTopOf="@+id/signalText"
+            app:srcCompat="@drawable/ic_signal_copy" />
+
+        <ImageView
+            android:id="@+id/ble_connected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="@+id/guideView"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_connected_s" />
+
+        <ImageView
+            android:id="@+id/ble_disconnected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:visibility="invisible"
+            app:layout_constraintStart_toStartOf="@+id/guideView"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_disconnected_s" />
+
+        <TextView
+            android:id="@+id/bleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="16dp"
+            android:text="Connected"
+            android:textColor="@color/white"
+            android:textSize="10sp"
+            app:layout_constraintStart_toStartOf="@+id/guideView"
+            app:layout_constraintTop_toTopOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

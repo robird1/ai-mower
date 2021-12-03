@@ -17,6 +17,9 @@
             <argument
                 android:name="refreshMap"
                 android:defaultValue="true" />
+            <argument
+                android:name="bleConnected"
+                android:defaultValue="true" />
         </action>
         <argument
             android:name="isGuideFinished"
